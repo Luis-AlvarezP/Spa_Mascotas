@@ -2,12 +2,14 @@ package com.spamascotas.spa_mascotas_api.config;
 
 import com.spamascotas.spa_mascotas_api.model.Cliente;
 import com.spamascotas.spa_mascotas_api.model.Empleado;
+import com.spamascotas.spa_mascotas_api.model.HorarioTrabajo;
 import com.spamascotas.spa_mascotas_api.model.Rol;
 import com.spamascotas.spa_mascotas_api.model.Usuario;
 import com.spamascotas.spa_mascotas_api.model.enums.EstadoUsuario;
 import com.spamascotas.spa_mascotas_api.model.enums.RolEnum;
 import com.spamascotas.spa_mascotas_api.repository.ClienteRepository;
 import com.spamascotas.spa_mascotas_api.repository.EmpleadoRepository;
+import com.spamascotas.spa_mascotas_api.repository.HorarioTrabajoRepository;
 import com.spamascotas.spa_mascotas_api.repository.RolRepository;
 import com.spamascotas.spa_mascotas_api.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Component
 @RequiredArgsConstructor
@@ -26,6 +31,7 @@ public class DataInitializer implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final ClienteRepository clienteRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final HorarioTrabajoRepository horarioTrabajoRepository;
 
     @Override
     @Transactional
@@ -35,6 +41,7 @@ public class DataInitializer implements ApplicationRunner {
         inicializarCliente();
         inicializarGroomer();
         inicializarRecepcion();
+        inicializarHorariosGroomer();
     }
 
     private void inicializarRoles() {
@@ -130,5 +137,28 @@ public class DataInitializer implements ApplicationRunner {
                 .puesto(RolEnum.RECEPCION.name())
                 .build();
         empleadoRepository.save(empleado);
+    }
+
+    private void inicializarHorariosGroomer() {
+        usuarioRepository.findByCorreo("groomer@spamascotas.com").ifPresent(usuario ->
+            empleadoRepository.findByUsuario(usuario).ifPresent(empleado -> {
+                if (!horarioTrabajoRepository.findByEmpleadoOrderByDiaSemana(empleado).isEmpty()) {
+                    return;
+                }
+                String[] dias = {"LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"};
+                for (String dia : dias) {
+                    horarioTrabajoRepository.save(HorarioTrabajo.builder()
+                            .empleado(empleado)
+                            .diaSemana(dia)
+                            .horaInicio(LocalTime.of(9, 0))
+                            .horaFin(LocalTime.of(18, 0))
+                            .inicioAlmuerzo(LocalTime.of(13, 0))
+                            .finAlmuerzo(LocalTime.of(14, 0))
+                            .vigenteDesde(LocalDate.of(2025, 1, 1))
+                            .capacidadMaxima(8)
+                            .build());
+                }
+            })
+        );
     }
 }

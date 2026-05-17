@@ -12,7 +12,8 @@ interface NavItem {
 
 const ALL_NAV: NavItem[] = [
   { label: 'Inicio',              icon: 'home',     route: '/dashboard', roles: ['ADMIN','RECEPCION','GROOMER','CLIENTE'] },
-  { label: 'Agenda',              icon: 'calendar', route: '/agenda',    roles: ['ADMIN','RECEPCION','GROOMER'] },
+  { label: 'Horarios de Trabajo', icon: 'calendar', route: '/agenda',    roles: ['ADMIN','RECEPCION'] },
+  { label: 'Agenda',              icon: 'calendar', route: '/agenda',    roles: ['GROOMER'] },
   { label: 'Mis Citas',           icon: 'calendar', route: '/agenda',    roles: ['CLIENTE'] },
   { label: 'Grooming',            icon: 'scissors', route: '/grooming',  roles: ['ADMIN','GROOMER','CLIENTE'] },
   { label: 'Clientes y Mascotas', icon: 'pets',     route: '/mascotas',  roles: ['ADMIN','RECEPCION','GROOMER'] },

@@ -89,15 +89,16 @@ CREATE TABLE IF NOT EXISTS empleados (
 );
 
 CREATE TABLE IF NOT EXISTS horarios_trabajo (
-    id              BIGINT PRIMARY KEY DEFAULT nextval('horarios_id_seq'),
-    empleado_id     BIGINT REFERENCES empleados(id),
-    dia_semana      TEXT  NOT NULL,
-    hora_inicio     TIME  NOT NULL,
-    hora_fin        TIME  NOT NULL,
-    inicio_almuerzo TIME,
-    fin_almuerzo    TIME,
-    vigente_desde   DATE  NOT NULL,
-    vigente_hasta   DATE,
+    id               BIGINT  PRIMARY KEY DEFAULT nextval('horarios_id_seq'),
+    empleado_id      BIGINT  REFERENCES empleados(id),
+    dia_semana       TEXT    NOT NULL,
+    hora_inicio      TIME    NOT NULL,
+    hora_fin         TIME    NOT NULL,
+    inicio_almuerzo  TIME,
+    fin_almuerzo     TIME,
+    vigente_desde    DATE    NOT NULL,
+    vigente_hasta    DATE,
+    capacidad_maxima INTEGER NOT NULL DEFAULT 8,
     UNIQUE (empleado_id, dia_semana, vigente_desde)
 );
 
@@ -350,6 +351,10 @@ CREATE INDEX IF NOT EXISTS idx_audit_correo    ON audit_logs (correo_usuario);
 CREATE INDEX IF NOT EXISTS idx_audit_accion    ON audit_logs (accion);
 
 -- ── DATOS INICIALES ──────────────────────────────────────────
+
+-- Migración: agrega columna si la tabla ya existe sin ella
+ALTER TABLE IF EXISTS horarios_trabajo
+    ADD COLUMN IF NOT EXISTS capacidad_maxima INTEGER NOT NULL DEFAULT 8;
 
 INSERT INTO roles (nombre) VALUES
     ('ADMIN'), ('RECEPCION'), ('GROOMER'), ('CLIENTE')
