@@ -1,0 +1,182 @@
+<div class="auth-page">
+
+  <!-- ═══ Panel Izquierdo — Branding ═══ -->
+  <div class="brand-panel">
+    <div class="brand-content">
+
+      <!-- Logo -->
+      <div class="brand-logo">
+        <div class="logo-paw">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="12" cy="14" rx="5" ry="7" fill="url(#pg1)"/>
+            <ellipse cx="24" cy="10" rx="5" ry="7" fill="url(#pg1)"/>
+            <ellipse cx="36" cy="14" rx="5" ry="7" fill="url(#pg1)"/>
+            <path d="M8 28c0-8 4-14 16-12s16 4 16 12c0 8-6 12-16 12S8 36 8 28z" fill="url(#pg1)"/>
+            <defs>
+              <linearGradient id="pg1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#8b5cf6"/>
+                <stop offset="1" stop-color="#ec4899"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-name">SpaMascotas</span>
+      </div>
+
+      <!-- Tagline -->
+      <h1 class="brand-headline">
+        El cuidado premium<br>que tu mascota merece
+      </h1>
+      <p class="brand-sub">
+        Gestión profesional de citas, grooming e historial clínico en un solo sistema.
+      </p>
+
+      <!-- Features -->
+      <div class="brand-features">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/></svg>
+          </div>
+          <span>Agenda de citas en tiempo real</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+          </div>
+          <span>Fichas de grooming y checklist</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+          </div>
+          <span>Reportes y estadísticas avanzadas</span>
+        </div>
+      </div>
+
+      <!-- Decorative paws -->
+      <div class="deco-paw deco-1">🐾</div>
+      <div class="deco-paw deco-2">🐾</div>
+      <div class="deco-paw deco-3">🐾</div>
+    </div>
+  </div>
+
+  <!-- ═══ Panel Derecho — Formulario ═══ -->
+  <div class="form-panel">
+    <div class="form-card">
+
+      <!-- Cabecera -->
+      <div class="form-header">
+        <h2 class="form-title">Bienvenido de nuevo</h2>
+        <p class="form-subtitle">Inicia sesión para continuar</p>
+      </div>
+
+      <!-- Formulario -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <!-- Correo o usuario -->
+        <div class="field-group">
+          <label class="field-label" for="identificador">Correo o nombre de usuario</label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+            </span>
+            <input id="identificador" type="text" formControlName="identificador"
+                   placeholder="usuario o correo@ejemplo.com" autocomplete="username"
+                   [class.input-error]="identificadorCtrl.invalid && identificadorCtrl.touched">
+          </div>
+          @if (identificadorCtrl.invalid && identificadorCtrl.touched) {
+            <span class="field-error">Ingresa tu correo o nombre de usuario</span>
+          }
+        </div>
+
+        <!-- Contraseña -->
+        <div class="field-group">
+          <label class="field-label" for="password">Contraseña</label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+            </span>
+            <input id="password"
+                   [type]="mostrarPassword() ? 'text' : 'password'"
+                   formControlName="password"
+                   placeholder="••••••••"
+                   autocomplete="current-password"
+                   [class.input-error]="passwordCtrl.invalid && passwordCtrl.touched">
+            <button type="button" class="eye-btn" (click)="mostrarPassword.set(!mostrarPassword())"
+                    [attr.aria-label]="mostrarPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              @if (mostrarPassword()) {
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd"/><path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"/></svg>
+              } @else {
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+              }
+            </button>
+          </div>
+          @if (passwordCtrl.invalid && passwordCtrl.touched) {
+            <span class="field-error">La contraseña es requerida</span>
+          }
+        </div>
+
+        <!-- 2FA -->
+        @if (requiere2fa()) {
+          <div class="field-group totp-group">
+            <div class="totp-banner">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="totp-icon"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              <span>Ingresa el código de tu app de autenticación</span>
+            </div>
+            <div class="input-wrap">
+              <input type="number" formControlName="codigoTotp"
+                     placeholder="000 000" maxlength="6" class="totp-input">
+            </div>
+          </div>
+        }
+
+        <!-- Error global -->
+        @if (error()) {
+          <div class="alert-error" role="alert">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            {{ error() }}
+          </div>
+        }
+
+        <!-- Submit -->
+        <button type="submit" class="btn-primary" [disabled]="cargando()">
+          @if (cargando()) {
+            <span class="spinner"></span>
+            <span>Verificando...</span>
+          } @else {
+            <span>Ingresar al sistema</span>
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          }
+        </button>
+
+      </form>
+
+      <!-- Divider -->
+      <div class="auth-divider"><span>o</span></div>
+
+      <!-- Google OAuth -->
+      <a href="http://localhost:8080/oauth2/authorization/google" class="btn-google">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        <span>Continuar con Google</span>
+      </a>
+
+      <!-- Forgot password -->
+      <div class="form-footer" style="margin-top:0.5rem">
+        <a routerLink="/auth/forgot-password" class="forgot-link">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <!-- Register -->
+      <div class="form-footer">
+        <span>¿No tienes cuenta?</span>
+        <a routerLink="/auth/register">Crear cuenta gratis</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>

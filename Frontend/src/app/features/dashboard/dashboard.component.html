@@ -1,0 +1,101 @@
+<!-- Banner de bienvenida (todos los roles) -->
+<div class="welcome-banner">
+  <div class="welcome-text">
+    <h1 class="welcome-title">
+      Bienvenido, <span class="gradient-text">{{ nombre() }}</span>
+    </h1>
+    <p class="welcome-sub">Gestiona tu negocio desde el panel central de SpaMascotas</p>
+  </div>
+  <div class="welcome-illustration">🐾</div>
+</div>
+
+<!-- Estadísticas y módulos: solo ADMIN -->
+@if (isAdmin()) {
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon stat-purple">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/></svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">—</span>
+        <span class="stat-label">Citas hoy</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-pink">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zm8 0a3 3 0 11-6 0 3 3 0 016 0zM3 20a7 7 0 0114 0H3z"/></svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">—</span>
+        <span class="stat-label">Clientes activos</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-teal">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/></svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">—</span>
+        <span class="stat-label">Ventas del mes</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-gold">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">—</span>
+        <span class="stat-label">Calificación promedio</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modules-section">
+    <h2 class="section-title">Módulos del sistema</h2>
+    <div class="modules-grid">
+
+      <a class="module-card" routerLink="/agenda">
+        <div class="module-icon-wrap mod-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="module-body"><h3>Agenda</h3><p>Citas y calendario del spa</p></div>
+        <div class="module-arrow"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></div>
+      </a>
+
+      <a class="module-card" routerLink="/grooming">
+        <div class="module-icon-wrap mod-pink">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.5 2a3.5 3.5 0 101.665 6.58L8.585 10l-1.42 1.42a3.5 3.5 0 101.414 1.414L10 11.415l1.42 1.42a3.5 3.5 0 101.415-1.415L11.414 10l1.42-1.42A3.5 3.5 0 105 5.5a3.5 3.5 0 00.5 1.58zm1.5 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm7 7a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-7 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" clip-rule="evenodd"/></svg>
+        </div>
+        <div class="module-body"><h3>Grooming</h3><p>Fichas y checklist de servicio</p></div>
+        <div class="module-arrow"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></div>
+      </a>
+
+      <a class="module-card" routerLink="/mascotas">
+        <div class="module-icon-wrap mod-teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+        </div>
+        <div class="module-body"><h3>Clientes y Mascotas</h3><p>Perfiles e historial clínico</p></div>
+        <div class="module-arrow"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></div>
+      </a>
+
+      <a class="module-card" routerLink="/inventario">
+        <div class="module-icon-wrap mod-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        </div>
+        <div class="module-body"><h3>Inventario</h3><p>Stock, catálogo y ventas</p></div>
+        <div class="module-arrow"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></div>
+      </a>
+
+      <a class="module-card" routerLink="/admin/auditoria">
+        <div class="module-icon-wrap mod-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <div class="module-body"><h3>Administración</h3><p>Auditoría, personal y configuración</p></div>
+        <div class="module-arrow"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></div>
+      </a>
+
+    </div>
+  </div>
+
+}

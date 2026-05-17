@@ -1,0 +1,61 @@
+<!-- Overlay móvil -->
+@if (open) {
+  <div class="sidebar-overlay" (click)="close()"></div>
+}
+
+<aside class="sidebar" [class.sidebar-open]="open">
+
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 48 48" fill="none">
+        <ellipse cx="12" cy="14" rx="5" ry="7" fill="url(#sg1)"/>
+        <ellipse cx="24" cy="10" rx="5" ry="7" fill="url(#sg1)"/>
+        <ellipse cx="36" cy="14" rx="5" ry="7" fill="url(#sg1)"/>
+        <path d="M8 28c0-8 4-14 16-12s16 4 16 12c0 8-6 12-16 12S8 36 8 28z" fill="url(#sg1)"/>
+        <defs>
+          <linearGradient id="sg1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <span class="logo-name">SpaMascotas</span>
+      <span class="logo-tagline">Panel de gestión</span>
+    </div>
+  </div>
+
+  <div class="sidebar-sep"></div>
+
+  <nav class="sidebar-nav">
+    @for (item of navItems(); track item.route) {
+      <a class="nav-item"
+         [routerLink]="item.route"
+         routerLinkActive="nav-item-active"
+         [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+         (click)="close()">
+        <span class="nav-icon" [innerHTML]="icon(item.icon)"></span>
+        <span class="nav-label">{{ item.label }}</span>
+        <span class="nav-indicator"></span>
+      </a>
+    }
+  </nav>
+
+  <div class="sidebar-sep sidebar-sep-bottom"></div>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">
+      {{ ((auth.usuario()?.nombreUsuario || auth.usuario()?.correo) ?? 'U')[0].toUpperCase() }}
+    </div>
+    <div class="user-info">
+      <span class="user-name">{{ auth.usuario()?.nombreUsuario || auth.usuario()?.correo?.split('@')?.[0] }}</span>
+      <span class="badge" [class]="rolBadgeClass()">{{ auth.rol() }}</span>
+    </div>
+    <button class="logout-btn" (click)="auth.logout()" title="Cerrar sesión">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+      </svg>
+    </button>
+  </div>
+
+</aside>

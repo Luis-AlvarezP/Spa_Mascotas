@@ -1,0 +1,76 @@
+<div class="setup-page">
+  <div class="setup-card">
+
+    <div class="setup-header">
+      <div class="shield-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+        </svg>
+      </div>
+      <h1>Configurar autenticación de dos factores</h1>
+      <p>Tu cuenta requiere 2FA para mayor seguridad. Configúrala una sola vez.</p>
+    </div>
+
+    @if (cargando() && paso() === 1) {
+      <div class="loading-state">
+        <span class="spinner"></span>
+        <span>Generando código QR...</span>
+      </div>
+    }
+
+    @if (error()) {
+      <div class="alert-error" role="alert">{{ error() }}</div>
+    }
+
+    @if (paso() === 2 && qrDataUrl()) {
+      <div class="steps">
+
+        <!-- Paso 1: Escanear QR -->
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p class="step-title">Descarga Google Authenticator</p>
+            <p class="step-desc">Disponible en App Store y Google Play. También puedes usar Authy o cualquier app TOTP.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p class="step-title">Escanea el código QR</p>
+            <div class="qr-container">
+              <img [src]="qrDataUrl()!" alt="Código QR para Google Authenticator">
+            </div>
+            <details class="secret-details">
+              <summary>¿No puedes escanear? Ingresa la clave manual</summary>
+              <code class="secret-code">{{ secret() }}</code>
+            </details>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p class="step-title">Ingresa el código de 6 dígitos</p>
+            <form [formGroup]="codeForm" (ngSubmit)="onVerificar()">
+              <div class="code-input-wrap">
+                <input type="number" formControlName="codigo"
+                       placeholder="000 000" maxlength="6"
+                       class="code-input" autocomplete="one-time-code">
+              </div>
+              <button type="submit" class="btn-verify" [disabled]="cargando() || codeForm.invalid">
+                @if (cargando()) {
+                  <span class="spinner"></span> Verificando...
+                } @else {
+                  Verificar y acceder al sistema
+                }
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    }
+
+  </div>
+</div>

@@ -1,0 +1,93 @@
+<div class="activacion-page">
+
+  <!-- Fondo decorativo -->
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="activacion-card">
+
+    <!-- Logo -->
+    <div class="card-logo">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="12" cy="14" rx="5" ry="7" fill="url(#ag1)"/>
+        <ellipse cx="24" cy="10" rx="5" ry="7" fill="url(#ag1)"/>
+        <ellipse cx="36" cy="14" rx="5" ry="7" fill="url(#ag1)"/>
+        <path d="M8 28c0-8 4-14 16-12s16 4 16 12c0 8-6 12-16 12S8 36 8 28z" fill="url(#ag1)"/>
+        <defs>
+          <linearGradient id="ag1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span>SpaMascotas</span>
+    </div>
+
+    @switch (estado()) {
+
+      @case ('cargando') {
+        <div class="state-box">
+          <div class="spinner-ring">
+            <svg viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(139,92,246,0.2)" stroke-width="4"/>
+              <circle cx="25" cy="25" r="20" fill="none" stroke="url(#sg)" stroke-width="4"
+                      stroke-linecap="round" stroke-dasharray="100 260"/>
+              <defs>
+                <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#8b5cf6"/>
+                  <stop offset="100%" stop-color="#ec4899"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <h2 class="state-title">Activando tu cuenta</h2>
+          <p class="state-msg">Por favor espera un momento...</p>
+        </div>
+      }
+
+      @case ('exito') {
+        <div class="state-box state-success">
+          <div class="state-icon success-icon">
+            <svg viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="22" stroke="url(#eg)" stroke-width="2"/>
+              <path d="M14 24l7 7 13-13" stroke="url(#eg)" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="eg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#8b5cf6"/><stop offset="1" stop-color="#10b981"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <h2 class="state-title success">¡Cuenta activada!</h2>
+          <p class="state-msg">{{ mensaje() }}</p>
+          <a routerLink="/auth/login" class="btn-primary">
+            Iniciar sesión
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </a>
+        </div>
+      }
+
+      @case ('error') {
+        <div class="state-box state-error">
+          <div class="state-icon error-icon">
+            <svg viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="22" stroke="url(#errg)" stroke-width="2"/>
+              <path d="M16 16l16 16M32 16L16 32" stroke="url(#errg)" stroke-width="2.5"
+                    stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="errg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#ef4444"/><stop offset="1" stop-color="#f97316"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <h2 class="state-title error">Error de activación</h2>
+          <p class="state-msg">{{ mensaje() }}</p>
+          <a routerLink="/auth/register" class="btn-secondary">Registrarse de nuevo</a>
+        </div>
+      }
+
+    }
+
+  </div>
+</div>

@@ -1,0 +1,129 @@
+<!-- ── Vista CLIENTE: Mis Mascotas (placeholder) ───────── -->
+@if (isCliente()) {
+  <div class="module-page">
+    <div class="module-header">
+      <div class="module-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4.5 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm15 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM7 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM12 13c-3.5 0-6 2.5-6 5.5 0 1.5 2 2.5 6 2.5s6-1 6-2.5c0-3-2.5-5.5-6-5.5z"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="module-title">Mis Mascotas</h1>
+        <p class="module-sub">Administra los perfiles de tus mascotas</p>
+      </div>
+    </div>
+    <div class="coming-soon">
+      <div class="cs-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </div>
+      <h2>Módulo en desarrollo</h2>
+      <p>Pronto podrás agregar y gestionar los perfiles de tus mascotas.</p>
+      <a routerLink="/dashboard" class="btn-back">Volver al inicio</a>
+    </div>
+  </div>
+}
+
+<!-- ── Vista STAFF: Clientes y Mascotas ──────────────── -->
+@if (isStaff()) {
+  <div class="clientes-page">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Clientes y Mascotas</h1>
+        <p class="page-sub">
+          {{ clientes().length }} cliente{{ clientes().length !== 1 ? 's' : '' }} registrado{{ clientes().length !== 1 ? 's' : '' }}
+        </p>
+      </div>
+      <button class="btn-refresh" (click)="cargar()" [disabled]="cargando()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+        Actualizar
+      </button>
+    </div>
+
+    @if (exito()) {
+      <div class="alert-success">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        {{ exito() }}
+      </div>
+    }
+    @if (error()) {
+      <div class="alert-error">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        {{ error() }}
+      </div>
+    }
+
+    @if (cargando()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando clientes...</span>
+      </div>
+    } @else if (clientes().length === 0) {
+      <div class="empty-state">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+        <p>No hay clientes registrados aún</p>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Correo</th>
+              <th>CI</th>
+              <th>Teléfono</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of clientes(); track c.id) {
+              <tr>
+                <td>
+                  <div class="client-cell">
+                    <div class="client-avatar">{{ (c.nombre ?? c.correo)[0].toUpperCase() }}</div>
+                    <span class="client-name">{{ c.nombre ?? '—' }}</span>
+                  </div>
+                </td>
+                <td class="text-muted td-email">{{ c.correo }}</td>
+                <td class="text-muted">{{ c.ci ?? '—' }}</td>
+                <td class="text-muted">{{ c.telefono ?? '—' }}</td>
+                <td>
+                  <span class="estado-badge" [class.activo]="c.estado === 'ACTIVO'">{{ c.estado }}</span>
+                </td>
+                <td>
+                  <div class="actions-cell">
+                    <!-- Botón mascotas (placeholder sin acción) -->
+                    <button class="btn-icon btn-icon-paw"
+                            title="Ver mascotas"
+                            (click)="verMascotas(c.id)">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4.5 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm15 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM7 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM12 13c-3.5 0-6 2.5-6 5.5 0 1.5 2 2.5 6 2.5s6-1 6-2.5c0-3-2.5-5.5-6-5.5z"/>
+                      </svg>
+                    </button>
+                    <!-- Botón toggle estado (solo ADMIN puede usar) -->
+                    <button class="btn-icon"
+                            [class.btn-icon-danger]="c.estado === 'ACTIVO'"
+                            [class.btn-icon-success]="c.estado !== 'ACTIVO'"
+                            [title]="isAdmin() ? (c.estado === 'ACTIVO' ? 'Inhabilitar cliente' : 'Habilitar cliente') : 'Solo el administrador puede cambiar el estado'"
+                            [disabled]="toggleando() === c.id || !isAdmin()"
+                            (click)="toggleEstado(c)">
+                      @if (toggleando() === c.id) {
+                        <span class="spinner-sm"></span>
+                      } @else if (c.estado === 'ACTIVO') {
+                        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524L13.477 14.89zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/></svg>
+                      } @else {
+                        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
+                      }
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  </div>
+}

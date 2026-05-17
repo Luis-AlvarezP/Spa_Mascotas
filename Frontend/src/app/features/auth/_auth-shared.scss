@@ -1,0 +1,237 @@
+/* ═══════════════════════════════════════════════════════════
+   SpaMascotas — Auth Shared Mixins (Dark Glassmorphism)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Página completa split-screen ────────────────────────── */
+@mixin auth-split-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg-base);
+  position: relative;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+}
+
+/* ── Panel izquierdo (branding) ──────────────────────────── */
+@mixin auth-brand-panel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 3.5rem;
+  background: linear-gradient(155deg, #0e0b20 0%, #1a0f38 50%, #0d1630 100%);
+
+  /* Orbes de fondo animados */
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  &::before {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, rgba(124,58,237,0.35) 0%, transparent 70%);
+    top: -160px; left: -160px;
+    animation: orb-float 14s ease-in-out infinite alternate;
+  }
+  &::after {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(236,72,153,0.28) 0%, transparent 70%);
+    bottom: -120px; right: -120px;
+    animation: orb-float 18s ease-in-out infinite alternate-reverse;
+  }
+
+  @media (max-width: 900px) {
+    padding: 2.5rem 2rem 2rem;
+    min-height: 280px;
+    align-items: flex-start;
+  }
+}
+
+/* ── Panel derecho (formulario) ──────────────────────────── */
+@mixin auth-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  background: var(--bg-base);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 60% 30%, rgba(124,58,237,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  @media (max-width: 900px) {
+    padding: 2rem 1.25rem 3rem;
+  }
+}
+
+/* ── Card del formulario ─────────────────────────────────── */
+@mixin auth-form-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--r-xl);
+  padding: 2.75rem 2.5rem;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+  z-index: 1;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  animation: fadeUp 0.5s var(--t-slow) both;
+
+  @media (max-width: 900px) {
+    max-width: 100%;
+    padding: 2rem 1.5rem;
+    border-radius: var(--r-lg);
+  }
+}
+
+/* ── Inputs ─────────────────────────────────────────────── */
+@mixin auth-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--r-md);
+  font-size: 0.95rem;
+  color: var(--text);
+  transition:
+    border-color var(--t-normal),
+    background var(--t-normal),
+    box-shadow var(--t-normal);
+  box-sizing: border-box;
+  outline: none;
+
+  &:focus {
+    border-color: var(--brand);
+    background: rgba(124, 58, 237, 0.08);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+  }
+  &.ng-invalid.ng-touched {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  }
+  &::placeholder { color: var(--text-dim); }
+  &:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 100px #150e2a inset;
+    -webkit-text-fill-color: var(--text);
+  }
+}
+
+/* ── Botón primario ─────────────────────────────────────── */
+@mixin btn-primary {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: var(--grad-brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition:
+    opacity var(--t-normal),
+    transform var(--t-normal),
+    box-shadow var(--t-normal);
+  letter-spacing: 0.01em;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(255,255,255,0.12), transparent);
+    opacity: 0;
+    transition: opacity var(--t-normal);
+  }
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(124, 58, 237, 0.45);
+    &::after { opacity: 1; }
+  }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+  svg { width: 18px; height: 18px; flex-shrink: 0; }
+}
+
+/* ── Botón Google ───────────────────────────────────────── */
+@mixin btn-google {
+  width: 100%;
+  padding: 0.8rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  transition:
+    background var(--t-normal),
+    border-color var(--t-normal),
+    transform var(--t-normal);
+  letter-spacing: 0.01em;
+
+  svg { width: 20px; height: 20px; flex-shrink: 0; }
+  &:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255,255,255,0.22); transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+}
+
+/* ── Divisor ────────────────────────────────────────────── */
+@mixin auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+  }
+}
+
+/* ── Keyframes ──────────────────────────────────────────── */
+@keyframes orb-float {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(40px, 28px) scale(1.12); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin-fast {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes paw-drift {
+  0%   { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+  20%  { opacity: 0.12; }
+  80%  { opacity: 0.08; }
+  100% { opacity: 0; transform: translate(-60px, -180px) rotate(25deg); }
+}

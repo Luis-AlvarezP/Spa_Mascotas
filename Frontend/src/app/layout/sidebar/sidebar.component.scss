@@ -1,0 +1,117 @@
+$sidebar-w: 260px;
+
+.sidebar-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 40;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease both;
+}
+
+.sidebar {
+  width: $sidebar-w;
+  min-height: 100vh;
+  background: var(--grad-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 50;
+  transition: transform var(--t-slow);
+  overflow-y: auto; overflow-x: hidden;
+
+  @media (max-width: 1024px) {
+    transform: translateX(-100%);
+    &.sidebar-open { transform: translateX(0); box-shadow: 0 0 60px rgba(0,0,0,0.6); }
+  }
+}
+
+.sidebar-logo {
+  display: flex; align-items: center; gap: 0.875rem;
+  padding: 1.5rem 1.25rem 1.25rem;
+  .logo-icon {
+    width: 40px; height: 40px; min-width: 40px;
+    display: flex; align-items: center;
+    filter: drop-shadow(0 0 8px rgba(124,58,237,0.5));
+    svg { width: 100%; height: 100%; }
+  }
+  .logo-text { display: flex; flex-direction: column; }
+  .logo-name {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 800;
+    background: var(--grad-brand);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1.2;
+  }
+  .logo-tagline { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.04em; text-transform: uppercase; }
+}
+
+.sidebar-sep {
+  height: 1px; background: var(--border); margin: 0 1.25rem; flex-shrink: 0;
+  &.sidebar-sep-bottom { margin-top: auto; }
+}
+
+.sidebar-nav {
+  padding: 0.75rem; display: flex; flex-direction: column; gap: 2px; flex: 1;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.65rem 0.875rem; border-radius: var(--r-md);
+  color: var(--text-muted); font-size: 0.875rem; font-weight: 500;
+  text-decoration: none; position: relative; cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), padding-left var(--t-normal);
+
+  &:hover { background: var(--bg-hover); color: var(--text); padding-left: 1.1rem; }
+
+  .nav-icon { width: 18px; height: 18px; min-width: 18px; display: flex; align-items: center; svg { width: 100%; height: 100%; } }
+  .nav-label { flex: 1; white-space: nowrap; }
+  .nav-indicator {
+    width: 4px; height: 0; background: var(--grad-brand);
+    border-radius: 4px 0 0 4px; position: absolute; right: 0; top: 50%;
+    transform: translateY(-50%); transition: height var(--t-normal);
+  }
+
+  &.nav-item-active {
+    background: var(--grad-brand-soft); color: var(--brand-light);
+    font-weight: 600; padding-left: 1.1rem;
+    .nav-indicator { height: 28px; }
+  }
+}
+
+.sidebar-user {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.user-avatar {
+  width: 34px; height: 34px; min-width: 34px;
+  background: var(--grad-brand); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 700; color: #fff;
+  box-shadow: 0 4px 12px rgba(124,58,237,0.35);
+}
+
+.user-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.user-name { font-size: 0.82rem; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 0.15rem 0.5rem; border-radius: 20px;
+  font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  &.badge-admin     { background: rgba(124,58,237,0.2); color: #a78bfa; }
+  &.badge-cliente   { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+  &.badge-groomer   { background: rgba(236,72,153,0.2); color: #f9a8d4; }
+  &.badge-recepcion { background: rgba(59,130,246,0.2); color: #93c5fd; }
+}
+
+.logout-btn {
+  width: 30px; height: 30px; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: var(--r-sm); color: var(--text-dim); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; flex-shrink: 0;
+  transition: background var(--t-fast), color var(--t-fast);
+  svg { width: 14px; height: 14px; }
+  &:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

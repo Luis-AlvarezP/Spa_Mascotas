@@ -1,0 +1,364 @@
+<div class="perfil-page">
+
+  @if (onboarding()) {
+    <div class="onboarding-banner">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
+      <span><strong>¡Cuenta creada con Google!</strong> Completa tus datos para continuar.</span>
+    </div>
+  }
+
+  <div class="perfil-header">
+    <div class="avatar">{{ perfil()?.nombre?.charAt(0)?.toUpperCase() ?? '?' }}</div>
+    <div>
+      <h1>{{ perfil()?.nombre ?? 'Mi perfil' }}</h1>
+      <span class="rol-chip">{{ perfil()?.rol }}</span>
+    </div>
+    <a routerLink="/dashboard" class="back-btn">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+      Volver
+    </a>
+  </div>
+
+  @if (cargando()) {
+    <div class="loading-state">
+      <span class="spinner"></span> Cargando perfil...
+    </div>
+  } @else {
+
+    <div class="perfil-grid">
+
+      <!-- ── Datos personales ── -->
+      <div class="card">
+        <h2 class="card-title">Datos personales</h2>
+
+        @if (exito()) {
+          <div class="alert-success">{{ exito() }}</div>
+        }
+        @if (error()) {
+          <div class="alert-error">{{ error() }}</div>
+        }
+
+        <form [formGroup]="datoForm" (ngSubmit)="guardarDatos()">
+          <div class="field-group">
+            <label>Correo electrónico</label>
+            <div class="input-static">{{ perfil()?.correo }}</div>
+          </div>
+
+          <!-- ADMIN: solo nombre de usuario -->
+          @if (perfil()?.rol === 'ADMIN') {
+            <div class="field-group">
+              <label for="usuario">Nombre de usuario</label>
+              <input id="usuario" type="text" formControlName="nombreUsuario"
+                     placeholder="Para iniciar sesión sin correo" autocomplete="username">
+              <span class="field-hint">Opcional · sin espacios</span>
+            </div>
+          }
+
+          <!-- GROOMER / RECEPCION / CLIENTE: nombre, usuario, ci, telefono -->
+          @if (perfil()?.rol !== 'ADMIN') {
+            <div class="field-group">
+              <label for="nombre">Nombre completo</label>
+              <input id="nombre" type="text" formControlName="nombre" placeholder="Tu nombre">
+            </div>
+
+            <div class="field-group">
+              <label for="usuario-staff">Nombre de usuario</label>
+              <input id="usuario-staff" type="text" formControlName="nombreUsuario"
+                     placeholder="Para iniciar sesión sin correo" autocomplete="username">
+              <span class="field-hint">Opcional · sin espacios</span>
+            </div>
+
+            <div class="field-group">
+              <label for="ci">Cédula de identidad</label>
+              <input id="ci" type="text" formControlName="ci" placeholder="Opcional">
+            </div>
+
+            <div class="field-group">
+              <label for="telefono">Teléfono</label>
+              <input id="telefono" type="text" formControlName="telefono" placeholder="Opcional">
+            </div>
+          }
+
+          <button type="submit" class="btn-save" [disabled]="guardando()">
+            @if (guardando()) {
+              <span class="spinner"></span> Guardando...
+            } @else {
+              Guardar cambios
+            }
+          </button>
+        </form>
+      </div>
+
+      <!-- ── Cambiar contraseña ── -->
+      <div class="card">
+        <h2 class="card-title">Cambiar contraseña</h2>
+
+        @if (exitoPass()) {
+          <div class="alert-success">{{ exitoPass() }}</div>
+        }
+        @if (errorPass()) {
+          <div class="alert-error">{{ errorPass() }}</div>
+        }
+
+        <form [formGroup]="changePassForm" (ngSubmit)="cambiarPassword()">
+          <div class="field-group">
+            <label for="pass-actual">Contraseña actual</label>
+            <div class="input-wrap-pass">
+              <input id="pass-actual"
+                     [type]="mostrarPassActual() ? 'text' : 'password'"
+                     formControlName="passwordActual"
+                     placeholder="••••••••">
+              <button type="button" class="eye-btn-sm" (click)="mostrarPassActual.set(!mostrarPassActual())">
+                @if (mostrarPassActual()) {
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd"/><path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"/></svg>
+                } @else {
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+                }
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="pass-nueva">Nueva contraseña</label>
+            <div class="input-wrap-pass">
+              <input id="pass-nueva"
+                     [type]="mostrarPassNueva() ? 'text' : 'password'"
+                     formControlName="nuevaPassword"
+                     placeholder="Mín. 8 caracteres"
+                     [class.input-error-pass]="changePassForm.get('nuevaPassword')?.invalid && changePassForm.get('nuevaPassword')?.touched">
+              <button type="button" class="eye-btn-sm" (click)="mostrarPassNueva.set(!mostrarPassNueva())">
+                @if (mostrarPassNueva()) {
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd"/><path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"/></svg>
+                } @else {
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+                }
+              </button>
+            </div>
+            @if (changePassForm.get('nuevaPassword')?.value) {
+              <div class="strength-meter">
+                <div class="strength-bars">
+                  @for (i of [1,2,3,4,5]; track i) {
+                    <div class="strength-bar"
+                         [class.active]="passwordStrength() >= i"
+                         [style.background]="passwordStrength() >= i ? strengthLabel().color : ''"></div>
+                  }
+                </div>
+                <span class="strength-text" [style.color]="strengthLabel().color">{{ strengthLabel().texto }}</span>
+              </div>
+              <div class="strength-hints">
+                <span [class.hint-ok]="changePassForm.get('nuevaPassword')!.value!.length >= 8">✓ 8+ caracteres</span>
+                <span [class.hint-ok]="/[A-Z]/.test(changePassForm.get('nuevaPassword')!.value!)">✓ Mayúscula</span>
+                <span [class.hint-ok]="/[a-z]/.test(changePassForm.get('nuevaPassword')!.value!)">✓ Minúscula</span>
+                <span [class.hint-ok]="/\d/.test(changePassForm.get('nuevaPassword')!.value!)">✓ Número</span>
+                <span [class.hint-ok]="/[^a-zA-Z\d]/.test(changePassForm.get('nuevaPassword')!.value!)">✓ Símbolo</span>
+              </div>
+            }
+            @if (changePassForm.get('nuevaPassword')?.invalid && changePassForm.get('nuevaPassword')?.touched) {
+              <span class="field-hint-error">Mín. 8 caracteres con may., mín., número y símbolo</span>
+            }
+          </div>
+
+          <div class="field-group">
+            <label for="pass-confirmar">Confirmar nueva contraseña</label>
+            <input id="pass-confirmar" type="password" formControlName="confirmarPassword" placeholder="••••••••">
+          </div>
+
+          <button type="submit" class="btn-save" [disabled]="guardandoPass() || changePassForm.invalid">
+            @if (guardandoPass()) {
+              <span class="spinner"></span> Guardando...
+            } @else {
+              Cambiar contraseña
+            }
+          </button>
+        </form>
+      </div>
+
+      <!-- ── Seguridad / 2FA ── -->
+      <div class="card">
+        <h2 class="card-title">Seguridad</h2>
+
+        <div class="info-row">
+          <span class="info-label">Inicio con Google</span>
+          <span class="badge" [class.badge-on]="perfil()?.tieneGoogle">{{ perfil()?.tieneGoogle ? 'Vinculado' : 'No vinculado' }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">2FA (Google Authenticator)</span>
+          <span class="badge" [class.badge-on]="perfil()?.totpHabilitado">{{ perfil()?.totpHabilitado ? 'Activo' : 'Inactivo' }}</span>
+        </div>
+
+        @if (totpError()) {
+          <div class="alert-error">{{ totpError() }}</div>
+        }
+
+        @if (modoTotp() === 'setup') {
+          <div class="totp-setup">
+            @if (totpCargando() && !totpQrUrl()) {
+              <div class="loading-state small"><span class="spinner"></span> Generando QR...</div>
+            }
+            @if (totpQrUrl()) {
+              <p class="totp-instructions">Escanea con <strong>Google Authenticator</strong> y luego ingresa el código de 6 dígitos.</p>
+              <div class="qr-wrap">
+                <img [src]="totpQrUrl()!" alt="QR 2FA">
+              </div>
+              <details class="secret-details">
+                <summary>Clave manual</summary>
+                <code>{{ totpSecret() }}</code>
+              </details>
+              <form [formGroup]="codeForm" (ngSubmit)="confirmar2fa()">
+                <div class="field-group">
+                  <label for="codigo">Código de verificación</label>
+                  <input id="codigo" type="number" formControlName="codigo" placeholder="000000" class="code-input">
+                </div>
+                <div class="btn-row">
+                  <button type="button" class="btn-ghost" (click)="cancelarTotp()">Cancelar</button>
+                  <button type="submit" class="btn-save" [disabled]="totpCargando() || codeForm.invalid">
+                    @if (totpCargando()) { <span class="spinner"></span> } Activar 2FA
+                  </button>
+                </div>
+              </form>
+            }
+          </div>
+        }
+
+        @if (modoTotp() === 'disable') {
+          <form [formGroup]="passwordForm" (ngSubmit)="desactivar2fa()" class="totp-setup">
+            <p class="totp-instructions">Ingresa tu contraseña para confirmar la desactivación del 2FA.</p>
+            <div class="field-group">
+              <label for="pass-confirm">Contraseña</label>
+              <input id="pass-confirm" type="password" formControlName="password" placeholder="••••••••">
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn-ghost" (click)="cancelarTotp()">Cancelar</button>
+              <button type="submit" class="btn-danger" [disabled]="totpCargando() || passwordForm.invalid">
+                @if (totpCargando()) { <span class="spinner"></span> } Desactivar 2FA
+              </button>
+            </div>
+          </form>
+        }
+
+        @if (modoTotp() === 'idle') {
+          @if (!perfil()?.totpHabilitado) {
+            <button class="btn-save" style="margin-top:1rem" (click)="iniciarSetup2fa()">
+              Activar 2FA
+            </button>
+          }
+          @if (perfil()?.totpHabilitado && perfil()?.rol === 'CLIENTE') {
+            <button class="btn-danger" style="margin-top:1rem" (click)="iniciarDesactivar2fa()">
+              Desactivar 2FA
+            </button>
+          }
+          @if (perfil()?.totpHabilitado && perfil()?.rol !== 'CLIENTE') {
+            <p class="totp-note">El 2FA es obligatorio para tu rol y no puede desactivarse.</p>
+          }
+        }
+      </div>
+
+      <!-- ── Preferencias de comunicación (solo CLIENTE) ── -->
+      @if (perfil()?.rol === 'CLIENTE') {
+        <div class="card card-full">
+          <h2 class="card-title">Preferencias de comunicación</h2>
+
+          @if (cargandoPref()) {
+            <div class="loading-state small"><span class="spinner"></span> Cargando...</div>
+          } @else {
+
+            <!-- Canal por defecto (siempre visible) -->
+            <div class="canal-section">
+              <div class="canal-header">
+                <div>
+                  <span class="canal-title">Canal de contacto</span>
+                  <span class="canal-desc">¿Cómo prefieres que te contactemos para recordatorios y citas?</span>
+                </div>
+                @if (canalPreferencia()) {
+                  <span class="canal-badge">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
+                    Configurado
+                  </span>
+                }
+              </div>
+
+              @if (exitoCanal()) {
+                <div class="alert-success" style="margin-bottom:0.75rem">{{ exitoCanal() }}</div>
+              }
+              @if (errorCanal()) {
+                <div class="alert-error" style="margin-bottom:0.75rem">{{ errorCanal() }}</div>
+              }
+
+              <form [formGroup]="canalForm" (ngSubmit)="guardarCanal()" class="canal-form">
+                <div class="field-group" style="flex:1;margin-bottom:0">
+                  <label for="canal-select">Canal preferido</label>
+                  <select id="canal-select" formControlName="canal" class="canal-select">
+                    @for (c of canales; track c) {
+                      <option [value]="c">{{ c }}</option>
+                    }
+                  </select>
+                </div>
+                <button type="submit" class="btn-save canal-btn" [disabled]="guardandoCanal()">
+                  @if (guardandoCanal()) { <span class="spinner"></span> }
+                  Guardar canal
+                </button>
+              </form>
+            </div>
+
+            <!-- Preferencias adicionales -->
+            <div class="pref-extra">
+              <p class="pref-extra-title">Preferencias adicionales</p>
+
+              @if (exitoPref()) {
+                <div class="alert-success">{{ exitoPref() }}</div>
+              }
+              @if (errorPref()) {
+                <div class="alert-error">{{ errorPref() }}</div>
+              }
+
+              @if (preferencias().length === 0) {
+                <p class="empty-pref">No hay preferencias adicionales.</p>
+              } @else {
+                <div class="pref-list">
+                  @for (p of preferencias(); track p.id) {
+                    <div class="pref-item">
+                      <span class="pref-nombre">{{ p.nombre }}</span>
+                      <span class="pref-valor">{{ p.valor }}</span>
+                      <button class="pref-del" (click)="eliminarPreferencia(p.id)"
+                              [disabled]="eliminandoPref() === p.id" title="Eliminar">
+                        @if (eliminandoPref() === p.id) {
+                          <span class="spinner sm"></span>
+                        } @else {
+                          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                        }
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+
+              <form [formGroup]="prefForm" (ngSubmit)="guardarPreferencia()" class="pref-form">
+                <p class="pref-form-label">Agregar preferencia</p>
+                <div class="pref-inputs">
+                  <div class="field-group">
+                    <label for="pref-nombre">Tipo / nombre</label>
+                    <input id="pref-nombre" type="text" formControlName="nombre"
+                           placeholder="Ej: horario, mascota favorita…">
+                  </div>
+                  <div class="field-group">
+                    <label for="pref-valor">Valor</label>
+                    <input id="pref-valor" type="text" formControlName="valor"
+                           placeholder="Ej: mañanas, golden retriever…">
+                  </div>
+                </div>
+                <button type="submit" class="btn-save" [disabled]="guardandoPref() || prefForm.invalid">
+                  @if (guardandoPref()) { <span class="spinner"></span> Guardando... }
+                  @else { Agregar preferencia }
+                </button>
+              </form>
+            </div>
+
+          }
+        </div>
+      }
+
+    </div>
+  }
+
+</div>

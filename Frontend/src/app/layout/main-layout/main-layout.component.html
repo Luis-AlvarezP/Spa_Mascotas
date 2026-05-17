@@ -1,0 +1,15 @@
+<app-sidebar
+  [open]="sidebarOpen()"
+  (closed)="sidebarOpen.set(false)">
+</app-sidebar>
+
+<div class="main-area">
+  <app-topbar
+    [title]="title()"
+    (menuToggled)="sidebarOpen.update(v => !v)">
+  </app-topbar>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

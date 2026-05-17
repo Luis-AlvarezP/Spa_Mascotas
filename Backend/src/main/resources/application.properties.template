@@ -1,0 +1,45 @@
+spring.application.name=spa-mascotas-api
+
+# PostgreSQL
+spring.datasource.url=jdbc:postgresql://localhost:5432/spa_mascotas
+spring.datasource.username=postgres
+spring.datasource.password=TU_PASSWORD_POSTGRESQL
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA / Hibernate
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+# Server
+server.port=8080
+
+# JWT — genera una clave base64 segura (min. 32 bytes)
+jwt.secret=REEMPLAZA_CON_TU_CLAVE_BASE64_SECRETA
+jwt.expiration=3600000
+jwt.refresh-expiration=604800000
+
+# URL de la app (para links de activacion por email)
+app.url=http://localhost:4200
+
+# URL frontend (para redirects OAuth2)
+app.frontend-url=http://localhost:4200
+
+# Google OAuth2 — crea credenciales en https://console.cloud.google.com
+spring.security.oauth2.client.registration.google.client-id=TU_GOOGLE_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=TU_GOOGLE_CLIENT_SECRET
+spring.security.oauth2.client.registration.google.scope=openid,email,profile
+
+# Correo SMTP (Gmail recomendado — usa una App Password, no tu contraseña real)
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=TU_CORREO@gmail.com
+spring.mail.password=TU_APP_PASSWORD_GMAIL
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+spring.mail.default-encoding=UTF-8
+
+# Logging
+logging.level.com.spamascotas=DEBUG

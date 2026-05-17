@@ -1,0 +1,236 @@
+<div class="usuarios-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <a routerLink="/admin/auditoria" class="back-btn">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+      </a>
+      <div>
+        <h1 class="page-title">Gestión de personal</h1>
+        <p class="page-sub">Crea cuentas para groomers y recepcionistas</p>
+      </div>
+    </div>
+    <a routerLink="/dashboard" class="btn-outline">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="content-grid">
+
+    <!-- Formulario de creación -->
+    <div class="form-card">
+      <h2 class="card-title">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/></svg>
+        Nuevo usuario de personal
+      </h2>
+      <p class="card-sub">Se generará una contraseña automática y se enviará al correo indicado.</p>
+
+      @if (exito()) {
+        <div class="alert-success">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          {{ exito() }}
+        </div>
+      }
+
+      @if (error()) {
+        <div class="alert-error">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          {{ error() }}
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <div class="field-group">
+          <label class="field-label">Nombre completo *</label>
+          <input type="text" formControlName="nombre" placeholder="Ej: María López"
+                 [class.input-error]="form.get('nombre')?.invalid && form.get('nombre')?.touched">
+          @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
+            <span class="field-error">El nombre es obligatorio</span>
+          }
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Correo electrónico *</label>
+          <input type="email" formControlName="correo" placeholder="correo@spa.com"
+                 [class.input-error]="form.get('correo')?.invalid && form.get('correo')?.touched">
+          @if (form.get('correo')?.invalid && form.get('correo')?.touched) {
+            <span class="field-error">Ingresa un correo válido</span>
+          }
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Rol *</label>
+          <div class="rol-select">
+            <label class="rol-option" [class.selected]="form.get('rol')?.value === 'GROOMER'">
+              <input type="radio" formControlName="rol" value="GROOMER">
+              <div class="rol-card">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.5 2a3.5 3.5 0 101.665 6.58L8.585 10l-1.42 1.42a3.5 3.5 0 101.414 1.414L10 11.415l1.42 1.42a3.5 3.5 0 101.415-1.415L11.414 10l1.42-1.42A3.5 3.5 0 105 5.5a3.5 3.5 0 00.5 1.58zm1.5 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm7 7a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-7 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" clip-rule="evenodd"/></svg>
+                <span>Groomer</span>
+              </div>
+            </label>
+            <label class="rol-option" [class.selected]="form.get('rol')?.value === 'RECEPCION'">
+              <input type="radio" formControlName="rol" value="RECEPCION">
+              <div class="rol-card">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>
+                <span>Recepción</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Cédula de identidad</label>
+          <input type="text" formControlName="ci" placeholder="Opcional">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Teléfono</label>
+          <input type="text" formControlName="telefono" placeholder="Opcional">
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="creando()">
+          @if (creando()) {
+            <span class="spinner"></span>
+            <span>Creando cuenta...</span>
+          } @else {
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/></svg>
+            <span>Crear y enviar credenciales</span>
+          }
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Lista de personal -->
+    <div class="staff-card">
+      <h2 class="card-title">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+        Personal registrado ({{ staff().length }})
+      </h2>
+
+      @if (cargandoLista()) {
+        <div class="loading-state"><div class="spinner"></div></div>
+      } @else if (staff().length === 0) {
+        <p class="empty-msg">No hay personal registrado aún.</p>
+      } @else {
+        <div class="staff-list">
+          @for (miembro of staff(); track miembro.id) {
+            <div class="staff-row">
+              <div class="staff-avatar">{{ (miembro.nombre || miembro.correo)[0].toUpperCase() }}</div>
+              <div class="staff-info">
+                <span class="staff-nombre">{{ miembro.nombre ?? '—' }}</span>
+                <span class="staff-email">{{ miembro.correo }}</span>
+                <div class="staff-meta">
+                  <span class="rol-chip rol-{{ miembro.rol.toLowerCase() }}">{{ rolLabel(miembro.rol) }}</span>
+                  <span class="estado-chip" [class.activo]="miembro.estado === 'ACTIVO'">{{ miembro.estado }}</span>
+                  @if (miembro.ci) { <span class="ci-chip">CI: {{ miembro.ci }}</span> }
+                  @if (miembro.telefono) { <span class="ci-chip">{{ miembro.telefono }}</span> }
+                </div>
+              </div>
+              <div class="staff-actions">
+                <button class="btn-icon" title="Editar datos"
+                        (click)="iniciarEdicion(miembro)"
+                        [disabled]="toggling() === miembro.id">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+                </button>
+                <button class="btn-icon"
+                        [class.btn-icon-danger]="miembro.estado === 'ACTIVO'"
+                        [class.btn-icon-success]="miembro.estado !== 'ACTIVO'"
+                        [title]="miembro.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'"
+                        (click)="toggleEstado(miembro.id)"
+                        [disabled]="toggling() === miembro.id">
+                  @if (toggling() === miembro.id) {
+                    <span class="spinner-sm"></span>
+                  } @else if (miembro.estado === 'ACTIVO') {
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524L13.477 14.89zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/></svg>
+                  } @else {
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
+                  }
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Modal de edición ──────────────────────────────────── -->
+@if (editandoId() !== null && miembroEditando() !== null) {
+  <div class="modal-backdrop" (click)="cancelarEdicion()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+
+      <!-- Modal header -->
+      <div class="modal-header">
+        <div class="modal-avatar-wrap">
+          <div class="modal-avatar">{{ (miembroEditando()!.nombre || miembroEditando()!.correo)[0].toUpperCase() }}</div>
+          <div class="modal-avatar-glow"></div>
+        </div>
+        <div class="modal-header-info">
+          <h3 class="modal-title">Editar información</h3>
+          <p class="modal-sub">
+            <span class="rol-chip rol-{{ miembroEditando()!.rol.toLowerCase() }}">{{ rolLabel(miembroEditando()!.rol) }}</span>
+            {{ miembroEditando()!.correo }}
+          </p>
+        </div>
+        <button class="modal-close" (click)="cancelarEdicion()" title="Cerrar">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        </button>
+      </div>
+
+      <!-- Error -->
+      @if (errorEdicion()) {
+        <div class="modal-error">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          {{ errorEdicion() }}
+        </div>
+      }
+
+      <!-- Form -->
+      <form [formGroup]="editForm" (ngSubmit)="guardarEdicion()" novalidate>
+        <div class="modal-body">
+
+          <div class="field-group">
+            <label class="field-label">Nombre completo *</label>
+            <input type="text" formControlName="nombre" placeholder="Nombre completo"
+                   [class.input-error]="editForm.get('nombre')?.invalid && editForm.get('nombre')?.touched">
+            @if (editForm.get('nombre')?.invalid && editForm.get('nombre')?.touched) {
+              <span class="field-error">El nombre es obligatorio</span>
+            }
+          </div>
+
+          <div class="modal-row-2">
+            <div class="field-group">
+              <label class="field-label">Cédula de identidad</label>
+              <input type="text" formControlName="ci" placeholder="Opcional">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Teléfono</label>
+              <input type="text" formControlName="telefono" placeholder="Opcional">
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" (click)="cancelarEdicion()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="guardandoEdicion() || editForm.invalid">
+            @if (guardandoEdicion()) {
+              <span class="spinner-sm"></span>
+              Guardando...
+            } @else {
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Guardar cambios
+            }
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+}

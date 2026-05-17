@@ -1,0 +1,132 @@
+<div class="audit-page">
+
+  <!-- Header -->
+  <div class="audit-header">
+    <div class="header-left">
+      <a routerLink="/dashboard" class="back-btn">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+      </a>
+      <div>
+        <h1 class="page-title">Auditoría del sistema</h1>
+        <p class="page-sub">{{ totalElements() }} registros · Actualización en tiempo real</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/admin/usuarios" class="btn-outline">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07z"/></svg>
+        Gestión de personal
+      </a>
+      <button class="btn-export" (click)="exportarExcel()" [disabled]="exportando()">
+        @if (exportando()) {
+          <span class="spinner-sm"></span>
+        } @else {
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        }
+        Exportar Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-row">
+    <div class="filter-group">
+      <span class="filter-label">Rol</span>
+      <div class="filter-pills">
+        @for (r of roles; track r) {
+          <button class="pill" [class.active]="(rolFiltro() || 'Todos') === r" (click)="filtrarRol(r)">{{ r }}</button>
+        }
+      </div>
+    </div>
+    <div class="filter-group filter-group-select">
+      <span class="filter-label">Acción</span>
+      <select class="filter-select"
+              [value]="accionFiltro()"
+              (change)="filtrarAccion($any($event.target).value)">
+        @for (a of acciones; track a.value) {
+          <option [value]="a.value">{{ a.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-group filter-dates">
+      <span class="filter-label">Rango de fechas</span>
+      <div class="date-inputs">
+        <input type="date" class="date-input" [ngModel]="desde()" (ngModelChange)="desde.set($event)" placeholder="Desde">
+        <span class="date-sep">—</span>
+        <input type="date" class="date-input" [ngModel]="hasta()" (ngModelChange)="hasta.set($event)" placeholder="Hasta">
+        <button class="pill-apply" (click)="aplicarFechas()">Aplicar</button>
+        @if (desde() || hasta()) {
+          <button class="pill-clear" (click)="limpiarFechas()">✕</button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-card">
+
+    @if (cargando()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando logs...</span>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">{{ error() }}</div>
+    } @else if (logs().length === 0) {
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <p>No hay registros con los filtros aplicados</p>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Fecha / Hora</th>
+              <th>Acción</th>
+              <th>Usuario</th>
+              <th>Rol</th>
+              <th>IP</th>
+              <th>Navegador</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of logs(); track log.id) {
+              <tr [class.row-error]="!log.exitoso">
+                <td class="td-time">{{ log.timestamp | date:'dd/MM/yy HH:mm:ss' }}</td>
+                <td>
+                  <span class="badge" [class]="badgeClass(log)">{{ log.accionLabel ?? log.accion }}</span>
+                </td>
+                <td class="td-email">{{ log.correoUsuario ?? '—' }}</td>
+                <td>
+                  @if (log.rol) {
+                    <span class="rol-chip rol-{{ log.rol.toLowerCase() }}">{{ log.rol }}</span>
+                  } @else {
+                    <span class="text-dim">—</span>
+                  }
+                </td>
+                <td class="td-ip">{{ log.ip ?? '—' }}</td>
+                <td class="td-browser">
+                <span class="browser-chip">{{ parseBrowser(log.userAgent ?? '') }}</span>
+                </td>
+                <td class="td-detail" [title]="log.detalles ?? ''">{{ log.detalles ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination">
+        <button class="page-btn" [disabled]="page() === 0" (click)="cambiarPagina(-1)">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        </button>
+        <span class="page-info">Página {{ page() + 1 }} de {{ totalPages() }}</span>
+        <button class="page-btn" [disabled]="page() >= totalPages() - 1" (click)="cambiarPagina(1)">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+        </button>
+      </div>
+    }
+
+  </div>
+</div>

@@ -1,0 +1,21 @@
+<header class="topbar">
+  <button class="menu-btn" (click)="menuToggled.emit()" aria-label="Menú">
+    <svg viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+    </svg>
+  </button>
+
+  <div class="topbar-title">{{ title }}</div>
+
+  <div class="topbar-right">
+    <a routerLink="/perfil" class="topbar-icon-btn" title="Mi perfil">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+    </a>
+    <div class="topbar-user">
+      <div class="topbar-avatar">
+        {{ (auth.usuario()?.correo ?? 'U')[0].toUpperCase() }}
+      </div>
+      <span class="topbar-email">{{ auth.usuario()?.correo }}</span>
+    </div>
+  </div>
+</header>

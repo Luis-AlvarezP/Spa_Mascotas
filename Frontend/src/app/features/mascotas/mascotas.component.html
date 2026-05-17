@@ -1,0 +1,25 @@
+<div class="module-page">
+  <div class="module-header">
+    <div class="module-icon-wrap">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M4.5 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm15 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM7 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM12 13c-3.5 0-6 2.5-6 5.5 0 1.5 2 2.5 6 2.5s6-1 6-2.5c0-3-2.5-5.5-6-5.5z"/>
+      </svg>
+    </div>
+    <div>
+      <h1 class="module-title">{{ titulo() }}</h1>
+      <p class="module-sub">{{ subtitulo() }}</p>
+    </div>
+  </div>
+
+  <div class="coming-soon">
+    <div class="cs-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+    </div>
+    <h2>Módulo en desarrollo</h2>
+    <p>{{ subtitulo() }}. Estará disponible próximamente.</p>
+    <a routerLink="/dashboard" class="btn-back">Volver al inicio</a>
+  </div>
+</div>
