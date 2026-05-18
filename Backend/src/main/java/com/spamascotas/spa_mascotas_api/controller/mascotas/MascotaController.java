@@ -54,12 +54,11 @@ public class MascotaController {
         return service.actualizar(id, req, user.getUsername());
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping("/{id}/toggle")
     @PreAuthorize("hasAuthority('ROLE_CLIENTE')")
-    public void eliminar(@PathVariable("id") Long id,
-                         @AuthenticationPrincipal UserDetails user) {
-        service.eliminar(id, user.getUsername());
+    public MascotaResponse toggleActiva(@PathVariable("id") Long id,
+                                        @AuthenticationPrincipal UserDetails user) {
+        return service.toggleActiva(id, user.getUsername());
     }
 
     @PostMapping("/{id}/carnet")

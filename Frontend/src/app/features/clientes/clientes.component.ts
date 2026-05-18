@@ -10,6 +10,7 @@ import {
   MascotaRequest,
   RestriccionRequest,
 } from '../../core/services/mascotas.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 
 interface ClienteItem {
   id: number;
@@ -20,6 +21,7 @@ interface ClienteItem {
   direccion: string | null;
   estado: string;
   mascotas: string[];
+  preferencias?: Record<string, string>;
 }
 
 const TAMANOS = [
@@ -59,6 +61,7 @@ export class ClientesComponent implements OnInit {
   private http        = inject(HttpClient);
   private auth        = inject(AuthService);
   private mascotasSvc = inject(MascotasService);
+  private confirm     = inject(ConfirmService);
   private fb          = inject(FormBuilder);
   private apiUrl      = `${environment.apiUrl}/clientes`;
 
@@ -76,6 +79,9 @@ export class ClientesComponent implements OnInit {
   // Staff: panel mascotas de un cliente
   staffPanel = signal<{ clienteId: number; clienteNombre: string; mascotas: MascotaResponse[] } | null>(null);
   loadingPanel = signal(false);
+
+  // Staff: detalle de un cliente
+  clienteDetalle = signal<ClienteItem | null>(null);
 
   // ── Cliente (Mis Mascotas) state ─────────────────────────────
   mascotas        = signal<MascotaResponse[]>([]);
@@ -127,8 +133,11 @@ export class ClientesComponent implements OnInit {
     });
   }
 
-  toggleEstado(c: ClienteItem): void {
+  async toggleEstado(c: ClienteItem): Promise<void> {
     if (!this.isAdmin()) return;
+    const accion = c.estado === 'ACTIVO' ? 'inhabilitar' : 'habilitar';
+    const ok = await this.confirm.confirm({ title: `${accion.charAt(0).toUpperCase() + accion.slice(1)} cliente`, message: `¿Seguro que deseas ${accion} la cuenta de ${c.nombre ?? c.correo}?`, confirmLabel: accion.charAt(0).toUpperCase() + accion.slice(1), danger: c.estado === 'ACTIVO' });
+    if (!ok) return;
     this.toggleando.set(c.id);
     this.error.set(null);
     this.exito.set(null);
@@ -156,6 +165,9 @@ export class ClientesComponent implements OnInit {
       },
     });
   }
+
+  openClienteDetalle(c: ClienteItem): void { this.clienteDetalle.set(c); }
+  closeClienteDetalle(): void { this.clienteDetalle.set(null); }
 
   closeStaffPanel(): void {
     this.staffPanel.set(null);
@@ -345,15 +357,17 @@ export class ClientesComponent implements OnInit {
     this.showSuccessM(editing ? 'Mascota actualizada' : 'Mascota registrada');
   }
 
-  eliminarMascota(id: number) {
-    if (!confirm('¿Eliminar esta mascota? Esta acción no se puede deshacer.')) return;
-    this.mascotasSvc.eliminar(id).subscribe({
-      next: () => {
-        this.closeDetail();
-        this.cargarMascotas();
-        this.showSuccessM('Mascota eliminada');
+  async toggleMascota(m: MascotaResponse): Promise<void> {
+    const accion = m.activa ? 'desactivar' : 'habilitar';
+    const ok = await this.confirm.confirm({ title: `${accion.charAt(0).toUpperCase() + accion.slice(1)} mascota`, message: `¿Deseas ${accion} a ${m.nombre}?`, confirmLabel: accion.charAt(0).toUpperCase() + accion.slice(1), danger: m.activa });
+    if (!ok) return;
+    this.mascotasSvc.toggleActiva(m.id).subscribe({
+      next: updated => {
+        this.mascotas.update(list => list.map(x => x.id === updated.id ? updated : x));
+        this.detailMascota.set(updated);
+        this.showSuccessM(updated.activa ? `${updated.nombre} habilitada` : `${updated.nombre} desactivada`);
       },
-      error: () => this.errorM.set('Error al eliminar la mascota'),
+      error: () => this.errorM.set('Error al cambiar el estado de la mascota'),
     });
   }
 
@@ -401,6 +415,19 @@ export class ClientesComponent implements OnInit {
 
   tipoLabel(t: string): string {
     return TIPOS_RESTRICCION.find(x => x.valor === t)?.label ?? t;
+  }
+
+  prefLabel(key: string): string {
+    const map: Record<string, string> = {
+      canal_preferido: 'Canal de contacto', idioma: 'Idioma',
+      notificaciones: 'Notificaciones', recordatorio: 'Recordatorio',
+    };
+    return map[key] ?? key.replace(/_/g, ' ');
+  }
+
+  prefEntries(prefs?: Record<string, string>): { k: string; v: string }[] {
+    if (!prefs) return [];
+    return Object.entries(prefs).map(([k, v]) => ({ k, v }));
   }
 
   dismissErrorM() { this.errorM.set(null); }

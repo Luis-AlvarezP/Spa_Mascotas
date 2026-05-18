@@ -25,5 +25,6 @@ public class MascotaResponse {
     private String temperamentoColor;
     private String urlFotoMascota;
     private String urlCarnet;
+    private Boolean activa;
     private List<RestriccionResponse> restricciones;
 }

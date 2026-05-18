@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import {
   AgendaService,
   Bloqueo,
@@ -32,6 +33,7 @@ const TIPOS_LABELS: Record<string, string> = {
 export class AgendaComponent implements OnInit {
   auth         = inject(AuthService);
   agendaSvc    = inject(AgendaService);
+  confirm      = inject(ConfirmService);
   fb           = inject(FormBuilder);
 
   isCliente = computed(() => this.auth.rol() === 'CLIENTE');
@@ -200,8 +202,9 @@ export class AgendaComponent implements OnInit {
     });
   }
 
-  deleteHorario(id: number) {
-    if (!confirm('¿Eliminar este horario?')) return;
+  async deleteHorario(id: number) {
+    const ok = await this.confirm.confirm({ title: 'Eliminar horario', message: '¿Seguro que deseas eliminar este horario de trabajo?', confirmLabel: 'Eliminar', danger: true });
+    if (!ok) return;
     this.agendaSvc.eliminarHorario(id).subscribe({
       next: () => { this.loadHorarios(this.selectedGroomer()!.id); this.showSuccess('Horario eliminado'); },
       error: () => this.error.set('Error al eliminar el horario'),
@@ -272,8 +275,9 @@ export class AgendaComponent implements OnInit {
     });
   }
 
-  deleteBloqueo(id: number) {
-    if (!confirm('¿Eliminar este bloqueo?')) return;
+  async deleteBloqueo(id: number) {
+    const ok = await this.confirm.confirm({ title: 'Eliminar bloqueo', message: '¿Seguro que deseas eliminar este bloqueo de agenda?', confirmLabel: 'Eliminar', danger: true });
+    if (!ok) return;
     this.agendaSvc.eliminarBloqueo(id).subscribe({
       next: () => { this.loadBloqueos(); this.showSuccess('Bloqueo eliminado'); },
       error: () => this.error.set('Error al eliminar el bloqueo'),

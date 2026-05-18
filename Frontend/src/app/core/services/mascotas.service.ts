@@ -28,6 +28,7 @@ export interface MascotaResponse {
   temperamentoColor?: string;
   urlFotoMascota?: string;
   urlCarnet?: string;
+  activa?: boolean;
   restricciones?: RestriccionResponse[];
 }
 
@@ -69,8 +70,8 @@ export class MascotasService {
     return this.http.put<MascotaResponse>(`${this.base}/${id}`, req);
   }
 
-  eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  toggleActiva(id: number): Observable<MascotaResponse> {
+    return this.http.patch<MascotaResponse>(`${this.base}/${id}/toggle`, {});
   }
 
   subirCarnet(id: number, file: File): Observable<{ url: string }> {

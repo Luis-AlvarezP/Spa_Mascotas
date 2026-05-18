@@ -43,6 +43,10 @@ public class Mascota {
     @JoinColumn(name = "temperamento_esperado_id")
     private CatTemperamento temperamento;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean activa = true;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;

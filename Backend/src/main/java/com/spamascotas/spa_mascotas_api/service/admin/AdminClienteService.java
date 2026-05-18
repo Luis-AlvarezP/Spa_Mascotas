@@ -4,6 +4,7 @@ import com.spamascotas.spa_mascotas_api.dto.response.ClienteAdminResponse;
 import com.spamascotas.spa_mascotas_api.model.Cliente;
 import com.spamascotas.spa_mascotas_api.model.enums.EstadoUsuario;
 import com.spamascotas.spa_mascotas_api.model.enums.TipoAccion;
+import com.spamascotas.spa_mascotas_api.repository.ClientePreferenciaRepository;
 import com.spamascotas.spa_mascotas_api.repository.ClienteRepository;
 import com.spamascotas.spa_mascotas_api.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,8 +21,10 @@ public class AdminClienteService {
 
     private final ClienteRepository clienteRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ClientePreferenciaRepository preferenciaRepository;
     private final AuditService auditService;
 
+    @Transactional(readOnly = true)
     public List<ClienteAdminResponse> listarClientes() {
         return clienteRepository.findAll().stream()
             .map(this::toResponse)
@@ -50,7 +54,8 @@ public class AdminClienteService {
 
     private ClienteAdminResponse toResponse(Cliente c) {
         var u = c.getUsuario();
-        List<String> mascotas = List.of();
+        Map<String, String> preferencias = preferenciaRepository.findByCliente(c).stream()
+            .collect(Collectors.toMap(p -> p.getNombre(), p -> p.getValor() != null ? p.getValor() : ""));
         return ClienteAdminResponse.builder()
             .id(c.getId())
             .usuarioId(u.getId())
@@ -61,7 +66,8 @@ public class AdminClienteService {
             .direccion(c.getDireccion())
             .estado(u.getEstado().name())
             .totpHabilitado(u.getTotpHabilitado())
-            .mascotas(mascotas)
+            .mascotas(List.of())
+            .preferencias(preferencias)
             .build();
     }
 }

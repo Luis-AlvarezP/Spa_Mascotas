@@ -102,10 +102,10 @@ public class MascotaService {
     }
 
     @Transactional
-    public void eliminar(Long id, String correo) {
+    public MascotaResponse toggleActiva(Long id, String correo) {
         Mascota m = findOwnMascota(id, correo);
-        restriccionRepo.deleteByMascota(m);
-        mascotaRepo.delete(m);
+        m.setActiva(!Boolean.TRUE.equals(m.getActiva()));
+        return toResponse(mascotaRepo.save(m));
     }
 
     @Transactional
@@ -215,6 +215,7 @@ public class MascotaService {
                 .temperamentoColor(m.getTemperamento() != null ? m.getTemperamento().getColorAlerta() : null)
                 .urlFotoMascota(m.getUrlFotoMascota())
                 .urlCarnet(m.getUrlCarnet())
+                .activa(Boolean.TRUE.equals(m.getActiva()))
                 .restricciones(restricciones)
                 .build();
     }

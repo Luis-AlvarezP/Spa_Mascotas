@@ -81,6 +81,7 @@
   &:hover { border-color: rgba(20,184,166,0.35); box-shadow: 0 4px 16px rgba(20,184,166,0.08); }
   &:active { transform: translateY(0); }
 }
+.pet-card-inactiva { opacity: 0.5; filter: grayscale(0.6); }
 .pet-card-top {
   display: flex; align-items: flex-start; justify-content: space-between;
   padding: 1.1rem 1.1rem 0;
@@ -92,6 +93,11 @@
   color: var(--text-dim); transition: all var(--t-fast);
   svg { width: 13px; height: 13px; }
   .pet-card-clickable:hover & { background: rgba(20,184,166,0.1); color: #5eead4; border-color: rgba(20,184,166,0.25); }
+}
+.badge-inactiva {
+  display: inline-block; padding: 0.18rem 0.55rem; border-radius: 99px;
+  font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.25);
 }
 .badge-restr {
   display: inline-flex; align-items: center; gap: 0.25rem;
@@ -306,6 +312,7 @@
 
 .detail-section { display: flex; flex-direction: column; gap: 0.45rem; }
 .detail-section-title { font-size: 0.73rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.pref-empty { font-size: 0.8rem; color: var(--text-dim); margin: 0; }
 .restr-grav-tag {
   margin-left: auto; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em;
   opacity: 0.75; font-weight: 700;
@@ -332,6 +339,15 @@
   transition: all var(--t-fast);
   svg { width: 14px; height: 14px; }
   &:hover { background: rgba(239,68,68,0.16); border-color: rgba(239,68,68,0.35); }
+}
+.btn-detail-enable {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 1rem; border-radius: var(--r-md);
+  background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.2);
+  color: #6ee7b7; font-size: 0.85rem; font-weight: 500; cursor: pointer;
+  transition: all var(--t-fast);
+  svg { width: 14px; height: 14px; }
+  &:hover { background: rgba(16,185,129,0.16); border-color: rgba(16,185,129,0.35); }
 }
 
 /* Staff detail modal stacks on top of panel */
@@ -459,6 +475,7 @@
   svg { width: 15px; height: 15px; }
   &:hover:not(:disabled) { background: rgba(255,255,255,0.09); color: var(--text); }
   &:disabled { opacity: 0.35; cursor: not-allowed; }
+  &.btn-icon-info:hover:not(:disabled) { background: rgba(96,165,250,0.15); color: #93c5fd; border-color: rgba(96,165,250,0.3); }
   &.btn-icon-paw:hover:not(:disabled) { background: rgba(20,184,166,0.15); color: #5eead4; border-color: rgba(20,184,166,0.3); }
   &.btn-icon-danger:hover:not(:disabled) { background: rgba(239,68,68,0.15); color: #fca5a5; border-color: rgba(239,68,68,0.3); }
   &.btn-icon-success:hover:not(:disabled) { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.3); }

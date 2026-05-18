@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.List;
+import java.util.Map;
 
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class ClienteAdminResponse {
@@ -18,4 +19,5 @@ public class ClienteAdminResponse {
     private String estado;
     private boolean totpHabilitado;
     private List<String> mascotas;
+    private Map<String, String> preferencias;
 }
