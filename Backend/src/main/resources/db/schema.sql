@@ -143,25 +143,15 @@ CREATE TABLE IF NOT EXISTS cat_temperamentos (
 CREATE TABLE IF NOT EXISTS mascotas (
     id                       BIGINT PRIMARY KEY DEFAULT nextval('mascotas_id_seq'),
     nombre                   TEXT   NOT NULL,
-    url_foto_mascota         TEXT,
+    especie                  TEXT,
     raza                     TEXT,
     tamaño                   TEXT,
+    fecha_nacimiento         DATE,
+    alergias                 TEXT,
+    url_foto_mascota         TEXT,
+    url_carnet               TEXT,
     temperamento_esperado_id BIGINT REFERENCES cat_temperamentos(id),
     cliente_id               BIGINT REFERENCES clientes(id)
-);
-
-CREATE TABLE IF NOT EXISTS vacunas (
-    id     BIGINT PRIMARY KEY DEFAULT nextval('vacunas_id_seq'),
-    nombre TEXT UNIQUE NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS mascota_vacunas (
-    id               BIGINT PRIMARY KEY DEFAULT nextval('mascota_vacunas_id_seq'),
-    vacuna_id        BIGINT REFERENCES vacunas(id),
-    mascota_id       BIGINT REFERENCES mascotas(id),
-    fecha_aplicacion DATE NOT NULL,
-    fecha_refuerzo   DATE,
-    UNIQUE (mascota_id, vacuna_id, fecha_aplicacion)
 );
 
 CREATE TABLE IF NOT EXISTS restricciones_mascota (
@@ -352,9 +342,16 @@ CREATE INDEX IF NOT EXISTS idx_audit_accion    ON audit_logs (accion);
 
 -- ── DATOS INICIALES ──────────────────────────────────────────
 
--- Migración: agrega columna si la tabla ya existe sin ella
+-- Migración horarios
 ALTER TABLE IF EXISTS horarios_trabajo
     ADD COLUMN IF NOT EXISTS capacidad_maxima INTEGER NOT NULL DEFAULT 8;
+
+-- Migración mascotas
+ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS especie TEXT;
+ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS fecha_nacimiento DATE;
+ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS alergias TEXT;
+ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS url_carnet TEXT;
+ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS url_foto_mascota TEXT;
 
 INSERT INTO roles (nombre) VALUES
     ('ADMIN'), ('RECEPCION'), ('GROOMER'), ('CLIENTE')

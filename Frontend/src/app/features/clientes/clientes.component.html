@@ -1,25 +1,375 @@
-<!-- ── Vista CLIENTE: Mis Mascotas (placeholder) ───────── -->
+<!-- ── Vista CLIENTE: Mis Mascotas ───────────────────────── -->
 @if (isCliente()) {
-  <div class="module-page">
-    <div class="module-header">
-      <div class="module-icon-wrap">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M4.5 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm15 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM7 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM12 13c-3.5 0-6 2.5-6 5.5 0 1.5 2 2.5 6 2.5s6-1 6-2.5c0-3-2.5-5.5-6-5.5z"/>
+  <div class="mascotas-page">
+
+    <!-- Header -->
+    <div class="mp-header">
+      <div class="mp-header-left">
+        <div class="mp-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4.5 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm15 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM7 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM12 13c-3.5 0-6 2.5-6 5.5 0 1.5 2 2.5 6 2.5s6-1 6-2.5c0-3-2.5-5.5-6-5.5z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="mp-title">Mis Mascotas</h1>
+          <p class="mp-sub">
+            {{ mascotas().length }} mascota{{ mascotas().length !== 1 ? 's' : '' }} registrada{{ mascotas().length !== 1 ? 's' : '' }}
+          </p>
+        </div>
+      </div>
+      <button class="btn-add" (click)="openModal()">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
         </svg>
-      </div>
-      <div>
-        <h1 class="module-title">Mis Mascotas</h1>
-        <p class="module-sub">Administra los perfiles de tus mascotas</p>
-      </div>
+        Registrar mascota
+      </button>
     </div>
-    <div class="coming-soon">
-      <div class="cs-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+
+    <!-- Toasts -->
+    @if (successM()) {
+      <div class="toast toast-ok">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        {{ successM() }}
       </div>
-      <h2>Módulo en desarrollo</h2>
-      <p>Pronto podrás agregar y gestionar los perfiles de tus mascotas.</p>
-      <a routerLink="/dashboard" class="btn-back">Volver al inicio</a>
-    </div>
+    }
+    @if (errorM()) {
+      <div class="toast toast-err">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        {{ errorM() }}
+        <button class="toast-close" (click)="dismissErrorM()">✕</button>
+      </div>
+    }
+
+    <!-- States -->
+    @if (loadingMascotas()) {
+      <div class="mp-center">
+        <div class="spinner"></div>
+        <span>Cargando mascotas...</span>
+      </div>
+    } @else if (mascotas().length === 0) {
+      <div class="mp-empty">
+        <div class="mp-empty-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4.5 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm15 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM7 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM12 13c-3.5 0-6 2.5-6 5.5 0 1.5 2 2.5 6 2.5s6-1 6-2.5c0-3-2.5-5.5-6-5.5z"/>
+          </svg>
+        </div>
+        <h3>Aún no tienes mascotas</h3>
+        <p>Registra el perfil de tu primera mascota para comenzar.</p>
+        <button class="btn-add" (click)="openModal()">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/></svg>
+          Registrar primera mascota
+        </button>
+      </div>
+    } @else {
+      <!-- Pet cards grid (minimal — click to see details) -->
+      <div class="pets-grid">
+        @for (m of mascotas(); track m.id) {
+          <div class="pet-card pet-card-clickable" (click)="openDetail(m)">
+            <div class="pet-card-top">
+              @if (m.urlFotoMascota) {
+                <div class="pet-avatar-photo" [style.border-color]="especieColor(m.especie) + '55'">
+                  <img [src]="m.urlFotoMascota" [alt]="m.nombre">
+                </div>
+              } @else {
+                <div class="pet-avatar" [style.background]="especieColor(m.especie) + '22'" [style.border-color]="especieColor(m.especie) + '55'">
+                  <span class="pet-emoji">{{ especieIcon(m.especie) }}</span>
+                </div>
+              }
+              <div class="pet-card-arrow">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+            <div class="pet-info">
+              <h3 class="pet-name">{{ m.nombre }}</h3>
+              <p class="pet-especie" [style.color]="especieColor(m.especie)">
+                {{ m.especie.charAt(0) + m.especie.slice(1).toLowerCase() }}{{ m.raza ? ' · ' + m.raza : '' }}
+              </p>
+              <div class="pet-badges">
+                <span class="badge-size" [class]="tamanoClass(m.tamano)">{{ tamanoLabel(m.tamano) }}</span>
+                @if (m.temperamentoNombre) {
+                  <span class="badge-temp"
+                        [style.background]="m.temperamentoColor + '22'"
+                        [style.color]="m.temperamentoColor"
+                        [style.border-color]="m.temperamentoColor + '55'">
+                    {{ m.temperamentoNombre }}
+                  </span>
+                }
+                @if (m.restricciones && m.restricciones.length > 0) {
+                  <span class="badge-restr">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8.982 1.566a1.13 1.13 0 00-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/></svg>
+                    {{ m.restricciones.length }} condición{{ m.restricciones.length !== 1 ? 'es' : '' }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Modal detalle mascota ────────────────────────────── -->
+    @if (detailMascota()) {
+      <div class="modal-overlay" (click)="closeDetail()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+          <div class="modal-head">
+            <h2>{{ detailMascota()!.nombre }}</h2>
+            <button class="modal-close" (click)="closeDetail()">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            </button>
+          </div>
+          <div class="modal-body detail-body">
+            <!-- Avatar grande -->
+            <div class="detail-avatar-wrap">
+              @if (detailMascota()!.urlFotoMascota) {
+                <div class="detail-avatar-photo" [style.border-color]="especieColor(detailMascota()!.especie) + '55'">
+                  <img [src]="detailMascota()!.urlFotoMascota" [alt]="detailMascota()!.nombre">
+                </div>
+              } @else {
+                <div class="detail-avatar-emoji" [style.background]="especieColor(detailMascota()!.especie) + '18'" [style.border-color]="especieColor(detailMascota()!.especie) + '45'">
+                  <span>{{ especieIcon(detailMascota()!.especie) }}</span>
+                </div>
+              }
+              <div>
+                <h3 class="detail-name">{{ detailMascota()!.nombre }}</h3>
+                <p class="detail-especie" [style.color]="especieColor(detailMascota()!.especie)">
+                  {{ detailMascota()!.especie.charAt(0) + detailMascota()!.especie.slice(1).toLowerCase() }}{{ detailMascota()!.raza ? ' · ' + detailMascota()!.raza : '' }}
+                </p>
+                <div class="pet-badges" style="margin-top:0.4rem">
+                  <span class="badge-size" [class]="tamanoClass(detailMascota()!.tamano)">{{ tamanoLabel(detailMascota()!.tamano) }}</span>
+                  @if (detailMascota()!.temperamentoNombre) {
+                    <span class="badge-temp"
+                          [style.background]="detailMascota()!.temperamentoColor + '22'"
+                          [style.color]="detailMascota()!.temperamentoColor"
+                          [style.border-color]="detailMascota()!.temperamentoColor + '55'">
+                      {{ detailMascota()!.temperamentoNombre }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Datos en grid -->
+            <div class="detail-info-grid">
+              @if (detailMascota()!.fechaNacimiento) {
+                <div class="detail-field">
+                  <span class="detail-label">Edad</span>
+                  <span class="detail-value">{{ calcularEdad(detailMascota()!.fechaNacimiento) }}</span>
+                </div>
+              }
+              @if (detailMascota()!.alergias) {
+                <div class="detail-field detail-field-full">
+                  <span class="detail-label">Alergias</span>
+                  <span class="detail-value">{{ detailMascota()!.alergias }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Restricciones -->
+            @if (detailMascota()!.restricciones && detailMascota()!.restricciones!.length > 0) {
+              <div class="detail-section">
+                <p class="detail-section-title">Condiciones especiales</p>
+                <div class="pet-restricciones">
+                  @for (r of detailMascota()!.restricciones!; track r.id) {
+                    <span class="restr-chip" [class]="gravedadClass(r.gravedad)">
+                      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8.982 1.566a1.13 1.13 0 00-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 01-1.1 0L7.1 5.995A.905.905 0 018 5zm.002 6a1 1 0 110 2 1 1 0 010-2z"/></svg>
+                      <strong>{{ tipoLabel(r.tipo) }}</strong>{{ r.descripcion ? ': ' + r.descripcion : '' }}
+                      <span class="restr-grav-tag">{{ r.gravedad }}</span>
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Carnet -->
+            @if (detailMascota()!.urlCarnet) {
+              <a class="carnet-link" [href]="detailMascota()!.urlCarnet" target="_blank" rel="noopener">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+                Ver carnet de vacunas
+              </a>
+            }
+
+            <!-- Acciones -->
+            <div class="detail-actions">
+              <button class="btn-detail-delete" (click)="eliminarMascota(detailMascota()!.id)">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                Eliminar
+              </button>
+              <button class="btn-detail-edit" (click)="editFromDetail()">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+                Editar mascota
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── Modal registro/edición ──────────────────────────── -->
+    @if (showModal()) {
+      <div class="modal-overlay" (click)="closeModal()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+          <div class="modal-head">
+            <h2>{{ editingMascota() ? 'Editar mascota' : 'Registrar mascota' }}</h2>
+            <button class="modal-close" (click)="closeModal()">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            </button>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="submitForm()" class="modal-body">
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Nombre <span class="req">*</span></label>
+                <input formControlName="nombre" type="text" placeholder="Ej. Luna"
+                       class="form-input" [class.invalid]="form.get('nombre')!.invalid && form.get('nombre')!.touched">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Especie <span class="req">*</span></label>
+                <select formControlName="especie" class="form-input"
+                        [class.invalid]="form.get('especie')!.invalid && form.get('especie')!.touched">
+                  <option value="">Seleccionar...</option>
+                  @for (e of especies; track e.valor) {
+                    <option [value]="e.valor">{{ e.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Raza</label>
+                <input formControlName="raza" type="text" placeholder="Ej. Labrador" class="form-input">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Tamaño <span class="req">*</span></label>
+                <select formControlName="tamano" class="form-input"
+                        [class.invalid]="form.get('tamano')!.invalid && form.get('tamano')!.touched">
+                  <option value="">Seleccionar...</option>
+                  @for (t of tamanos; track t.valor) {
+                    <option [value]="t.valor">{{ t.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Fecha de nacimiento</label>
+                <input formControlName="fechaNacimiento" type="date" class="form-input">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Temperamento</label>
+                <select formControlName="temperamentoId" class="form-input">
+                  <option [ngValue]="null">Sin especificar</option>
+                  @for (t of temperamentos(); track t.id) {
+                    <option [ngValue]="t.id">{{ t.nombre }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label">Alergias conocidas</label>
+              <textarea formControlName="alergias" rows="2"
+                        placeholder="Ej. Polen, ciertos alimentos..."
+                        class="form-input form-textarea"></textarea>
+            </div>
+
+            <!-- Restricciones / Condiciones especiales -->
+            <div class="form-field">
+              <div class="restr-header">
+                <label class="form-label">Restricciones / Condiciones especiales</label>
+                <button type="button" class="btn-add-restr" (click)="addRestriccion()">+ Agregar</button>
+              </div>
+              @if (restriccionesForm().length === 0) {
+                <p class="restr-empty">Sin restricciones registradas</p>
+              } @else {
+                <div class="restr-form-list">
+                  @for (r of restriccionesForm(); track $index; let i = $index) {
+                    <div class="restr-form-row">
+                      <select class="form-input form-input-sm"
+                              [value]="r.tipo"
+                              (change)="updateRestriccion(i, 'tipo', $any($event.target).value)">
+                        @for (t of tiposRestriccion; track t.valor) {
+                          <option [value]="t.valor">{{ t.label }}</option>
+                        }
+                      </select>
+                      <input type="text" class="form-input form-input-sm"
+                             placeholder="Descripción..."
+                             [value]="r.descripcion"
+                             (input)="updateRestriccion(i, 'descripcion', $any($event.target).value)">
+                      <select class="form-input form-input-sm"
+                              [value]="r.gravedad"
+                              (change)="updateRestriccion(i, 'gravedad', $any($event.target).value)">
+                        @for (g of gravedades; track g.valor) {
+                          <option [value]="g.valor">{{ g.label }}</option>
+                        }
+                      </select>
+                      <button type="button" class="btn-remove-restr" (click)="removeRestriccion(i)">✕</button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Foto de perfil -->
+            <div class="form-field">
+              <label class="form-label">Foto de la mascota</label>
+              <label class="file-zone" [class.has-file]="selectedPhotoName()">
+                <input type="file" accept="image/*" (change)="onPhotoSelected($event)" class="file-hidden">
+                @if (selectedPhotoName()) {
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg>
+                  <span class="file-name">{{ selectedPhotoName() }}</span>
+                  <span class="file-hint">Clic para cambiar</span>
+                } @else {
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg>
+                  <span>Subir foto</span>
+                  <span class="file-hint">JPG o PNG · máx. 5 MB</span>
+                }
+              </label>
+              @if (editingMascota()?.urlFotoMascota && !selectedPhotoName()) {
+                <p class="file-current">Foto actual disponible · <a [href]="editingMascota()!.urlFotoMascota" target="_blank" rel="noopener">Ver</a></p>
+              }
+            </div>
+
+            <!-- Carnet de vacunas -->
+            <div class="form-field">
+              <label class="form-label">Carnet de vacunas</label>
+              <label class="file-zone file-zone-carnet" [class.has-file]="selectedFileName()">
+                <input type="file" accept="image/*,.pdf" (change)="onFileSelected($event)" class="file-hidden">
+                @if (selectedFileName()) {
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
+                  <span class="file-name">{{ selectedFileName() }}</span>
+                  <span class="file-hint">Clic para cambiar</span>
+                } @else {
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                  <span>Subir carnet</span>
+                  <span class="file-hint">JPG, PNG o PDF · máx. 5 MB</span>
+                }
+              </label>
+              @if (editingMascota()?.urlCarnet && !selectedFileName()) {
+                <p class="file-current">Carnet actual disponible · <a [href]="editingMascota()!.urlCarnet" target="_blank" rel="noopener">Ver</a></p>
+              }
+            </div>
+
+            <div class="modal-foot">
+              <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+              <button type="submit" class="btn-save" [disabled]="form.invalid || saving()">
+                @if (saving()) {
+                  <span class="spinner-sm"></span> Guardando...
+                } @else {
+                  {{ editingMascota() ? 'Guardar cambios' : 'Registrar mascota' }}
+                }
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    }
+
   </div>
 }
 
@@ -93,19 +443,16 @@
                 </td>
                 <td>
                   <div class="actions-cell">
-                    <!-- Botón mascotas (placeholder sin acción) -->
-                    <button class="btn-icon btn-icon-paw"
-                            title="Ver mascotas"
-                            (click)="verMascotas(c.id)">
+                    <button class="btn-icon btn-icon-paw" title="Ver mascotas"
+                            (click)="verMascotas(c.id, c.nombre)">
                       <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M4.5 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm15 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM7 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM12 13c-3.5 0-6 2.5-6 5.5 0 1.5 2 2.5 6 2.5s6-1 6-2.5c0-3-2.5-5.5-6-5.5z"/>
                       </svg>
                     </button>
-                    <!-- Botón toggle estado (solo ADMIN puede usar) -->
                     <button class="btn-icon"
                             [class.btn-icon-danger]="c.estado === 'ACTIVO'"
                             [class.btn-icon-success]="c.estado !== 'ACTIVO'"
-                            [title]="isAdmin() ? (c.estado === 'ACTIVO' ? 'Inhabilitar cliente' : 'Habilitar cliente') : 'Solo el administrador puede cambiar el estado'"
+                            [title]="isAdmin() ? (c.estado === 'ACTIVO' ? 'Inhabilitar' : 'Habilitar') : 'Solo el administrador puede cambiar el estado'"
                             [disabled]="toggleando() === c.id || !isAdmin()"
                             (click)="toggleEstado(c)">
                       @if (toggleando() === c.id) {
@@ -122,6 +469,140 @@
             }
           </tbody>
         </table>
+      </div>
+    }
+
+    <!-- ── Staff: detalle de una mascota (solo lectura) ─── -->
+    @if (staffDetailMascota()) {
+      <div class="modal-overlay staff-detail-overlay" (click)="closeStaffDetail()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+          <div class="modal-head">
+            <h2>{{ staffDetailMascota()!.nombre }}</h2>
+            <button class="modal-close" (click)="closeStaffDetail()">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            </button>
+          </div>
+          <div class="modal-body detail-body">
+            <div class="detail-avatar-wrap">
+              @if (staffDetailMascota()!.urlFotoMascota) {
+                <div class="detail-avatar-photo" [style.border-color]="especieColor(staffDetailMascota()!.especie) + '55'">
+                  <img [src]="staffDetailMascota()!.urlFotoMascota" [alt]="staffDetailMascota()!.nombre">
+                </div>
+              } @else {
+                <div class="detail-avatar-emoji" [style.background]="especieColor(staffDetailMascota()!.especie) + '18'" [style.border-color]="especieColor(staffDetailMascota()!.especie) + '45'">
+                  <span>{{ especieIcon(staffDetailMascota()!.especie) }}</span>
+                </div>
+              }
+              <div>
+                <h3 class="detail-name">{{ staffDetailMascota()!.nombre }}</h3>
+                <p class="detail-especie" [style.color]="especieColor(staffDetailMascota()!.especie)">
+                  {{ staffDetailMascota()!.especie.charAt(0) + staffDetailMascota()!.especie.slice(1).toLowerCase() }}{{ staffDetailMascota()!.raza ? ' · ' + staffDetailMascota()!.raza : '' }}
+                </p>
+                <div class="pet-badges" style="margin-top:0.4rem">
+                  <span class="badge-size" [class]="tamanoClass(staffDetailMascota()!.tamano)">{{ tamanoLabel(staffDetailMascota()!.tamano) }}</span>
+                  @if (staffDetailMascota()!.temperamentoNombre) {
+                    <span class="badge-temp"
+                          [style.background]="staffDetailMascota()!.temperamentoColor + '22'"
+                          [style.color]="staffDetailMascota()!.temperamentoColor"
+                          [style.border-color]="staffDetailMascota()!.temperamentoColor + '55'">
+                      {{ staffDetailMascota()!.temperamentoNombre }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-info-grid">
+              @if (staffDetailMascota()!.fechaNacimiento) {
+                <div class="detail-field">
+                  <span class="detail-label">Edad</span>
+                  <span class="detail-value">{{ calcularEdad(staffDetailMascota()!.fechaNacimiento) }}</span>
+                </div>
+              }
+              @if (staffDetailMascota()!.alergias) {
+                <div class="detail-field detail-field-full">
+                  <span class="detail-label">Alergias</span>
+                  <span class="detail-value">{{ staffDetailMascota()!.alergias }}</span>
+                </div>
+              }
+            </div>
+
+            @if (staffDetailMascota()!.restricciones && staffDetailMascota()!.restricciones!.length > 0) {
+              <div class="detail-section">
+                <p class="detail-section-title">Condiciones especiales</p>
+                <div class="pet-restricciones">
+                  @for (r of staffDetailMascota()!.restricciones!; track r.id) {
+                    <span class="restr-chip" [class]="gravedadClass(r.gravedad)">
+                      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8.982 1.566a1.13 1.13 0 00-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 01-1.1 0L7.1 5.995A.905.905 0 018 5zm.002 6a1 1 0 110 2 1 1 0 010-2z"/></svg>
+                      <strong>{{ tipoLabel(r.tipo) }}</strong>{{ r.descripcion ? ': ' + r.descripcion : '' }}
+                      <span class="restr-grav-tag">{{ r.gravedad }}</span>
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (staffDetailMascota()!.urlCarnet) {
+              <a class="carnet-link" [href]="staffDetailMascota()!.urlCarnet" target="_blank" rel="noopener">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+                Ver carnet de vacunas
+              </a>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── Panel: mascotas del cliente (staff) ─────────── -->
+    @if (staffPanel()) {
+      <div class="modal-overlay" (click)="closeStaffPanel()">
+        <div class="modal-box modal-lg" (click)="$event.stopPropagation()">
+          <div class="modal-head">
+            <div>
+              <h2>Mascotas de {{ staffPanel()!.clienteNombre }}</h2>
+              @if (!loadingPanel()) {
+                <p class="modal-sub">{{ staffPanel()!.mascotas.length }} mascota{{ staffPanel()!.mascotas.length !== 1 ? 's' : '' }}</p>
+              }
+            </div>
+            <button class="modal-close" (click)="closeStaffPanel()">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            @if (loadingPanel()) {
+              <div class="mp-center"><div class="spinner"></div><span>Cargando...</span></div>
+            } @else if (staffPanel()!.mascotas.length === 0) {
+              <div class="staff-empty">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4.5 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm15 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM7 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM12 13c-3.5 0-6 2.5-6 5.5 0 1.5 2 2.5 6 2.5s6-1 6-2.5c0-3-2.5-5.5-6-5.5z"/>
+                </svg>
+                <p>Este cliente no tiene mascotas registradas</p>
+              </div>
+            } @else {
+              <!-- Minimal pet cards for staff — click to see full details -->
+              <div class="staff-pets-mini-grid">
+                @for (m of staffPanel()!.mascotas; track m.id) {
+                  <div class="staff-pet-mini">
+                    @if (m.urlFotoMascota) {
+                      <div class="spm-photo" [style.border-color]="especieColor(m.especie) + '55'">
+                        <img [src]="m.urlFotoMascota" [alt]="m.nombre">
+                      </div>
+                    } @else {
+                      <div class="spm-emoji" [style.background]="especieColor(m.especie) + '18'" [style.border-color]="especieColor(m.especie) + '40'">
+                        {{ especieIcon(m.especie) }}
+                      </div>
+                    }
+                    <h4 class="spm-name">{{ m.nombre }}</h4>
+                    <p class="spm-especie" [style.color]="especieColor(m.especie)">
+                      {{ m.especie.charAt(0) + m.especie.slice(1).toLowerCase() }}
+                    </p>
+                    <button class="btn-ver-detalle" (click)="openStaffDetail(m)">Ver detalles</button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
       </div>
     }
 

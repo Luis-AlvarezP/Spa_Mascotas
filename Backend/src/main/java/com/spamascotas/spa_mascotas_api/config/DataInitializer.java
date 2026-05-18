@@ -1,5 +1,6 @@
 package com.spamascotas.spa_mascotas_api.config;
 
+import com.spamascotas.spa_mascotas_api.model.CatTemperamento;
 import com.spamascotas.spa_mascotas_api.model.Cliente;
 import com.spamascotas.spa_mascotas_api.model.Empleado;
 import com.spamascotas.spa_mascotas_api.model.HorarioTrabajo;
@@ -7,6 +8,7 @@ import com.spamascotas.spa_mascotas_api.model.Rol;
 import com.spamascotas.spa_mascotas_api.model.Usuario;
 import com.spamascotas.spa_mascotas_api.model.enums.EstadoUsuario;
 import com.spamascotas.spa_mascotas_api.model.enums.RolEnum;
+import com.spamascotas.spa_mascotas_api.repository.CatTemperamentoRepository;
 import com.spamascotas.spa_mascotas_api.repository.ClienteRepository;
 import com.spamascotas.spa_mascotas_api.repository.EmpleadoRepository;
 import com.spamascotas.spa_mascotas_api.repository.HorarioTrabajoRepository;
@@ -32,6 +34,7 @@ public class DataInitializer implements ApplicationRunner {
     private final ClienteRepository clienteRepository;
     private final EmpleadoRepository empleadoRepository;
     private final HorarioTrabajoRepository horarioTrabajoRepository;
+    private final CatTemperamentoRepository catTemperamentoRepository;
 
     @Override
     @Transactional
@@ -42,6 +45,7 @@ public class DataInitializer implements ApplicationRunner {
         inicializarGroomer();
         inicializarRecepcion();
         inicializarHorariosGroomer();
+        inicializarTemperamentos();
     }
 
     private void inicializarRoles() {
@@ -137,6 +141,22 @@ public class DataInitializer implements ApplicationRunner {
                 .puesto(RolEnum.RECEPCION.name())
                 .build();
         empleadoRepository.save(empleado);
+    }
+
+    private void inicializarTemperamentos() {
+        String[][] datos = {
+            {"Tranquilo", "#4ade80"},
+            {"Nervioso",  "#fbbf24"},
+            {"Agresivo",  "#f87171"},
+            {"Inquieto",  "#a78bfa"}
+        };
+        for (String[] d : datos) {
+            if (catTemperamentoRepository.findByNombre(d[0]).isEmpty()) {
+                catTemperamentoRepository.save(
+                    CatTemperamento.builder().nombre(d[0]).colorAlerta(d[1]).build()
+                );
+            }
+        }
     }
 
     private void inicializarHorariosGroomer() {
