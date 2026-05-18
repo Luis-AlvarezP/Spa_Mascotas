@@ -41,12 +41,14 @@ public class PerfilService {
         String ci = null;
         String telefono = null;
 
+        String direccion = null;
         if (RolEnum.CLIENTE.name().equals(rolNombre)) {
             Cliente cliente = clienteRepository.findByUsuario(usuario).orElse(null);
             if (cliente != null) {
                 nombre   = cliente.getNombre();
                 ci       = cliente.getCi();
                 telefono = cliente.getTelefono();
+                direccion = cliente.getDireccion();
             }
         } else if (!RolEnum.ADMIN.name().equals(rolNombre)) {
             Empleado emp = empleadoRepository.findByUsuario(usuario).orElse(null);
@@ -64,6 +66,7 @@ public class PerfilService {
                 .rol(rolNombre)
                 .ci(ci)
                 .telefono(telefono)
+                .direccion(direccion)
                 .totpHabilitado(usuario.getTotpHabilitado())
                 .tieneGoogle(usuario.getGoogleId() != null)
                 .build();
@@ -85,6 +88,7 @@ public class PerfilService {
             if (request.getNombre()   != null) { cliente.setNombre(request.getNombre());   cambios.append("Nombre: ").append(request.getNombre()).append(" | "); }
             if (request.getCi()       != null) { cliente.setCi(request.getCi());           cambios.append("CI: ").append(request.getCi()).append(" | "); }
             if (request.getTelefono() != null) { cliente.setTelefono(request.getTelefono()); cambios.append("Tel: ").append(request.getTelefono()).append(" | "); }
+            if (request.getDireccion()!= null) { cliente.setDireccion(request.getDireccion()); cambios.append("Dir: ").append(request.getDireccion()).append(" | "); }
             clienteRepository.save(cliente);
         } else if (!RolEnum.ADMIN.name().equals(rolNombre)) {
             Empleado emp = empleadoRepository.findByUsuario(usuario).orElse(null);

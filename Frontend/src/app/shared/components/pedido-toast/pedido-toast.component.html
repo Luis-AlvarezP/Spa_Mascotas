@@ -1,0 +1,13 @@
+@if (notif.visible()) {
+  <div class="pedido-toast">
+    <div class="pt-dot"></div>
+    <div class="pt-body">
+      <span class="pt-title">Pedidos pendientes</span>
+      <span class="pt-msg">
+        {{ notif.pendientes() }} pedido{{ notif.pendientes() > 1 ? 's' : '' }} en espera
+      </span>
+    </div>
+    <button class="pt-ver" (click)="irAPedidos()">Ver</button>
+    <button class="pt-close" (click)="notif.dismiss()">✕</button>
+  </div>
+}

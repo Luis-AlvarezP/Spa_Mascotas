@@ -468,7 +468,7 @@
                     <button class="btn-icon"
                             [class.btn-icon-danger]="c.estado === 'ACTIVO'"
                             [class.btn-icon-success]="c.estado !== 'ACTIVO'"
-                            [title]="isAdmin() ? (c.estado === 'ACTIVO' ? 'Inhabilitar' : 'Habilitar') : 'Solo el administrador puede cambiar el estado'"
+                            [title]="isAdmin() ? (c.estado === 'ACTIVO' ? 'Desactivar' : 'Activar') : 'Solo el administrador puede cambiar el estado'"
                             [disabled]="toggleando() === c.id || !isAdmin()"
                             (click)="toggleEstado(c)">
                       @if (toggleando() === c.id) {

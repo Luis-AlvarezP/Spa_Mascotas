@@ -1,26 +1,960 @@
-<div class="module-page">
-  <div class="module-header">
-    <div class="module-icon-wrap">
-      <svg viewBox="0 0 20 20" fill="currentColor">
-        <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/>
-        <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"/>
-      </svg>
-    </div>
+<!-- ══ INVENTARIO / TIENDA ══════════════════════════════════════════ -->
+
+<!-- Notificaciones globales -->
+@if (error()) {
+  <div class="inv-alert inv-alert-error" (click)="dismissError()">
+    <span>{{ error() }}</span><button class="close-btn" title="Cerrar">✕</button>
+  </div>
+}
+@if (success()) {
+  <div class="inv-alert inv-alert-success"><span>{{ success() }}</span></div>
+}
+
+<!-- ══ ADMIN ══════════════════════════════════════════════════════════ -->
+@if (isAdmin()) {
+
+  <div class="inv-header">
     <div>
-      <h1 class="module-title">Inventario</h1>
-      <p class="module-sub">{{ subtitulo() }}</p>
+      <h2 class="inv-title">Inventario &amp; Tienda</h2>
+      <p class="inv-subtitle">Gestión de productos, categorías, promociones, cupones y ventas</p>
     </div>
   </div>
 
-  <div class="coming-soon">
-    <div class="cs-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 6v6l4 2"/>
-      </svg>
+  <nav class="inv-tabs">
+    @for (t of [['productos','Productos'],['categorias','Categorías'],['promociones','Promociones'],['cupones','Cupones']]; track t[0]) {
+      <button class="inv-tab" [class.active]="adminTab() === t[0]" (click)="adminTab.set($any(t[0]))">{{ t[1] }}</button>
+    }
+  </nav>
+
+  <!-- ── TAB: Productos ────────────────────────────────────────── -->
+  @if (adminTab() === 'productos') {
+    <div class="tab-actions">
+      <button class="btn-primary" (click)="openProductoModal()">+ Nuevo producto</button>
     </div>
-    <h2>Módulo en desarrollo</h2>
-    <p>{{ subtitulo() }}. Estará disponible próximamente.</p>
-    <a routerLink="/dashboard" class="btn-back">Volver al inicio</a>
+
+    @if (loading()) { <div class="inv-loading">Cargando productos…</div> }
+
+    <div class="admin-product-grid">
+      @for (p of productos(); track p.id) {
+        <div class="admin-product-card" [class.inactive-card]="!p.activo">
+          <div class="apc-img-wrap">
+            @if (p.urlImagen) {
+              <img [src]="productoImagen(p)" [alt]="p.nombre" class="apc-img">
+            } @else {
+              <div class="apc-img-placeholder">📦</div>
+            }
+            @if (!p.activo) { <span class="badge-inact">Inactivo</span> }
+          </div>
+          <div class="apc-body">
+            <p class="apc-cat">{{ p.categoriaNombre ?? '—' }}</p>
+            <h3 class="apc-name">{{ p.nombre }}</h3>
+            @if (p.descripcion) { <p class="apc-desc">{{ p.descripcion }}</p> }
+            <p class="apc-price">Bs. {{ p.precioVenta.toFixed(2) }}</p>
+            <div class="apc-stock" [ngClass]="stockClass(p)">
+              Stock: {{ p.stockActual }}
+              @if (p.stockActual <= p.stockMinimo && p.stockActual > 0) { <span class="stock-warn">⚠ mínimo</span> }
+              @if (p.stockActual === 0) { <span class="stock-warn">Agotado</span> }
+            </div>
+          </div>
+          <div class="apc-actions">
+            <button class="btn-icon-edit" (click)="openProductoModal(p)" title="Editar">✏</button>
+            <button class="btn-icon-toggle" (click)="toggleProducto(p)" [title]="p.activo ? 'Desactivar' : 'Activar'">
+              {{ p.activo ? '🔒' : '🔓' }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── TAB: Categorías ───────────────────────────────────────── -->
+  @if (adminTab() === 'categorias') {
+    <div class="tab-actions">
+      <button class="btn-primary" (click)="openCategoriaModal()">+ Nueva categoría</button>
+    </div>
+    <div class="cat-list">
+      @for (c of categorias(); track c.id) {
+        <div class="cat-item" [class.inactive-card]="!c.activa">
+          <div class="cat-info">
+            <span class="cat-name">{{ c.nombre }}</span>
+            @if (c.descripcion) { <span class="cat-desc">{{ c.descripcion }}</span> }
+            <span class="cat-badge" [class.badge-activo]="c.activa" [class.badge-inactivo]="!c.activa">
+              {{ c.activa ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+          <div class="cat-actions">
+            <button class="btn-icon-edit" (click)="openCategoriaModal(c)" title="Editar">✏</button>
+            <button class="btn-icon-toggle" (click)="toggleCategoria(c)" [title]="c.activa ? 'Desactivar' : 'Activar'">{{ c.activa ? '🔒' : '🔓' }}</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── TAB: Promociones ──────────────────────────────────────── -->
+  @if (adminTab() === 'promociones') {
+    <div class="tab-actions">
+      <button class="btn-primary" (click)="openPromoModal()">+ Nueva promoción</button>
+    </div>
+    <div class="promo-grid">
+      @for (p of promociones(); track p.id) {
+        <div class="promo-card" [class.inactive-card]="!p.activa">
+          <div class="promo-pct">{{ p.descuentoPorcentaje }}% OFF</div>
+          <h3 class="promo-name">{{ p.nombre }}</h3>
+          @if (p.descripcion) { <p class="promo-desc">{{ p.descripcion }}</p> }
+          <span class="promo-tipo">{{ tipoLabel(p.tipo) }}</span>
+          <p class="promo-dates">{{ formatDate(p.fechaInicio) }} → {{ formatDate(p.fechaFin) }}</p>
+          <div class="promo-actions">
+            <button class="btn-sm-edit" title="Editar promoción" (click)="openPromoModal(p)">Editar</button>
+            <button class="btn-sm-del" title="Eliminar promoción" (click)="eliminarPromo(p)">Eliminar</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── TAB: Cupones ──────────────────────────────────────────── -->
+  @if (adminTab() === 'cupones') {
+    <div class="tab-actions">
+      <button class="btn-primary" (click)="openCuponModal()">+ Nuevo cupón</button>
+    </div>
+    <div class="table-wrap">
+      <table class="inv-table">
+        <thead><tr><th>Código</th><th>Descuento</th><th>Usos</th><th>Vence</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          @for (c of cupones(); track c.id) {
+            <tr [class.row-inactive]="!c.activo">
+              <td><strong>{{ c.codigo }}</strong><br><small>{{ c.descripcion }}</small></td>
+              <td>
+                @if (c.descuentoPorcentaje > 0) { {{ c.descuentoPorcentaje }}% }
+                @if (c.descuentoFijo > 0) { Bs. {{ c.descuentoFijo.toFixed(2) }} }
+              </td>
+              <td>{{ c.usosActuales }}{{ c.usosMax ? ' / ' + c.usosMax : '' }}</td>
+              <td>{{ formatDate(c.fechaVencimiento) }}</td>
+              <td><span class="badge-estado" [class.badge-activo]="c.activo" [class.badge-inactivo]="!c.activo">{{ c.activo ? 'Activo' : 'Inactivo' }}</span></td>
+              <td class="td-actions">
+                <button class="btn-icon-edit" (click)="openCuponModal(c)" title="Editar">✏</button>
+                <button class="btn-icon-toggle" (click)="toggleCupon(c)" [title]="c.activo ? 'Desactivar' : 'Activar'">{{ c.activo ? '🔒' : '🔓' }}</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+}
+
+<!-- ══ RECEPCION ════════════════════════════════════════════════════ -->
+@if (isRecepcion()) {
+  <div class="inv-header">
+    <div>
+      <h2 class="inv-title">Tienda &amp; Ventas</h2>
+      <p class="inv-subtitle">Realiza ventas y consulta el historial</p>
+    </div>
+    @if (cart().length > 0) {
+      <button class="cart-fab" (click)="openCheckout()">
+        🛒 <span class="cart-badge">{{ cartCount() }}</span> · Bs. {{ cartSubtotal().toFixed(2) }}
+      </button>
+    }
   </div>
-</div>
+
+  <nav class="inv-tabs">
+    <button class="inv-tab" [class.active]="staffTab() === 'tienda'" (click)="staffTab.set('tienda')">
+      Tienda @if (cart().length > 0) { <span class="tab-badge">{{ cartCount() }}</span> }
+    </button>
+    <button class="inv-tab" [class.active]="staffTab() === 'pedidos'" (click)="staffTab.set('pedidos'); loadPedidosAdmin()">
+      Pedidos @if (pedidosAdmin().filter(p => p.estado === 'EN_ESPERA').length > 0) {
+        <span class="tab-badge">{{ pedidosAdmin().filter(p => p.estado === 'EN_ESPERA').length }}</span>
+      }
+    </button>
+  </nav>
+
+  @if (staffTab() === 'tienda') {
+    <!-- Selector de cliente -->
+    <div class="recep-cliente-bar">
+      @if (selectedCliente()) {
+        <div class="rcb-card rcb-selected">
+          <div class="rcb-avatar">{{ selectedCliente()!.nombre.charAt(0).toUpperCase() }}</div>
+          <div class="rcb-info">
+            <span class="rcb-label">Cliente seleccionado</span>
+            <span class="rcb-name">{{ selectedCliente()!.nombre }}</span>
+            <span class="rcb-meta">
+              @if (selectedCliente()!.ci) { <span>CI: {{ selectedCliente()!.ci }}</span> }
+              @if (selectedCliente()!.telefono) { <span>📱 {{ selectedCliente()!.telefono }}</span> }
+              @if (!selectedCliente()!.telefono) { <span class="warn-telf">⚠ Sin teléfono</span> }
+            </span>
+          </div>
+          <button class="rcb-btn-change" (click)="showClienteModal.set(true)" title="Cambiar cliente">✏ Cambiar</button>
+        </div>
+      } @else {
+        <button class="rcb-card rcb-empty" (click)="showClienteModal.set(true)">
+          <div class="rcb-icon-wrap">👥</div>
+          <div class="rcb-empty-text">
+            <span class="rcb-empty-title">Seleccionar cliente</span>
+            <span class="rcb-empty-hint">Requerido para realizar una venta</span>
+          </div>
+          <span class="rcb-arrow">›</span>
+        </button>
+      }
+    </div>
+    <!-- Filtros + catálogo -->
+    <div class="inv-filters">
+      <input class="inv-search" type="text" placeholder="Buscar producto…"
+        [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)">
+      <div class="cat-pills">
+        <button class="cat-pill" [class.active]="!filtroCategoria()" (click)="filtroCategoria.set(null)">Todos</button>
+        @for (c of categorias(); track c.id) {
+          <button class="cat-pill" [class.active]="filtroCategoria() === c.id" (click)="filtroCategoria.set(c.id)">{{ c.nombre }}</button>
+        }
+      </div>
+    </div>
+    @if (loading()) { <div class="inv-loading">Cargando productos…</div> }
+    <div class="catalog-grid">
+      @for (p of productosFiltrados(); track p.id) {
+        <div class="catalog-card" [class.out-of-stock]="p.stockActual === 0">
+          <div class="cc-img-wrap">
+            @if (p.urlImagen) { <img [src]="productoImagen(p)" [alt]="p.nombre" class="cc-img"> }
+            @else { <div class="cc-img-ph">📦</div> }
+            @if (p.stockActual === 0) { <div class="cc-out-badge">Agotado</div> }
+          </div>
+          <div class="cc-body">
+            <p class="cc-cat">{{ p.categoriaNombre ?? '' }}</p>
+            <h3 class="cc-name">{{ p.nombre }}</h3>
+            @if (p.descripcion) { <p class="cc-desc">{{ p.descripcion }}</p> }
+            <p class="cc-price">Bs. {{ p.precioVenta.toFixed(2) }}</p>
+            <p class="cc-stock" [ngClass]="stockClass(p)">
+              Stock: {{ p.stockActual }}
+              @if (p.stockActual > 0 && p.stockActual <= p.stockMinimo) { <span class="stock-warn"> ⚠ mínimo</span> }
+            </p>
+          </div>
+          <div class="cc-footer">
+            @if (inCart(p.id) === 0) {
+              <button class="btn-add-cart" [disabled]="p.stockActual === 0" (click)="addToCart(p)">🛒 Agregar</button>
+            } @else {
+              <div class="qty-ctrl">
+                <button class="qty-btn" (click)="setQty(p.id, inCart(p.id) - 1)" title="Quitar uno">−</button>
+                <span class="qty-val">{{ inCart(p.id) }}</span>
+                <button class="qty-btn" [disabled]="inCart(p.id) >= p.stockActual" (click)="addToCart(p)" title="Agregar uno">+</button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    @if (cart().length > 0) {
+      <div class="cart-summary-bar">
+        <span>{{ cartCount() }} producto(s) · Bs. {{ cartSubtotal().toFixed(2) }}</span>
+        <button class="btn-checkout" (click)="openCheckout()">Ir al checkout</button>
+      </div>
+    }
+  }
+  @if (staffTab() === 'pedidos') {
+    @if (pedidosAdmin().length === 0) {
+      <div class="empty-state"><p class="empty-icon">📦</p><p>No hay pedidos aún</p></div>
+    } @else {
+      <div class="table-wrap">
+        <table class="inv-table">
+          <thead>
+            <tr><th>#Venta</th><th>Cliente</th><th>Entrega</th><th>Dirección</th><th>Productos</th><th>Total</th><th>Estado</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (p of pedidosAdmin(); track p.id) {
+              <tr>
+                <td>#{{ p.ventaId }}</td>
+                <td>{{ p.clienteNombre ?? '—' }}<br><small>{{ p.clienteCi ? 'CI: ' + p.clienteCi : '' }}{{ p.clienteCi && p.clienteTelefono ? ' · ' : '' }}{{ p.clienteTelefono ? 'Telf: ' + p.clienteTelefono : '' }}</small></td>
+                <td>
+                  <span [class]="p.tipoEntrega === 'DOMICILIO' ? 'badge-domicilio' : 'badge-recoger'">
+                    {{ p.tipoEntrega === 'DOMICILIO' ? '🚚 Domicilio' : '🏪 Recoger' }}
+                  </span>
+                </td>
+                <td>{{ p.direccionEntrega ?? '—' }}</td>
+                <td class="td-items-resumen">{{ p.itemsResumen }}</td>
+                <td><strong>Bs. {{ p.totalFinal.toFixed(2) }}</strong></td>
+                <td><span [class]="estadoPedidoClass(p.estado)">{{ p.estado }}</span></td>
+                <td class="td-actions">
+                  @if (p.estado === 'EN_ESPERA') {
+                    <button class="btn-entregar" (click)="entregarPedido(p)" title="Marcar como entregado">✔ Entregar</button>
+                    <button class="btn-icon-del" (click)="cancelarPedidoStaff(p)" title="Cancelar pedido">✕</button>
+                  }
+                  @if (p.estado === 'ENTREGADO') {
+                    <button class="btn-dl-recibo" (click)="descargarReciboPedido(p)" title="Descargar recibo">💾</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+}
+
+<!-- ══ GROOMER ═══════════════════════════════════════════════════════ -->
+@if (isGroomer()) {
+  <div class="inv-header">
+    <h2 class="inv-title">Catálogo de Productos</h2>
+  </div>
+  <div class="inv-filters">
+    <input class="inv-search" type="text" placeholder="Buscar producto…"
+      [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)">
+    <div class="cat-pills">
+      <button class="cat-pill" [class.active]="!filtroCategoria()" (click)="filtroCategoria.set(null)">Todos</button>
+      @for (c of categorias(); track c.id) {
+        <button class="cat-pill" [class.active]="filtroCategoria() === c.id" (click)="filtroCategoria.set(c.id)">{{ c.nombre }}</button>
+      }
+    </div>
+  </div>
+  <div class="catalog-grid">
+    @for (p of productosFiltrados(); track p.id) {
+      <div class="catalog-card groomer-card">
+        <div class="cc-img-wrap">
+          @if (p.urlImagen) { <img [src]="productoImagen(p)" [alt]="p.nombre" class="cc-img"> }
+          @else { <div class="cc-img-ph">📦</div> }
+        </div>
+        <div class="cc-body">
+          <p class="cc-cat">{{ p.categoriaNombre ?? '' }}</p>
+          <h3 class="cc-name">{{ p.nombre }}</h3>
+          @if (p.descripcion) { <p class="cc-desc">{{ p.descripcion }}</p> }
+          <p class="cc-price">Bs. {{ p.precioVenta.toFixed(2) }}</p>
+          <p class="cc-stock" [ngClass]="stockClass(p)">Stock: {{ p.stockActual }}</p>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- ══ CLIENTE ═══════════════════════════════════════════════════════ -->
+@if (isCliente()) {
+  <div class="inv-header">
+    <div>
+      <h2 class="inv-title">Tienda</h2>
+      <p class="inv-subtitle">Compra productos para tu mascota</p>
+    </div>
+    @if (cart().length > 0) {
+      <button class="cart-fab" (click)="clienteTab.set('carrito')">
+        🛒 <span class="cart-badge">{{ cartCount() }}</span> · Bs. {{ cartSubtotal().toFixed(2) }}
+      </button>
+    }
+  </div>
+
+  <nav class="inv-tabs">
+    <button class="inv-tab" [class.active]="clienteTab() === 'tienda'" (click)="clienteTab.set('tienda')">Tienda</button>
+    <button class="inv-tab" [class.active]="clienteTab() === 'carrito'" (click)="clienteTab.set('carrito')">
+      Carrito @if (cart().length > 0) { <span class="tab-badge">{{ cartCount() }}</span> }
+    </button>
+    <button class="inv-tab" [class.active]="clienteTab() === 'pedidos'" (click)="clienteTab.set('pedidos')">Mis Pedidos</button>
+  </nav>
+
+  <!-- TIENDA tab -->
+  @if (clienteTab() === 'tienda') {
+    <div class="inv-filters">
+      <input class="inv-search" type="text" placeholder="Buscar producto…"
+        [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)">
+      <div class="cat-pills">
+        <button class="cat-pill" [class.active]="!filtroCategoria()" (click)="filtroCategoria.set(null)">Todos</button>
+        @for (c of categorias(); track c.id) {
+          <button class="cat-pill" [class.active]="filtroCategoria() === c.id" (click)="filtroCategoria.set(c.id)">{{ c.nombre }}</button>
+        }
+      </div>
+    </div>
+    @if (loading()) { <div class="inv-loading">Cargando productos…</div> }
+    <div class="catalog-grid">
+      @for (p of productosFiltrados(); track p.id) {
+        <div class="catalog-card" [class.out-of-stock]="p.stockActual === 0">
+          <div class="cc-img-wrap">
+            @if (p.urlImagen) { <img [src]="productoImagen(p)" [alt]="p.nombre" class="cc-img"> }
+            @else { <div class="cc-img-ph">📦</div> }
+            @if (p.stockActual === 0) { <div class="cc-out-badge">Agotado</div> }
+          </div>
+          <div class="cc-body">
+            <p class="cc-cat">{{ p.categoriaNombre ?? '' }}</p>
+            <h3 class="cc-name">{{ p.nombre }}</h3>
+            @if (p.descripcion) { <p class="cc-desc">{{ p.descripcion }}</p> }
+            <p class="cc-price">Bs. {{ p.precioVenta.toFixed(2) }}</p>
+            <p class="cc-stock" [ngClass]="stockClass(p)">
+              Stock: {{ p.stockActual }}
+              @if (p.stockActual > 0 && p.stockActual <= p.stockMinimo) { <span class="stock-warn"> ⚠ mínimo</span> }
+            </p>
+          </div>
+          <div class="cc-footer">
+            @if (inCart(p.id) === 0) {
+              <button class="btn-add-cart" [disabled]="p.stockActual === 0" (click)="addToCart(p)">🛒 Agregar</button>
+            } @else {
+              <div class="qty-ctrl">
+                <button class="qty-btn" (click)="setQty(p.id, inCart(p.id) - 1)" title="Quitar uno">−</button>
+                <span class="qty-val">{{ inCart(p.id) }}</span>
+                <button class="qty-btn" [disabled]="inCart(p.id) >= p.stockActual" (click)="addToCart(p)" title="Agregar uno">+</button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    @if (cart().length > 0) {
+      <div class="cart-summary-bar">
+        <span>{{ cartCount() }} producto(s) · Bs. {{ cartSubtotal().toFixed(2) }}</span>
+        <button class="btn-checkout" (click)="clienteTab.set('carrito')">Ver carrito</button>
+      </div>
+    }
+  }
+
+  <!-- CARRITO tab -->
+  @if (clienteTab() === 'carrito') {
+    @if (cart().length === 0) {
+      <div class="empty-state">
+        <p class="empty-icon">🛒</p>
+        <p>Tu carrito está vacío</p>
+        <button class="btn-primary" (click)="clienteTab.set('tienda')">Ver tienda</button>
+      </div>
+    } @else {
+      <div class="cart-layout">
+        <div class="cart-items">
+          @for (item of cart(); track item.producto.id) {
+            <div class="cart-item">
+              <div class="ci-img">
+                @if (item.producto.urlImagen) { <img [src]="productoImagen(item.producto)" [alt]="item.producto.nombre"> }
+                @else { <div class="ci-img-ph">📦</div> }
+              </div>
+              <div class="ci-info">
+                <p class="ci-name">{{ item.producto.nombre }}</p>
+                <p class="ci-price">Bs. {{ item.producto.precioVenta.toFixed(2) }} c/u</p>
+              </div>
+              <div class="ci-qty">
+                <button class="qty-btn" (click)="setQty(item.producto.id, item.cantidad - 1)">−</button>
+                <span>{{ item.cantidad }}</span>
+                <button class="qty-btn" [disabled]="item.cantidad >= item.producto.stockActual" (click)="addToCart(item.producto)">+</button>
+              </div>
+              <p class="ci-subtotal">Bs. {{ (item.producto.precioVenta * item.cantidad).toFixed(2) }}</p>
+              <button class="ci-remove" title="Quitar del carrito" (click)="removeFromCart(item.producto.id)">✕</button>
+            </div>
+          }
+        </div>
+
+        <div class="cart-sidebar">
+          <h3 class="cart-sidebar-title">Resumen del pedido</h3>
+
+          <!-- Cupón -->
+          <div class="coupon-section">
+            @if (!cuponValidado()) {
+              <div class="coupon-input-row">
+                <input class="inv-input coupon-input" type="text" placeholder="Código de cupón"
+                  [value]="cuponCode()" (input)="cuponCode.set($any($event.target).value)">
+                <button class="btn-apply-coupon" [disabled]="validandoCupon() || !cuponCode()" (click)="aplicarCupon()">
+                  {{ validandoCupon() ? '…' : 'Aplicar' }}
+                </button>
+              </div>
+            } @else {
+              <div class="coupon-applied">
+                <span>🏷 {{ cuponValidado()!.codigo }} — −Bs. {{ cuponValidado()!.montoDescuento.toFixed(2) }}</span>
+                <button class="coupon-remove" title="Quitar cupón" (click)="quitarCupon()">✕</button>
+              </div>
+            }
+          </div>
+
+          <!-- Método de pago -->
+          <div class="cart-field">
+            <label class="field-label">Método de pago</label>
+            <select class="inv-select" (change)="selectedMetodoPago.set(+$any($event.target).value)">
+              @for (m of metodosPago(); track m.id) {
+                <option [value]="m.id">{{ m.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Totales -->
+          <div class="cart-totals">
+            <div class="total-row"><span>Subtotal</span><span>Bs. {{ cartSubtotal().toFixed(2) }}</span></div>
+            @if (cuponValidado()) {
+              <div class="total-row discount"><span>Cupón {{ cuponValidado()!.codigo }}</span><span>−Bs. {{ cuponValidado()!.montoDescuento.toFixed(2) }}</span></div>
+            }
+            @if (descuentoFrecuenteEstimado() > 0) {
+              <div class="total-row discount"><span>⭐ Fidelidad ({{ frecuentePct() }}%)</span><span>−Bs. {{ descuentoFrecuenteEstimado().toFixed(2) }}</span></div>
+            }
+            <div class="total-row total-final"><span>Total</span><span>Bs. {{ (cartTotal() - descuentoFrecuenteEstimado()).toFixed(2) }}</span></div>
+          </div>
+
+          <button class="btn-checkout-main" (click)="openCheckout()">Confirmar pedido</button>
+          <button class="btn-clear-cart" (click)="clearCart()">Vaciar carrito</button>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- MIS PEDIDOS tab -->
+  @if (clienteTab() === 'pedidos') {
+    @if (pedidos().length === 0) {
+      <div class="empty-state">
+        <p class="empty-icon">📦</p>
+        <p>No tienes pedidos aún</p>
+      </div>
+    } @else {
+      <div class="pedidos-list">
+        @for (v of pedidos(); track v.id) {
+          <div class="pedido-card">
+            <div class="pedido-header">
+              <span class="pedido-id">#{{ v.id }}</span>
+              <span class="pedido-date">{{ formatDateTime(v.fechaVenta) }}</span>
+              <span [class]="estadoPedidoClass(v.estadoPedido)">{{ v.estadoPedido ?? v.estado }}</span>
+            </div>
+            @if (v.tipoEntrega) {
+              <div class="pedido-entrega">
+                <span [class]="v.tipoEntrega === 'DOMICILIO' ? 'badge-domicilio' : 'badge-recoger'">
+                  {{ v.tipoEntrega === 'DOMICILIO' ? '🚚 Domicilio' : '🏪 Recoger en tienda' }}
+                </span>
+                @if (v.direccionEntrega) { <span class="pedido-dir">{{ v.direccionEntrega }}</span> }
+              </div>
+            }
+            <div class="pedido-items">
+              @for (i of v.items; track i.id) {
+                <span class="pedido-item-chip">{{ i.productoNombre }} ×{{ i.cantidad }}</span>
+              }
+            </div>
+            @if (v.clienteCi) {
+              <div class="pedido-ci"><small>CI: {{ v.clienteCi }}</small></div>
+            }
+            <div class="pedido-footer">
+              <span>{{ v.metodoPago }}</span>
+              @if (v.descuento > 0) { <span class="pedido-discount">−Bs. {{ v.descuento.toFixed(2) }}</span> }
+              @if (v.clienteFrecuente) { <span class="frecuente-badge">⭐ frecuente</span> }
+              <strong class="pedido-total">Bs. {{ v.totalFinal.toFixed(2) }}</strong>
+              @if (v.estadoPedido === 'EN_ESPERA' && v.pedidoId) {
+                <button class="btn-sm-del" (click)="cancelarMiPedido(v)">Cancelar pedido</button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+}
+
+<!-- ══ MODAL: Checkout ═══════════════════════════════════════════════ -->
+@if (showCheckoutModal()) {
+  <div class="modal-overlay" (click)="showCheckoutModal.set(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">Confirmar venta</h3>
+
+      @if (isRecepcion() && selectedCliente()) {
+        <p class="checkout-cliente">Cliente: <strong>{{ selectedCliente()!.nombre }}</strong></p>
+      }
+
+      <!-- Descuento manual (solo recepcion) -->
+      @if (isRecepcion()) {
+        <!-- Cupón -->
+        <div class="coupon-section">
+          @if (!cuponValidado()) {
+            <div class="coupon-input-row">
+              <input class="inv-input coupon-input" type="text" placeholder="Código de cupón"
+                [value]="cuponCode()" (input)="cuponCode.set($any($event.target).value)">
+              <button class="btn-apply-coupon" [disabled]="validandoCupon() || !cuponCode()" (click)="aplicarCupon()">
+                {{ validandoCupon() ? '…' : 'Aplicar' }}
+              </button>
+            </div>
+          } @else {
+            <div class="coupon-applied">
+              <span>🏷 {{ cuponValidado()!.codigo }} — −Bs. {{ cuponValidado()!.montoDescuento.toFixed(2) }}</span>
+              <button class="coupon-remove" title="Quitar cupón" (click)="quitarCupon()">✕</button>
+            </div>
+          }
+        </div>
+        <!-- Método de pago -->
+        <div class="cart-field">
+          <label class="field-label">Método de pago</label>
+          <select class="inv-select" (change)="selectedMetodoPago.set(+$any($event.target).value)">
+            @for (m of metodosPago(); track m.id) {
+              <option [value]="m.id" [selected]="selectedMetodoPago() === m.id">{{ m.nombre }}</option>
+            }
+          </select>
+        </div>
+        <!-- Descuento manual -->
+        <div class="cart-field">
+          <label class="field-label">Descuento manual (Bs.)</label>
+          <input class="inv-input" type="number" min="0" [value]="descuentoManual()"
+            (input)="descuentoManual.set(+$any($event.target).value)">
+        </div>
+      }
+
+      <!-- Tipo de entrega (solo para clientes) -->
+      @if (!isRecepcion()) {
+        <div class="cart-field">
+          <label class="field-label">Tipo de entrega</label>
+          <div class="entrega-selector">
+            <button type="button" class="entrega-btn" [class.active]="tipoEntrega() === 'RECOGER'"
+              (click)="tipoEntrega.set('RECOGER')">🏪 Recoger en tienda</button>
+            <button type="button" class="entrega-btn" [class.active]="tipoEntrega() === 'DOMICILIO'"
+              (click)="tipoEntrega.set('DOMICILIO')">🚚 A domicilio</button>
+          </div>
+        </div>
+        @if (tipoEntrega() === 'DOMICILIO') {
+          <div class="cart-field">
+            <label class="field-label">
+              Dirección de entrega
+              @if (miPerfil()?.direccion) { <span class="field-hint-inline">· confirma o cambia</span> }
+            </label>
+            <input class="inv-input" type="text" placeholder="Ej: Av. Principal 123"
+              [value]="direccionEntrega()" (input)="direccionEntrega.set($any($event.target).value)">
+          </div>
+        }
+      }
+
+      <!-- Teléfono cliente (siempre visible para confirmar o actualizar) -->
+      @if (isCliente()) {
+        <div class="cart-field">
+          <label class="field-label">
+            Teléfono (WhatsApp)
+            @if (miPerfil()?.telefono) { <span class="field-hint-inline">· confirma o cambia</span> }
+          </label>
+          <input class="inv-input" type="tel" placeholder="Ej: 70000000"
+            [value]="telefonoCheckout()" (input)="telefonoCheckout.set($any($event.target).value)">
+        </div>
+      }
+      @if (isRecepcion() && selectedCliente() && !selectedCliente()!.telefono) {
+        <div class="cart-field">
+          <label class="field-label">Teléfono del cliente <span class="field-optional">(WhatsApp)</span></label>
+          <input class="inv-input" type="tel" placeholder="Ej: 70000000"
+            [value]="telefonoCheckout()" (input)="telefonoCheckout.set($any($event.target).value)">
+        </div>
+      }
+
+      <div class="cart-totals checkout-totals">
+        <div class="total-row"><span>Subtotal</span><span>Bs. {{ cartSubtotal().toFixed(2) }}</span></div>
+        @if ((cuponValidado()?.montoDescuento ?? 0) > 0) {
+          <div class="total-row discount"><span>Cupón {{ cuponValidado()!.codigo }}</span><span>−Bs. {{ cuponValidado()!.montoDescuento.toFixed(2) }}</span></div>
+        }
+        @if (descuentoFrecuenteEstimado() > 0) {
+          <div class="total-row discount"><span>⭐ Fidelidad ({{ frecuentePct() }}%)</span><span>−Bs. {{ descuentoFrecuenteEstimado().toFixed(2) }}</span></div>
+        }
+        @if (descuentoManual() > 0) {
+          <div class="total-row discount"><span>Desc. manual</span><span>−Bs. {{ descuentoManual().toFixed(2) }}</span></div>
+        }
+        <div class="total-row total-final"><span>TOTAL</span><span>Bs. {{ (cartTotal() - descuentoFrecuenteEstimado()).toFixed(2) }}</span></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="showCheckoutModal.set(false)">Cancelar</button>
+        <button class="btn-confirm" [disabled]="saving()" (click)="confirmarVenta()">
+          {{ saving() ? 'Procesando…' : 'Confirmar venta' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══ MODAL: Venta confirmada ══════════════════════════════════════ -->
+@if (ventaCreada()) {
+  <div class="modal-overlay" (click)="cerrarVentaCreada()">
+    <div class="modal-box venta-ok-modal" (click)="$event.stopPropagation()">
+      <div class="venta-ok-icon">✅</div>
+      <h3 class="modal-title">¡Venta confirmada!</h3>
+      <p class="venta-ok-id">Pedido #{{ ventaCreada()!.id }}</p>
+      @if (ventaCreada()!.tipoEntrega) {
+        <p class="venta-ok-entrega">
+          {{ ventaCreada()!.tipoEntrega === 'DOMICILIO' ? '🚚 Envío a domicilio' : '🏪 Retiro en tienda' }}
+          @if (ventaCreada()!.direccionEntrega) { — {{ ventaCreada()!.direccionEntrega }} }
+        </p>
+      }
+
+      <div class="venta-ok-items">
+        @for (i of ventaCreada()!.items; track i.id) {
+          <div class="vok-item">
+            <span>{{ i.productoNombre }} ×{{ i.cantidad }}</span>
+            <span>Bs. {{ i.subtotalItem.toFixed(2) }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="cart-totals">
+        @if (ventaCreada()!.descuento > 0) {
+          <div class="total-row discount"><span>Descuento</span><span>−Bs. {{ ventaCreada()!.descuento.toFixed(2) }}</span></div>
+          @if (ventaCreada()!.clienteFrecuente) {
+            <p class="frecuente-badge">⭐ Descuento cliente frecuente aplicado</p>
+          }
+        }
+        <div class="total-row total-final">
+          <span>{{ isRecepcion() ? 'Total pagado' : 'Total a pagar' }}</span>
+          <span>Bs. {{ ventaCreada()!.totalFinal.toFixed(2) }}</span>
+        </div>
+      </div>
+
+      <div class="venta-ok-acciones">
+        @if (isRecepcion()) {
+          <div class="recibo-btns">
+            <button class="btn-dl-recibo" title="Descargar como archivo HTML" (click)="descargarRecibo(ventaCreada()!)">💾 Descargar recibo</button>
+          </div>
+        }
+        @if (ventaCreada()!.clienteTelefono) {
+          <p class="venta-ok-send-title">Enviar detalle de la compra:</p>
+          <div class="venta-ok-send-btns">
+            <button class="btn-wa" title="Enviar por WhatsApp" (click)="enviarPorWA()">📱 WhatsApp</button>
+          </div>
+        }
+      </div>
+
+      <button class="btn-primary" style="width:100%;margin-top:1rem" (click)="cerrarVentaCreada()">Cerrar</button>
+    </div>
+  </div>
+}
+
+<!-- ══ MODAL: Producto ═══════════════════════════════════════════════ -->
+@if (showProductoModal()) {
+  <div class="modal-overlay" (click)="closeProductoModal()">
+    <div class="modal-box modal-lg" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">{{ editingProducto() ? 'Editar producto' : 'Nuevo producto' }}</h3>
+      <form [formGroup]="productoForm" (ngSubmit)="submitProducto()" class="inv-form">
+        <div class="form-row-2">
+          <div class="field-wrap">
+            <label class="field-label">Nombre *</label>
+            <input class="inv-input" formControlName="nombre" placeholder="Nombre del producto">
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">SKU</label>
+            <input class="inv-input" formControlName="sku" placeholder="Código único">
+          </div>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Descripción</label>
+          <textarea class="inv-input" formControlName="descripcion" rows="2" placeholder="Descripción breve"></textarea>
+        </div>
+        <div class="form-row-3">
+          <div class="field-wrap">
+            <label class="field-label">Precio (Bs.) *</label>
+            <input class="inv-input" type="number" step="0.01" min="0" formControlName="precioVenta">
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Stock actual</label>
+            <input class="inv-input" type="number" min="0" formControlName="stockActual">
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Stock mínimo</label>
+            <input class="inv-input" type="number" min="0" formControlName="stockMinimo">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="field-wrap">
+            <label class="field-label">Categoría</label>
+            <select class="inv-input" formControlName="categoriaId">
+              <option value="">— Sin categoría —</option>
+              @for (c of categorias(); track c.id) {
+                <option [value]="c.id">{{ c.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Fecha vencimiento</label>
+            <input class="inv-input" type="date" formControlName="fechaVencimiento">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="field-wrap">
+            <label class="field-label">Lote</label>
+            <input class="inv-input" formControlName="lote" placeholder="Nro. de lote">
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Imagen del producto</label>
+            <label class="file-label">
+              <input type="file" accept="image/*" style="display:none" (change)="onImageSelected($event)">
+              {{ selectedImageName() || 'Seleccionar imagen' }}
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeProductoModal()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="saving() || productoForm.invalid">
+            {{ saving() ? 'Guardando…' : (editingProducto() ? 'Actualizar' : 'Crear') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ══ MODAL: Categoría ══════════════════════════════════════════════ -->
+@if (showCategoriaModal()) {
+  <div class="modal-overlay" (click)="closeCategoriaModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">{{ editingCategoria() ? 'Editar categoría' : 'Nueva categoría' }}</h3>
+      <form [formGroup]="categoriaForm" (ngSubmit)="submitCategoria()" class="inv-form">
+        <div class="field-wrap">
+          <label class="field-label">Nombre *</label>
+          <input class="inv-input" formControlName="nombre" placeholder="Ej: Alimentos">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Descripción</label>
+          <input class="inv-input" formControlName="descripcion" placeholder="Descripción opcional">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeCategoriaModal()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="saving() || categoriaForm.invalid">
+            {{ saving() ? 'Guardando…' : (editingCategoria() ? 'Actualizar' : 'Crear') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ══ MODAL: Promoción ══════════════════════════════════════════════ -->
+@if (showPromoModal()) {
+  <div class="modal-overlay" (click)="closePromoModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">{{ editingPromo() ? 'Editar promoción' : 'Nueva promoción' }}</h3>
+      <form [formGroup]="promoForm" (ngSubmit)="submitPromo()" class="inv-form">
+        <div class="field-wrap">
+          <label class="field-label">Nombre *</label>
+          <input class="inv-input" formControlName="nombre" placeholder="Ej: Promo navideña">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Descripción</label>
+          <input class="inv-input" formControlName="descripcion">
+        </div>
+        <div class="form-row-2">
+          <div class="field-wrap">
+            <label class="field-label">Tipo</label>
+            <select class="inv-input" formControlName="tipo">
+              @for (t of tiposPromo; track t) { <option [value]="t">{{ tipoLabel(t) }}</option> }
+            </select>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Descuento (%)</label>
+            <input class="inv-input" type="number" min="0" max="100" formControlName="descuentoPorcentaje">
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="field-wrap">
+            <label class="field-label">Inicio *</label>
+            <input class="inv-input" type="date" formControlName="fechaInicio">
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Fin *</label>
+            <input class="inv-input" type="date" formControlName="fechaFin">
+          </div>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">
+            Productos aplicables
+            <span class="field-optional">(ninguno = todos los productos)</span>
+          </label>
+          <input class="inv-search" type="text" placeholder="Buscar producto…" style="max-width:100%;margin-bottom:0.4rem"
+            [value]="promoProductoSearch()" (input)="promoProductoSearch.set($any($event.target).value)">
+          <div class="product-check-list">
+            @for (p of productosParaPromo(); track p.id) {
+              <label class="product-check-item">
+                <input type="checkbox" [checked]="promoProductoIds().includes(p.id)"
+                  (change)="togglePromoProducto(p.id)">
+                <span>{{ p.nombre }}</span>
+              </label>
+            }
+          </div>
+          @if (promoProductoIds().length > 0) {
+            <p class="field-hint">{{ promoProductoIds().length }} producto(s) seleccionado(s)</p>
+          } @else {
+            <p class="field-hint">Aplica a todos los productos</p>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closePromoModal()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="saving() || promoForm.invalid">
+            {{ saving() ? 'Guardando…' : (editingPromo() ? 'Actualizar' : 'Crear') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ══ MODAL: Seleccionar cliente ════════════════════════════════════ -->
+@if (showClienteModal()) {
+  <div class="modal-overlay" (click)="showClienteModal.set(false); clienteSearch.set('')">
+    <div class="modal-box modal-lg" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">Seleccionar cliente</h3>
+      <input class="inv-search" type="text" placeholder="Buscar por CI o nombre…" style="max-width:100%;margin-bottom:0.75rem"
+        [value]="clienteSearch()" (input)="clienteSearch.set($any($event.target).value)">
+      <div class="cliente-list">
+        @for (c of clientesFiltrados(); track c.id) {
+          <button class="cliente-list-item" (click)="seleccionarCliente(c)">
+            <span class="cli-name">{{ c.nombre }}</span>
+            <div class="cli-meta">
+              @if (c.ci) { <span class="cli-ci">CI: {{ c.ci }}</span> }
+              @if (c.correo) { <span class="cli-correo">{{ c.correo }}</span> }
+              @if (!c.telefono) { <span class="warn-telf">⚠ Sin teléfono</span> }
+            </div>
+          </button>
+        }
+        @if (clientesFiltrados().length === 0) {
+          <p class="field-hint" style="text-align:center;padding:1.5rem 0">Sin resultados</p>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="showClienteModal.set(false); clienteSearch.set('')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══ MODAL: Cupón ══════════════════════════════════════════════════ -->
+@if (showCuponModal()) {
+  <div class="modal-overlay" (click)="closeCuponModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">{{ editingCupon() ? 'Editar cupón' : 'Nuevo cupón' }}</h3>
+      <form [formGroup]="cuponForm" (ngSubmit)="submitCupon()" class="inv-form">
+        <div class="form-row-2">
+          <div class="field-wrap">
+            <label class="field-label">Código *</label>
+            <input class="inv-input" formControlName="codigo" placeholder="PROMO20" [readonly]="!!editingCupon()">
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Máx. usos</label>
+            <input class="inv-input" type="number" min="1" formControlName="usosMax" placeholder="Sin límite">
+          </div>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Descripción</label>
+          <input class="inv-input" formControlName="descripcion">
+        </div>
+        <div class="form-row-2">
+          <div class="field-wrap">
+            <label class="field-label">Descuento (%)</label>
+            <input class="inv-input" type="number" min="0" max="100" step="0.01" formControlName="descuentoPorcentaje">
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Descuento fijo (Bs.)</label>
+            <input class="inv-input" type="number" min="0" step="0.01" formControlName="descuentoFijo">
+          </div>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Fecha vencimiento</label>
+          <input class="inv-input" type="date" formControlName="fechaVencimiento">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">
+            Productos aplicables
+            <span class="field-optional">(ninguno = todos los productos)</span>
+          </label>
+          <input class="inv-search" type="text" placeholder="Buscar producto…" style="max-width:100%;margin-bottom:0.4rem"
+            [value]="cuponProductoSearch()" (input)="cuponProductoSearch.set($any($event.target).value)">
+          <div class="product-check-list">
+            @for (p of productosParaCupon(); track p.id) {
+              <label class="product-check-item">
+                <input type="checkbox" [checked]="cuponProductoIds().includes(p.id)"
+                  (change)="toggleCuponProducto(p.id)">
+                <span>{{ p.nombre }}</span>
+              </label>
+            }
+          </div>
+          @if (cuponProductoIds().length > 0) {
+            <p class="field-hint">{{ cuponProductoIds().length }} producto(s) seleccionado(s)</p>
+          } @else {
+            <p class="field-hint">Aplica a todos los productos</p>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeCuponModal()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="saving() || cuponForm.invalid">
+            {{ saving() ? 'Guardando…' : (editingCupon() ? 'Actualizar' : 'Crear') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

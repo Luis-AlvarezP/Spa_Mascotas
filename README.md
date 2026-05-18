@@ -20,8 +20,8 @@ Sistema de gestión web/móvil (PWA) para un spa de grooming de mascotas. Permit
 | Perfil de usuario        | ✅ Completo    |
 | Agenda / Citas           | 🚧 Placeholder |
 | Grooming                 | 🚧 Placeholder |
-| Clientes y Mascotas      | 🚧 Parcial     |
-| Inventario y Ventas      | 🚧 Placeholder |
+| Clientes y Mascotas      | ✅ Completo    |
+| Inventario y Ventas      | ✅ Completo   |
 | Notificaciones           | 📋 Planificado |
 
 ## Equipo de Desarrollo

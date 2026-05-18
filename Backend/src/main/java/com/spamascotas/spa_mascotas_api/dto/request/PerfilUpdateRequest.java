@@ -8,4 +8,5 @@ public class PerfilUpdateRequest {
     private String telefono;
     private String ci;
     private String nombreUsuario;
+    private String direccion;
 }

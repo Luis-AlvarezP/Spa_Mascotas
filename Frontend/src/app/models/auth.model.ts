@@ -54,6 +54,7 @@ export interface PerfilResponse {
   rol:            string;
   ci:             string | null;
   telefono:       string | null;
+  direccion:      string | null;
   totpHabilitado: boolean;
   tieneGoogle:    boolean;
 }

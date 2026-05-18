@@ -90,7 +90,7 @@ export class AuthService {
     return this.http.get<PerfilResponse>(`${environment.apiUrl}/perfil`);
   }
 
-  updatePerfil(data: { nombre?: string; ci?: string; telefono?: string; nombreUsuario?: string }): Observable<PerfilResponse> {
+  updatePerfil(data: { nombre?: string; ci?: string; telefono?: string; nombreUsuario?: string; direccion?: string }): Observable<PerfilResponse> {
     return this.http.put<PerfilResponse>(`${environment.apiUrl}/perfil`, data);
   }
 

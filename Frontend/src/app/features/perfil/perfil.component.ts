@@ -33,6 +33,7 @@ export class PerfilComponent implements OnInit {
     ci:            [''],
     telefono:      [''],
     nombreUsuario: [''],
+    direccion:     [''],
   });
 
   // ── Cambio de contraseña ──────────────────────────────
@@ -127,6 +128,7 @@ export class PerfilComponent implements OnInit {
           ci:            p.ci ?? '',
           telefono:      p.telefono ?? '',
           nombreUsuario: p.nombreUsuario ?? '',
+          direccion:     p.direccion ?? '',
         });
         this.cargando.set(false);
         if (p.rol === 'CLIENTE') this.cargarPreferencias();
@@ -143,12 +145,13 @@ export class PerfilComponent implements OnInit {
     this.error.set(null);
     this.exito.set(null);
 
-    const { nombre, ci, telefono, nombreUsuario } = this.datoForm.value;
+    const { nombre, ci, telefono, nombreUsuario, direccion } = this.datoForm.value;
     this.auth.updatePerfil({
       nombre: nombre!,
       ci: ci ?? undefined,
       telefono: telefono ?? undefined,
       nombreUsuario: nombreUsuario ?? undefined,
+      direccion: direccion ?? undefined,
     }).subscribe({
       next: p => {
         this.perfil.set(p);

@@ -18,6 +18,9 @@ public enum TipoAccion {
     ACCESO_MODULO           ("Acceso a módulo"),
     // Inventario
     MOVIMIENTO_INVENTARIO   ("Movimiento de inventario"),
+    CREAR_PRODUCTO          ("Creación de producto"),
+    MODIFICAR_PRODUCTO      ("Modificación de producto"),
+    DESACTIVAR_PRODUCTO     ("Desactivación de producto"),
     // Ventas
     VENTA_REALIZADA         ("Venta realizada"),
     VENTA_SERVICIO          ("Venta de servicio");

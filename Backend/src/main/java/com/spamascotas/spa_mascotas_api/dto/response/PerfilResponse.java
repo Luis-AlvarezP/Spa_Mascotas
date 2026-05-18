@@ -16,6 +16,7 @@ public class PerfilResponse {
     private String rol;
     private String ci;
     private String telefono;
+    private String direccion;
     private boolean totpHabilitado;
     private boolean tieneGoogle;
 }

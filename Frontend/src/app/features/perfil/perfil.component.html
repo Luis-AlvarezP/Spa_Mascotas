@@ -77,6 +77,14 @@
               <label for="telefono">Teléfono</label>
               <input id="telefono" type="text" formControlName="telefono" placeholder="Opcional">
             </div>
+
+            @if (perfil()?.rol === 'CLIENTE') {
+              <div class="field-group">
+                <label for="direccion">Dirección</label>
+                <input id="direccion" type="text" formControlName="direccion" placeholder="Ej: Av. Principal 123">
+                <span class="field-hint">Para entregas a domicilio</span>
+              </div>
+            }
           }
 
           <button type="submit" class="btn-save" [disabled]="guardando()">

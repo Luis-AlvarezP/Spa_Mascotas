@@ -22,6 +22,8 @@ CREATE SEQUENCE IF NOT EXISTS cita_detalles_id_seq     START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS categoria_id_seq         START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS productos_id_seq         START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS es_de_catego_id_seq      START 1 INCREMENT 1;
+CREATE SEQUENCE IF NOT EXISTS promociones_id_seq       START 1 INCREMENT 1;
+CREATE SEQUENCE IF NOT EXISTS cupones_id_seq           START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS movimientos_inv_id_seq   START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS fichas_id_seq            START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS ficha_detalles_id_seq    START 1 INCREMENT 1;
@@ -50,10 +52,10 @@ CREATE TABLE IF NOT EXISTS roles (
 );
 
 CREATE TABLE IF NOT EXISTS usuarios (
-    id                   BIGINT    PRIMARY KEY DEFAULT nextval('usuarios_id_seq'),
+    id                   BIGINT       PRIMARY KEY DEFAULT nextval('usuarios_id_seq'),
     correo               VARCHAR(255) UNIQUE NOT NULL,
     password_hash        VARCHAR(255),
-    nombre_usuario       VARCHAR(50) UNIQUE,
+    nombre_usuario       VARCHAR(50)  UNIQUE,
     estado               VARCHAR(20)  NOT NULL DEFAULT 'PENDIENTE',
     token_activacion     TEXT,
     token_activacion_exp TIMESTAMP,
@@ -82,7 +84,7 @@ CREATE TABLE IF NOT EXISTS empleados (
     id         BIGINT  PRIMARY KEY DEFAULT nextval('empleados_id_seq'),
     usuario_id BIGINT  UNIQUE REFERENCES usuarios(id),
     nombre     TEXT    NOT NULL,
-    activo     BOOLEAN DEFAULT TRUE,
+    activo     BOOLEAN NOT NULL DEFAULT TRUE,
     puesto     TEXT    NOT NULL,
     ci         TEXT,
     telefono   TEXT
@@ -141,8 +143,8 @@ CREATE TABLE IF NOT EXISTS cat_temperamentos (
 );
 
 CREATE TABLE IF NOT EXISTS mascotas (
-    id                       BIGINT PRIMARY KEY DEFAULT nextval('mascotas_id_seq'),
-    nombre                   TEXT   NOT NULL,
+    id                       BIGINT  PRIMARY KEY DEFAULT nextval('mascotas_id_seq'),
+    nombre                   TEXT    NOT NULL,
     especie                  TEXT,
     raza                     TEXT,
     tamaño                   TEXT,
@@ -150,8 +152,9 @@ CREATE TABLE IF NOT EXISTS mascotas (
     alergias                 TEXT,
     url_foto_mascota         TEXT,
     url_carnet               TEXT,
-    temperamento_esperado_id BIGINT REFERENCES cat_temperamentos(id),
-    cliente_id               BIGINT REFERENCES clientes(id)
+    activa                   BOOLEAN NOT NULL DEFAULT TRUE,
+    temperamento_esperado_id BIGINT  REFERENCES cat_temperamentos(id),
+    cliente_id               BIGINT  REFERENCES clientes(id)
 );
 
 CREATE TABLE IF NOT EXISTS restricciones_mascota (
@@ -170,7 +173,7 @@ CREATE TABLE IF NOT EXISTS servicios (
     descripcion      TEXT,
     duracion_minutos INTEGER  NOT NULL,
     precio_base      NUMERIC,
-    activo           BOOLEAN  DEFAULT TRUE
+    activo           BOOLEAN  NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS servicios_precios (
@@ -240,24 +243,60 @@ CREATE TABLE IF NOT EXISTS calificaciones_cita (
 -- ── INVENTARIO / CATÁLOGO ────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS categoria (
-    id            BIGINT PRIMARY KEY DEFAULT nextval('categoria_id_seq'),
-    nom_categoria TEXT NOT NULL
+    id            BIGINT  PRIMARY KEY DEFAULT nextval('categoria_id_seq'),
+    nom_categoria TEXT    NOT NULL,
+    descripcion   TEXT,
+    activa        BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS productos (
-    id                BIGINT  PRIMARY KEY DEFAULT nextval('productos_id_seq'),
-    nombre            TEXT    NOT NULL,
-    sku               TEXT    UNIQUE,
-    stock_actual      INTEGER DEFAULT 0,
+    id                BIGINT   PRIMARY KEY DEFAULT nextval('productos_id_seq'),
+    nombre            TEXT     NOT NULL,
+    descripcion       TEXT,
+    sku               TEXT     UNIQUE,
+    stock_actual      INTEGER  NOT NULL DEFAULT 0,
+    stock_minimo      INTEGER  NOT NULL DEFAULT 0,
     precio_venta      NUMERIC,
     fecha_vencimiento DATE,
-    lote              TEXT
+    lote              TEXT,
+    url_imagen        TEXT,
+    activo            BOOLEAN  NOT NULL DEFAULT TRUE,
+    categoria_id      BIGINT   REFERENCES categoria(id)
 );
 
 CREATE TABLE IF NOT EXISTS es_de_catego (
     id           BIGINT PRIMARY KEY DEFAULT nextval('es_de_catego_id_seq'),
     producto_id  BIGINT NOT NULL REFERENCES productos(id),
     categoria_id BIGINT NOT NULL REFERENCES categoria(id)
+);
+
+CREATE TABLE IF NOT EXISTS promociones (
+    id                   BIGINT       PRIMARY KEY DEFAULT nextval('promociones_id_seq'),
+    nombre               TEXT         NOT NULL,
+    descripcion          TEXT,
+    tipo                 TEXT         NOT NULL DEFAULT 'TEMPORADA',
+    descuento_porcentaje NUMERIC(5,2) NOT NULL DEFAULT 0,
+    fecha_inicio         DATE         NOT NULL,
+    fecha_fin            DATE         NOT NULL,
+    activa               BOOLEAN      NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS cupones (
+    id                   BIGINT        PRIMARY KEY DEFAULT nextval('cupones_id_seq'),
+    codigo               TEXT          UNIQUE NOT NULL,
+    descripcion          TEXT,
+    descuento_porcentaje NUMERIC(5,2)  DEFAULT 0,
+    descuento_fijo       NUMERIC(10,2) DEFAULT 0,
+    usos_max             INTEGER,
+    usos_actuales        INTEGER       NOT NULL DEFAULT 0,
+    fecha_vencimiento    DATE,
+    activo               BOOLEAN       NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS cupon_productos (
+    cupon_id    BIGINT NOT NULL REFERENCES cupones(id)   ON DELETE CASCADE,
+    producto_id BIGINT NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+    PRIMARY KEY (cupon_id, producto_id)
 );
 
 CREATE TABLE IF NOT EXISTS movimientos_inventario (
@@ -267,7 +306,7 @@ CREATE TABLE IF NOT EXISTS movimientos_inventario (
     cantidad           INTEGER   NOT NULL,
     producto_id        BIGINT    NOT NULL REFERENCES productos(id),
     notas              TEXT,
-    fecha              TIMESTAMP DEFAULT NOW()
+    fecha              TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- ── VENTAS ───────────────────────────────────────────────────
@@ -278,37 +317,42 @@ CREATE TABLE IF NOT EXISTS metodos_pago (
 );
 
 CREATE TABLE IF NOT EXISTS ventas (
-    id             BIGINT    PRIMARY KEY DEFAULT nextval('ventas_id_seq'),
-    cliente_id     BIGINT    REFERENCES clientes(id),
-    vendedor_id    BIGINT    REFERENCES empleados(id),
-    metodo_pago_id BIGINT    REFERENCES metodos_pago(id),
-    fecha_venta    TIMESTAMP DEFAULT NOW(),
-    subtotal       NUMERIC,
-    descuento      NUMERIC   DEFAULT 0,
-    total_final    NUMERIC   NOT NULL
+    id                  BIGINT        PRIMARY KEY DEFAULT nextval('ventas_id_seq'),
+    cliente_id          BIGINT        REFERENCES clientes(id),
+    vendedor_id         BIGINT        REFERENCES empleados(id),
+    metodo_pago_id      BIGINT        REFERENCES metodos_pago(id),
+    cupon_id            BIGINT        REFERENCES cupones(id),
+    fecha_venta         TIMESTAMP     NOT NULL DEFAULT NOW(),
+    subtotal            NUMERIC(10,2) NOT NULL DEFAULT 0,
+    descuento           NUMERIC(10,2) NOT NULL DEFAULT 0,
+    descuento_frecuente NUMERIC(10,2) NOT NULL DEFAULT 0,
+    descuento_manual    NUMERIC(10,2) NOT NULL DEFAULT 0,
+    total_final         NUMERIC(10,2) NOT NULL,
+    estado              TEXT          NOT NULL DEFAULT 'CONFIRMADA',
+    notas               TEXT
 );
 
 CREATE TABLE IF NOT EXISTS venta_items (
-    id                        BIGINT  PRIMARY KEY DEFAULT nextval('venta_items_id_seq'),
-    venta_id                  BIGINT  REFERENCES ventas(id),
-    producto_id               BIGINT  REFERENCES productos(id),
-    cantidad                  INTEGER NOT NULL,
-    precio_unitario_historico NUMERIC
+    id                        BIGINT        PRIMARY KEY DEFAULT nextval('venta_items_id_seq'),
+    venta_id                  BIGINT        REFERENCES ventas(id),
+    producto_id               BIGINT        REFERENCES productos(id),
+    cantidad                  INTEGER       NOT NULL,
+    precio_unitario_historico NUMERIC(10,2)
 );
 
 CREATE TABLE IF NOT EXISTS pedido (
-    id           BIGINT PRIMARY KEY DEFAULT nextval('pedido_id_seq'),
-    venta_items  BIGINT REFERENCES venta_items(id),
-    estado       TEXT,
+    id             BIGINT PRIMARY KEY DEFAULT nextval('pedido_id_seq'),
+    venta_items    BIGINT REFERENCES venta_items(id),
+    estado         TEXT,
     "fechaEnvio"   DATE,
     "fechaEntrega" DATE
 );
 
 CREATE TABLE IF NOT EXISTS venta_servicios (
-    id              BIGINT  PRIMARY KEY DEFAULT nextval('venta_servicios_id_seq'),
-    venta_id        BIGINT  REFERENCES ventas(id),
-    cita_detalle_id BIGINT  REFERENCES cita_detalles(id),
-    precio_cobrado  NUMERIC
+    id              BIGINT        PRIMARY KEY DEFAULT nextval('venta_servicios_id_seq'),
+    venta_id        BIGINT        REFERENCES ventas(id),
+    cita_detalle_id BIGINT        REFERENCES cita_detalles(id),
+    precio_cobrado  NUMERIC(10,2)
 );
 
 -- ── NOTIFICACIONES ───────────────────────────────────────────
@@ -319,7 +363,7 @@ CREATE TABLE IF NOT EXISTS notificaciones_programadas (
     canal              TEXT      NOT NULL,
     cliente_destino_id BIGINT    REFERENCES clientes(id),
     programado_para    TIMESTAMP NOT NULL,
-    estado             TEXT      DEFAULT 'PENDIENTE'
+    estado             TEXT      NOT NULL DEFAULT 'PENDIENTE'
 );
 
 -- ── AUDITORÍA ────────────────────────────────────────────────
@@ -342,18 +386,6 @@ CREATE INDEX IF NOT EXISTS idx_audit_accion    ON audit_logs (accion);
 
 -- ── DATOS INICIALES ──────────────────────────────────────────
 
--- Migración horarios
-ALTER TABLE IF EXISTS horarios_trabajo
-    ADD COLUMN IF NOT EXISTS capacidad_maxima INTEGER NOT NULL DEFAULT 8;
-
--- Migración mascotas
-ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS especie TEXT;
-ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS fecha_nacimiento DATE;
-ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS alergias TEXT;
-ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS url_carnet TEXT;
-ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS url_foto_mascota TEXT;
-ALTER TABLE IF EXISTS mascotas ADD COLUMN IF NOT EXISTS activa BOOLEAN NOT NULL DEFAULT TRUE;
-
 INSERT INTO roles (nombre) VALUES
     ('ADMIN'), ('RECEPCION'), ('GROOMER'), ('CLIENTE')
 ON CONFLICT (nombre) DO NOTHING;
@@ -362,3 +394,6 @@ INSERT INTO metodos_pago (nombre) VALUES
     ('Efectivo'), ('Tarjeta'), ('Transferencia'), ('QR')
 ON CONFLICT DO NOTHING;
 
+INSERT INTO categoria (nom_categoria) VALUES
+    ('Alimentos'), ('Accesorios'), ('Higiene'), ('Juguetes'), ('Salud')
+ON CONFLICT DO NOTHING;
