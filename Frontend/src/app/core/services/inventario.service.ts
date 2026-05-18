@@ -18,6 +18,8 @@ export interface ProductoResponse {
   stockActual: number;
   stockMinimo: number;
   precioVenta: number;
+  precioFinal: number;
+  descuentoPct: number;
   fechaVencimiento?: string;
   lote?: string;
   urlImagen?: string;
@@ -192,10 +194,6 @@ export class InventarioService {
     return this.http.get<CategoriaResponse[]>(`${this.base}/catalogo/categorias`);
   }
 
-  getPromocionesActivas(): Observable<PromocionResponse[]> {
-    return this.http.get<PromocionResponse[]>(`${this.base}/catalogo/promociones`);
-  }
-
   getMetodosPago(): Observable<MetodoPagoResponse[]> {
     return this.http.get<MetodoPagoResponse[]>(`${this.base}/catalogo/metodos-pago`);
   }
@@ -212,10 +210,6 @@ export class InventarioService {
 
   misPedidos(): Observable<VentaResponse[]> {
     return this.http.get<VentaResponse[]>(`${this.base}/ventas/mis-pedidos`);
-  }
-
-  todasVentas(): Observable<VentaResponse[]> {
-    return this.http.get<VentaResponse[]>(`${this.base}/ventas`);
   }
 
   // ── Admin: Productos ─────────────────────────────────────────

@@ -193,6 +193,12 @@
 .cc-cat   { font-size: 0.68rem; color: var(--text-muted); margin: 0 0 0.2rem; text-transform: uppercase; }
 .cc-name  { font-size: 0.875rem; font-weight: 700; color: var(--text); margin: 0 0 0.2rem; }
 .cc-desc  { font-size: 0.73rem; color: var(--text-muted); margin: 0 0 0.3rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cc-price-wrap { display: flex; align-items: center; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.1rem; }
+.cc-promo-badge {
+  font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px;
+  background: rgba(251,191,36,0.18); color: #fbbf24; border: 1px solid rgba(251,191,36,0.35);
+}
+.cc-price-original { font-size: 0.75rem; color: var(--text-muted); text-decoration: line-through; }
 .cc-price { font-size: 0.95rem; font-weight: 800; color: #a78bfa; margin: 0; }
 .cc-stock { font-size: 0.73rem; margin-top: 0.25rem; &.stock-ok { color: #86efac; } &.stock-low { color: #fbbf24; } &.stock-out { color: #f87171; } }
 .cc-footer { padding: 0.6rem 0.7rem; border-top: 1px solid rgba(255,255,255,0.06); }
@@ -261,7 +267,15 @@
 .ci-img-ph { font-size: 1.8rem; }
 .ci-info { flex: 1; min-width: 0; }
 .ci-name { font-size: 0.875rem; font-weight: 600; color: var(--text); margin: 0; }
-.ci-price { font-size: 0.775rem; color: var(--text-muted); margin: 0; }
+.ci-price {
+  font-size: 0.775rem; color: var(--text-muted); margin: 0;
+  display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap;
+}
+.ci-price-original { text-decoration: line-through; opacity: 0.6; }
+.ci-promo-tag {
+  font-size: 0.62rem; font-weight: 700; padding: 0.05rem 0.3rem; border-radius: 3px;
+  background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3);
+}
 .ci-qty  { display: flex; align-items: center; gap: 0.4rem; }
 .ci-subtotal { font-size: 0.9rem; font-weight: 700; color: #a78bfa; white-space: nowrap; }
 .ci-remove {

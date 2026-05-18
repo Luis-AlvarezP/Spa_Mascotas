@@ -134,8 +134,12 @@ export class InventarioComponent implements OnInit {
   });
 
   cartSubtotal = computed(() =>
-    this.cart().reduce((acc, i) => acc + i.producto.precioVenta * i.cantidad, 0)
+    this.cart().reduce((acc, i) => acc + this.efectivoPrecio(i.producto) * i.cantidad, 0)
   );
+
+  efectivoPrecio(p: ProductoResponse): number {
+    return p.descuentoPct > 0 ? p.precioFinal : p.precioVenta;
+  }
 
   cartDescuento = computed(() =>
     (this.cuponValidado()?.montoDescuento ?? 0) + this.descuentoManual()

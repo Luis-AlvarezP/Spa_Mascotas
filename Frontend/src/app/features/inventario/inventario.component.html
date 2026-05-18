@@ -222,7 +222,13 @@
             <p class="cc-cat">{{ p.categoriaNombre ?? '' }}</p>
             <h3 class="cc-name">{{ p.nombre }}</h3>
             @if (p.descripcion) { <p class="cc-desc">{{ p.descripcion }}</p> }
-            <p class="cc-price">Bs. {{ p.precioVenta.toFixed(2) }}</p>
+            <div class="cc-price-wrap">
+              @if (p.descuentoPct > 0) {
+                <span class="cc-promo-badge">{{ p.descuentoPct }}% OFF</span>
+                <span class="cc-price-original">Bs. {{ p.precioVenta.toFixed(2) }}</span>
+              }
+              <p class="cc-price">Bs. {{ efectivoPrecio(p).toFixed(2) }}</p>
+            </div>
             <p class="cc-stock" [ngClass]="stockClass(p)">
               Stock: {{ p.stockActual }}
               @if (p.stockActual > 0 && p.stockActual <= p.stockMinimo) { <span class="stock-warn"> ⚠ mínimo</span> }
@@ -316,7 +322,13 @@
           <p class="cc-cat">{{ p.categoriaNombre ?? '' }}</p>
           <h3 class="cc-name">{{ p.nombre }}</h3>
           @if (p.descripcion) { <p class="cc-desc">{{ p.descripcion }}</p> }
-          <p class="cc-price">Bs. {{ p.precioVenta.toFixed(2) }}</p>
+          <div class="cc-price-wrap">
+            @if (p.descuentoPct > 0) {
+              <span class="cc-promo-badge">{{ p.descuentoPct }}% OFF</span>
+              <span class="cc-price-original">Bs. {{ p.precioVenta.toFixed(2) }}</span>
+            }
+            <p class="cc-price">Bs. {{ efectivoPrecio(p).toFixed(2) }}</p>
+          </div>
           <p class="cc-stock" [ngClass]="stockClass(p)">Stock: {{ p.stockActual }}</p>
         </div>
       </div>
@@ -371,7 +383,13 @@
             <p class="cc-cat">{{ p.categoriaNombre ?? '' }}</p>
             <h3 class="cc-name">{{ p.nombre }}</h3>
             @if (p.descripcion) { <p class="cc-desc">{{ p.descripcion }}</p> }
-            <p class="cc-price">Bs. {{ p.precioVenta.toFixed(2) }}</p>
+            <div class="cc-price-wrap">
+              @if (p.descuentoPct > 0) {
+                <span class="cc-promo-badge">{{ p.descuentoPct }}% OFF</span>
+                <span class="cc-price-original">Bs. {{ p.precioVenta.toFixed(2) }}</span>
+              }
+              <p class="cc-price">Bs. {{ efectivoPrecio(p).toFixed(2) }}</p>
+            </div>
             <p class="cc-stock" [ngClass]="stockClass(p)">
               Stock: {{ p.stockActual }}
               @if (p.stockActual > 0 && p.stockActual <= p.stockMinimo) { <span class="stock-warn"> ⚠ mínimo</span> }
@@ -418,14 +436,22 @@
               </div>
               <div class="ci-info">
                 <p class="ci-name">{{ item.producto.nombre }}</p>
-                <p class="ci-price">Bs. {{ item.producto.precioVenta.toFixed(2) }} c/u</p>
+                <p class="ci-price">
+                  @if (item.producto.descuentoPct > 0) {
+                    <span class="ci-price-original">Bs. {{ item.producto.precioVenta.toFixed(2) }}</span>
+                  }
+                  Bs. {{ efectivoPrecio(item.producto).toFixed(2) }} c/u
+                  @if (item.producto.descuentoPct > 0) {
+                    <span class="ci-promo-tag">{{ item.producto.descuentoPct }}% OFF</span>
+                  }
+                </p>
               </div>
               <div class="ci-qty">
                 <button class="qty-btn" (click)="setQty(item.producto.id, item.cantidad - 1)">−</button>
                 <span>{{ item.cantidad }}</span>
                 <button class="qty-btn" [disabled]="item.cantidad >= item.producto.stockActual" (click)="addToCart(item.producto)">+</button>
               </div>
-              <p class="ci-subtotal">Bs. {{ (item.producto.precioVenta * item.cantidad).toFixed(2) }}</p>
+              <p class="ci-subtotal">Bs. {{ (efectivoPrecio(item.producto) * item.cantidad).toFixed(2) }}</p>
               <button class="ci-remove" title="Quitar del carrito" (click)="removeFromCart(item.producto.id)">✕</button>
             </div>
           }

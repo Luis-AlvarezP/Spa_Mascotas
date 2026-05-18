@@ -5,6 +5,7 @@ import com.spamascotas.spa_mascotas_api.dto.response.PedidoResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.VentaItemResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.VentaResponse;
 import com.spamascotas.spa_mascotas_api.model.*;
+import com.spamascotas.spa_mascotas_api.model.Promocion;
 import com.spamascotas.spa_mascotas_api.repository.*;
 import com.spamascotas.spa_mascotas_api.service.admin.AuditService;
 import com.spamascotas.spa_mascotas_api.model.enums.TipoAccion;
@@ -35,6 +36,7 @@ public class VentaService {
     private final ProductoRepository productoRepository;
     private final MetodoPagoRepository metodoPagoRepository;
     private final CuponRepository cuponRepository;
+    private final PromocionRepository promocionRepository;
     private final MovimientoInventarioRepository movimientoRepository;
     private final PedidoRepository pedidoRepository;
     private final AuditService auditService;
@@ -74,8 +76,10 @@ public class VentaService {
             vendedor = empleadoRepository.findByUsuarioCorreo(correoUsuario).orElse(null);
         }
 
-        // Validar ítems y calcular subtotal
+        // Validar ítems y calcular subtotal (aplicando promociones activas)
+        List<Promocion> promocionesActivas = promocionRepository.findActivas(LocalDate.now());
         List<Producto> productos = new ArrayList<>();
+        List<BigDecimal> preciosUnitarios = new ArrayList<>();
         BigDecimal subtotal = BigDecimal.ZERO;
         for (var item : req.getItems()) {
             Producto p = productoRepository.findById(item.getProductoId())
@@ -85,7 +89,9 @@ public class VentaService {
             if (p.getStockActual() < item.getCantidad())
                 throw new RuntimeException("Stock insuficiente para: " + p.getNombre());
             productos.add(p);
-            subtotal = subtotal.add(p.getPrecioVenta().multiply(BigDecimal.valueOf(item.getCantidad())));
+            BigDecimal precio = precioConPromocion(p, promocionesActivas);
+            preciosUnitarios.add(precio);
+            subtotal = subtotal.add(precio.multiply(BigDecimal.valueOf(item.getCantidad())));
         }
 
         // Descuento cliente frecuente: 1% por cada 10 pedidos, máximo 5%
@@ -134,7 +140,7 @@ public class VentaService {
             VentaItem vi = ventaItemRepository.save(VentaItem.builder()
                 .venta(venta).producto(p)
                 .cantidad(itemReq.getCantidad())
-                .precioUnitarioHistorico(p.getPrecioVenta())
+                .precioUnitarioHistorico(preciosUnitarios.get(i))
                 .build());
             ventaItems.add(vi);
             p.setStockActual(p.getStockActual() - itemReq.getCantidad());
@@ -241,6 +247,18 @@ public class VentaService {
             throw new RuntimeException("Cupón expirado");
         if (c.getUsosMax() != null && c.getUsosActuales() >= c.getUsosMax())
             throw new RuntimeException("Cupón sin usos disponibles");
+    }
+
+    private BigDecimal precioConPromocion(Producto producto, List<Promocion> activas) {
+        return activas.stream()
+            .filter(pr -> pr.getProductos().isEmpty()
+                || pr.getProductos().stream().anyMatch(pp -> pp.getId().equals(producto.getId())))
+            .map(pr -> producto.getPrecioVenta()
+                .multiply(BigDecimal.ONE.subtract(
+                    pr.getDescuentoPorcentaje().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)))
+                .setScale(2, RoundingMode.HALF_UP))
+            .min(BigDecimal::compareTo)
+            .orElse(producto.getPrecioVenta());
     }
 
     private BigDecimal calcularDescuentoCupon(Cupon cupon, List<Long> idsItems, BigDecimal subtotal) {

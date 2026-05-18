@@ -22,4 +22,6 @@ public class ProductoResponse {
     private Boolean activo;
     private Long categoriaId;
     private String categoriaNombre;
+    private Integer descuentoPct;
+    private BigDecimal precioFinal;
 }

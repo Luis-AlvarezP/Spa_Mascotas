@@ -8,7 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.spamascotas.spa_mascotas_api.model.Promocion;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,8 +28,9 @@ public class CatalogoService {
 
     @Transactional(readOnly = true)
     public List<ProductoResponse> listarProductos() {
+        List<Promocion> activas = promocionRepository.findActivas(LocalDate.now());
         return productoRepository.findByActivoTrue().stream()
-            .map(this::toProductoResponse)
+            .map(p -> toProductoResponse(p, activas))
             .collect(Collectors.toList());
     }
 
@@ -96,10 +100,27 @@ public class CatalogoService {
     }
 
     public ProductoResponse toProductoResponse(Producto p) {
+        return toProductoResponse(p, List.of());
+    }
+
+    public ProductoResponse toProductoResponse(Producto p, List<Promocion> activas) {
+        int descuentoPct = activas.stream()
+            .filter(pr -> pr.getProductos().isEmpty()
+                || pr.getProductos().stream().anyMatch(pp -> pp.getId().equals(p.getId())))
+            .mapToInt(pr -> pr.getDescuentoPorcentaje().intValue())
+            .max()
+            .orElse(0);
+        BigDecimal precioFinal = descuentoPct > 0
+            ? p.getPrecioVenta()
+                .multiply(BigDecimal.ONE.subtract(
+                    BigDecimal.valueOf(descuentoPct).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)))
+                .setScale(2, RoundingMode.HALF_UP)
+            : p.getPrecioVenta();
         return ProductoResponse.builder()
             .id(p.getId()).nombre(p.getNombre()).descripcion(p.getDescripcion())
             .sku(p.getSku()).stockActual(p.getStockActual()).stockMinimo(p.getStockMinimo())
-            .precioVenta(p.getPrecioVenta()).fechaVencimiento(p.getFechaVencimiento())
+            .precioVenta(p.getPrecioVenta()).precioFinal(precioFinal).descuentoPct(descuentoPct)
+            .fechaVencimiento(p.getFechaVencimiento())
             .lote(p.getLote()).urlImagen(p.getUrlImagen()).activo(p.getActivo())
             .categoriaId(p.getCategoria() != null ? p.getCategoria().getId() : null)
             .categoriaNombre(p.getCategoria() != null ? p.getCategoria().getNombre() : null)

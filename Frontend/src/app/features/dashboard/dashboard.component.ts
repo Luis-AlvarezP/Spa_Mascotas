@@ -13,5 +13,9 @@ export class DashboardComponent {
   auth = inject(AuthService);
 
   isAdmin  = computed(() => this.auth.rol() === 'ADMIN');
-  nombre   = computed(() => this.auth.usuario()?.correo?.split('@')?.[0] ?? 'Usuario');
+  nombre   = computed(() => {
+    const u = this.auth.usuario();
+    if (u?.nombreUsuario) return u.nombreUsuario;
+    return u?.correo?.split('@')?.[0] ?? 'Usuario';
+  });
 }
