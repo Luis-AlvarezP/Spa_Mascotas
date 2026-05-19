@@ -1,6 +1,6 @@
 <div class="auth-page">
 
-  <!-- ═══ Panel Izquierdo — Branding ═══ -->
+ 
   <div class="brand-panel">
     <div class="brand-content">
 
@@ -56,11 +56,10 @@
     </div>
   </div>
 
-  <!-- ═══ Panel Derecho — Formulario ═══ -->
+ 
   <div class="form-panel">
     <div class="form-card">
 
-      <!-- Estado: Éxito -->
       @if (exito()) {
         <div class="success-state">
           <div class="success-ring">
@@ -84,16 +83,13 @@
 
       } @else {
 
-        <!-- Cabecera -->
         <div class="form-header">
           <h2 class="form-title">Crear cuenta</h2>
           <p class="form-subtitle">Regístrate para gestionar las citas de tu mascota</p>
         </div>
 
-        <!-- Formulario -->
         <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
 
-          <!-- Nombre + CI -->
           <div class="field-row">
             <div class="field-group">
               <label class="field-label">Nombre completo *</label>
@@ -109,7 +105,7 @@
             </div>
           </div>
 
-          <!-- Usuario + Correo -->
+         
           <div class="field-group">
             <label class="field-label">Nombre de usuario (opcional)</label>
             <div class="input-wrap">
@@ -122,7 +118,6 @@
             <span class="field-hint">Para iniciar sesión sin correo. Sin espacios.</span>
           </div>
 
-          <!-- Correo -->
           <div class="field-group">
             <label class="field-label">Correo electrónico *</label>
             <div class="input-wrap">
@@ -137,7 +132,7 @@
             }
           </div>
 
-          <!-- Teléfono + Dirección -->
+         
           <div class="field-row">
             <div class="field-group">
               <label class="field-label">Teléfono</label>
@@ -149,7 +144,7 @@
             </div>
           </div>
 
-          <!-- Contraseña -->
+         
           <div class="field-group">
             <label class="field-label">
               Contraseña *
@@ -176,7 +171,7 @@
               </button>
             </div>
 
-            <!-- Medidor de fuerza -->
+           
             @if (form.get('password')?.value) {
               <div class="strength-meter">
                 <div class="strength-bars">
@@ -204,7 +199,7 @@
             }
           </div>
 
-          <!-- Error global -->
+          
           @if (error()) {
             <div class="alert-error" role="alert">
               <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
@@ -212,7 +207,7 @@
             </div>
           }
 
-          <!-- Submit -->
+  
           <button type="submit" class="btn-primary" [disabled]="cargando()">
             @if (cargando()) {
               <span class="spinner"></span>

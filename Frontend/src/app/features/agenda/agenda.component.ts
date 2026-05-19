@@ -40,16 +40,16 @@ export class AgendaComponent implements OnInit {
   isGroomer = computed(() => this.auth.rol() === 'GROOMER');
   isStaff   = computed(() => ['ADMIN', 'RECEPCION'].includes(this.auth.rol() ?? ''));
 
-  // Navigation
+
   activeTab = signal<'horarios' | 'bloqueos'>('horarios');
 
-  // Data
+
   groomers        = signal<GroomerResponse[]>([]);
   selectedGroomer = signal<GroomerResponse | null>(null);
   horarios        = signal<HorarioTrabajo[]>([]);
   bloqueos        = signal<Bloqueo[]>([]);
 
-  // UI state
+
   loadingGroomers  = signal(false);
   loadingHorarios  = signal(false);
   loadingBloqueos  = signal(false);
@@ -58,17 +58,17 @@ export class AgendaComponent implements OnInit {
   error            = signal<string | null>(null);
   success          = signal<string | null>(null);
 
-  // Modal state
+  
   showHorarioModal = signal(false);
   editingHorario   = signal<HorarioTrabajo | null>(null);
   showBloqueoModal = signal(false);
   editingBloqueo   = signal<Bloqueo | null>(null);
 
-  // Forms
+ 
   horarioForm!: FormGroup;
   bloqueoForm!: FormGroup;
 
-  // Constants for templates
+
   dias        = DIAS;
   diasLabels  = DIAS_LABELS;
   tiposBloqueo = TIPOS_BLOQUEO;
@@ -114,8 +114,6 @@ export class AgendaComponent implements OnInit {
     });
   }
 
-  // ── Groomers ────────────────────────────────────────────────
-
   loadGroomers() {
     this.loadingGroomers.set(true);
     this.agendaSvc.groomers().subscribe({
@@ -129,7 +127,7 @@ export class AgendaComponent implements OnInit {
     this.loadHorarios(groomer.id);
   }
 
-  // ── Horarios ────────────────────────────────────────────────
+
 
   loadHorarios(empleadoId: number) {
     this.loadingHorarios.set(true);
@@ -211,7 +209,7 @@ export class AgendaComponent implements OnInit {
     });
   }
 
-  // ── Bloqueos ────────────────────────────────────────────────
+
 
   loadBloqueos() {
     this.loadingBloqueos.set(true);
@@ -284,7 +282,7 @@ export class AgendaComponent implements OnInit {
     });
   }
 
-  // ── Helpers ─────────────────────────────────────────────────
+
 
   private showSuccess(msg: string) {
     this.success.set(msg);

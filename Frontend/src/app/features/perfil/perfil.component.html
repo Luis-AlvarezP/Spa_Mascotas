@@ -27,7 +27,7 @@
 
     <div class="perfil-grid">
 
-      <!-- ── Datos personales ── -->
+     
       <div class="card">
         <h2 class="card-title">Datos personales</h2>
 
@@ -44,7 +44,7 @@
             <div class="input-static">{{ perfil()?.correo }}</div>
           </div>
 
-          <!-- ADMIN: solo nombre de usuario -->
+         
           @if (perfil()?.rol === 'ADMIN') {
             <div class="field-group">
               <label for="usuario">Nombre de usuario</label>
@@ -54,7 +54,7 @@
             </div>
           }
 
-          <!-- GROOMER / RECEPCION / CLIENTE: nombre, usuario, ci, telefono -->
+         
           @if (perfil()?.rol !== 'ADMIN') {
             <div class="field-group">
               <label for="nombre">Nombre completo</label>
@@ -97,7 +97,7 @@
         </form>
       </div>
 
-      <!-- ── Cambiar contraseña ── -->
+      
       <div class="card">
         <h2 class="card-title">Cambiar contraseña</h2>
 
@@ -181,7 +181,7 @@
         </form>
       </div>
 
-      <!-- ── Seguridad / 2FA ── -->
+     
       <div class="card">
         <h2 class="card-title">Seguridad</h2>
 
@@ -262,7 +262,7 @@
         }
       </div>
 
-      <!-- ── Preferencias de comunicación (solo CLIENTE) ── -->
+      
       @if (perfil()?.rol === 'CLIENTE') {
         <div class="card card-full">
           <h2 class="card-title">Preferencias de comunicación</h2>
@@ -271,7 +271,7 @@
             <div class="loading-state small"><span class="spinner"></span> Cargando...</div>
           } @else {
 
-            <!-- Canal por defecto (siempre visible) -->
+            
             <div class="canal-section">
               <div class="canal-header">
                 <div>
@@ -309,7 +309,7 @@
               </form>
             </div>
 
-            <!-- Preferencias adicionales -->
+           
             <div class="pref-extra">
               <p class="pref-extra-title">Preferencias adicionales</p>
 

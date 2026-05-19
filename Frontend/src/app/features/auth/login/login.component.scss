@@ -1,15 +1,13 @@
 @use '../auth-shared' as auth;
 
-/* ═══════════════════════════════════════════════════════════
-   Login — Split Screen Premium
-   ═══════════════════════════════════════════════════════════ */
+
 
 .auth-page   { @include auth.auth-split-page; }
 .brand-panel { @include auth.auth-brand-panel; }
 .form-panel  { @include auth.auth-form-panel; }
 .form-card   { @include auth.auth-form-card; }
 
-/* ── Contenido del panel de marca ───────────────────────── */
+
 .brand-content {
   position: relative;
   z-index: 2;
@@ -92,7 +90,7 @@
   svg { width: 16px; height: 16px; }
 }
 
-/* Patitas decorativas */
+
 .deco-paw {
   position: absolute;
   font-size: 1.8rem;
@@ -106,7 +104,7 @@
   &.deco-3 { bottom: 35%; right: 6%;  animation-delay: 5.5s; }
 }
 
-/* ── Card del formulario ─────────────────────────────────── */
+
 .form-header {
   margin-bottom: 1.75rem;
   text-align: center;
@@ -127,7 +125,7 @@
   color: var(--text-muted);
 }
 
-/* ── Campos ─────────────────────────────────────────────── */
+
 .field-group {
   margin-bottom: 1.25rem;
 }
@@ -193,7 +191,7 @@
   margin-top: 0.35rem;
 }
 
-/* ── 2FA ─────────────────────────────────────────────────── */
+
 .totp-group {
   animation: fadeUp 0.3s var(--t-slow) both;
 }
@@ -221,7 +219,6 @@
   letter-spacing: 0.4em;
 }
 
-/* ── Alerta de error ────────────────────────────────────── */
 .alert-error {
   display: flex;
   align-items: center;
@@ -238,7 +235,7 @@
   svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--error); }
 }
 
-/* ── Botón ──────────────────────────────────────────────── */
+
 .btn-primary {
   @include auth.btn-primary;
   margin-top: 0.25rem;
@@ -254,7 +251,7 @@
   flex-shrink: 0;
 }
 
-/* ── Footer del formulario ──────────────────────────────── */
+
 .form-footer {
   text-align: center;
   font-size: 0.875rem;
@@ -271,7 +268,7 @@
   }
 }
 
-/* ── Mobile ─────────────────────────────────────────────── */
+
 @media (max-width: 900px) {
   .brand-features { display: none; }
   .brand-headline { font-size: 1.4rem; }
@@ -280,7 +277,7 @@
   .brand-content { max-width: 100%; }
 }
 
-/* ── Forgot password link ───────────────────────────────── */
+
 .forgot-link {
   display: block;
   text-align: center;
@@ -291,6 +288,5 @@
   &:hover { color: var(--brand-light); }
 }
 
-/* ── Google OAuth ───────────────────────────────────────── */
 .btn-google   { @include auth.btn-google; }
 .auth-divider { @include auth.auth-divider; }

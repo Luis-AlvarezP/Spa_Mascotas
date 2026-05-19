@@ -1,6 +1,5 @@
 <div class="module-page">
 
-  <!-- ── Header ─────────────────────────────────────────────── -->
   <div class="module-header">
     <div class="module-icon-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -16,10 +15,10 @@
     </div>
   </div>
 
-  <!-- ── Vista ADMIN / RECEPCION ────────────────────────────── -->
+
   @if (isStaff()) {
 
-    <!-- Tabs -->
+   
     <div class="tabs">
       <button class="tab-btn" [class.active]="activeTab() === 'horarios'"
               (click)="activeTab.set('horarios')">
@@ -37,11 +36,10 @@
       </button>
     </div>
 
-    <!-- ── Tab: Horarios ─────────────────────────────────────── -->
     @if (activeTab() === 'horarios') {
       <div class="agenda-grid">
 
-        <!-- Panel Groomers -->
+        
         <aside class="groomers-panel">
           <div class="panel-head">
             <span class="panel-title">Groomers</span>
@@ -69,7 +67,7 @@
           }
         </aside>
 
-        <!-- Panel Horario semanal -->
+   
         <section class="schedule-panel">
           @if (!selectedGroomer()) {
             <div class="empty-state">
@@ -155,7 +153,7 @@
       </div>
     }
 
-    <!-- ── Tab: Bloqueos ──────────────────────────────────────── -->
+
     @if (activeTab() === 'bloqueos') {
       <div class="bloqueos-wrap">
         <div class="bloqueos-head">
@@ -216,7 +214,7 @@
 
   }
 
-  <!-- ── Vista GROOMER / CLIENTE (placeholder) ─────────────── -->
+
   @if (!isStaff()) {
     <div class="coming-soon">
       <div class="cs-icon">
@@ -234,7 +232,7 @@
     </div>
   }
 
-  <!-- ── Modal: Horario ────────────────────────────────────── -->
+
   @if (showHorarioModal()) {
     <div class="modal-overlay" (click)="closeHorarioModal()">
       <div class="modal-box" (click)="$event.stopPropagation()">
@@ -298,7 +296,7 @@
     </div>
   }
 
-  <!-- ── Modal: Bloqueo ────────────────────────────────────── -->
+
   @if (showBloqueoModal()) {
     <div class="modal-overlay" (click)="closeBloqueoModal()">
       <div class="modal-box" (click)="$event.stopPropagation()">
@@ -356,7 +354,7 @@
     </div>
   }
 
-  <!-- ── Toasts ─────────────────────────────────────────────── -->
+
   @if (success()) {
     <div class="toast toast-ok">
       <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">

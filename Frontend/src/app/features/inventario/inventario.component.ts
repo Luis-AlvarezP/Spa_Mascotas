@@ -50,7 +50,6 @@ export class InventarioComponent implements OnInit {
   isCliente   = computed(() => this.auth.rol() === 'CLIENTE');
   isStaff     = computed(() => ['ADMIN','RECEPCION'].includes(this.auth.rol() ?? ''));
 
-  // ── Shared state ─────────────────────────────────────────────
   categorias    = signal<CategoriaResponse[]>([]);
   productos     = signal<ProductoResponse[]>([]);
   metodosPago   = signal<MetodoPagoResponse[]>([]);
@@ -59,7 +58,6 @@ export class InventarioComponent implements OnInit {
   success       = signal<string | null>(null);
   saving        = signal(false);
 
-  // ── Admin tabs ───────────────────────────────────────────────
   adminTab      = signal<AdminTab>('productos');
   promociones   = signal<PromocionResponse[]>([]);
   cupones       = signal<CuponResponse[]>([]);
@@ -78,7 +76,6 @@ export class InventarioComponent implements OnInit {
   showCuponModal     = signal(false);
   editingCupon       = signal<CuponResponse | null>(null);
 
-  // ── Staff/Recepcion state ────────────────────────────────────
   staffTab         = signal<StaffTab>('tienda');
   clientes         = signal<ClienteItem[]>([]);
   selectedCliente  = signal<ClienteItem | null>(null);
@@ -88,11 +85,9 @@ export class InventarioComponent implements OnInit {
   promoProductoSearch = signal('');
   cuponProductoSearch = signal('');
 
-  // ── Cliente state ────────────────────────────────────────────
   clienteTab    = signal<ClienteTab>('tienda');
   pedidos       = signal<VentaResponse[]>([]);
 
-  // ── Cart (shared client + recepcion) ─────────────────────────
   cart          = signal<CartItem[]>([]);
   filtroCategoria = signal<number | null>(null);
   searchQuery   = signal('');
@@ -107,15 +102,12 @@ export class InventarioComponent implements OnInit {
   showCheckoutModal = signal(false);
   ventaCreada    = signal<VentaResponse | null>(null);
 
-  // ── Product multi-select for promo/cupon forms ───────────────
   promoProductoIds = signal<number[]>([]);
   cuponProductoIds = signal<number[]>([]);
 
-  // ── Perfil del cliente logueado ───────────────────────────────
   miPerfil = signal<PerfilResponse | null>(null);
 
 
-  // Forms
   productoForm!:  FormGroup;
   categoriaForm!: FormGroup;
   promoForm!:     FormGroup;
@@ -153,7 +145,6 @@ export class InventarioComponent implements OnInit {
     this.cart().reduce((acc, i) => acc + i.cantidad, 0)
   );
 
-  // Descuento fidelidad: 1% cada 10 pedidos ENTREGADOS, máx 5%
   frecuentePct = computed(() => {
     const count = this.isCliente()
       ? this.pedidos().filter(v => v.estadoPedido === 'ENTREGADO').length
@@ -207,8 +198,6 @@ export class InventarioComponent implements OnInit {
       }
     }
   }
-
-  // ── Data loaders ─────────────────────────────────────────────
 
   loadCatalogo() {
     this.loading.set(true);
@@ -267,8 +256,6 @@ export class InventarioComponent implements OnInit {
     this.showClienteModal.set(false);
     this.clienteSearch.set('');
   }
-
-  // ── Cart ──────────────────────────────────────────────────────
 
   addToCart(p: ProductoResponse) {
     const existing = this.cart().find(i => i.producto.id === p.id);
@@ -341,7 +328,6 @@ export class InventarioComponent implements OnInit {
       ? (this.miPerfil()?.telefono || this.telefonoCheckout())
       : (this.selectedCliente()?.telefono || this.telefonoCheckout());
 
-    // Dirección: usar la del perfil como fallback cuando el campo está vacío
     const direccionFinal = this.tipoEntrega() === 'DOMICILIO'
       ? (this.direccionEntrega() || this.miPerfil()?.direccion || undefined)
       : undefined;
@@ -590,18 +576,6 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
     setTimeout(() => w.print(), 500);
   }
 
-  private imprimirConIframe(html: string): void {
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:400px;height:600px;border:0;';
-    document.body.appendChild(iframe);
-    const doc = iframe.contentDocument || iframe.contentWindow!.document;
-    doc.open(); doc.write(html); doc.close();
-    setTimeout(() => {
-      try { iframe.contentWindow?.print(); } catch {}
-      setTimeout(() => iframe.parentNode?.removeChild(iframe), 3000);
-    }, 400);
-  }
-
   generarMensajePedido(p: PedidoResponse): string {
     const fecha = new Date(p.fechaVenta as any).toLocaleString('es-BO', {
       day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -671,8 +645,6 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
     doc.text('¡Gracias por su compra!', W / 2, y, { align: 'center' });
     doc.save(`recibo-pedido-${p.ventaId}.pdf`);
   }
-
-  // ── Admin: Productos ─────────────────────────────────────────
 
   openProductoModal(p?: ProductoResponse) {
     this.editingProducto.set(p ?? null);
@@ -756,8 +728,6 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
     });
   }
 
-  // ── Admin: Categorías ────────────────────────────────────────
-
   openCategoriaModal(c?: CategoriaResponse) {
     this.editingCategoria.set(c ?? null);
     this.categoriaForm.reset(c ? { nombre: c.nombre, descripcion: c.descripcion ?? '' } : {});
@@ -797,8 +767,6 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
     });
   }
 
-  // ── Admin: Promociones ───────────────────────────────────────
-
   openPromoModal(p?: PromocionResponse) {
     this.editingPromo.set(p ?? null);
     this.promoProductoIds.set(p?.productoIds ?? []);
@@ -836,8 +804,6 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
       next: () => { this.loadPromociones(); this.showSuccess('Promoción eliminada'); },
     });
   }
-
-  // ── Admin: Cupones ───────────────────────────────────────────
 
   openCuponModal(c?: CuponResponse) {
     this.editingCupon.set(c ?? null);
@@ -887,8 +853,6 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
     });
   }
 
-  // ── Forms ─────────────────────────────────────────────────────
-
   private buildForms() {
     this.productoForm = this.fb.group({
       nombre:          ['', Validators.required],
@@ -925,8 +889,6 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
       fechaVencimiento:    [''],
     });
   }
-
-  // ── Helpers ───────────────────────────────────────────────────
 
   private showSuccess(msg: string, ms = 3000) {
     this.success.set(msg);

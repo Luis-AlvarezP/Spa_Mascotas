@@ -1,8 +1,8 @@
-<!-- ── Vista CLIENTE: Mis Mascotas ───────────────────────── -->
+
 @if (isCliente()) {
   <div class="mascotas-page">
 
-    <!-- Header -->
+   
     <div class="mp-header">
       <div class="mp-header-left">
         <div class="mp-icon-wrap">
@@ -25,7 +25,7 @@
       </button>
     </div>
 
-    <!-- Toasts -->
+   
     @if (successM()) {
       <div class="toast toast-ok">
         <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -40,7 +40,7 @@
       </div>
     }
 
-    <!-- States -->
+   
     @if (loadingMascotas()) {
       <div class="mp-center">
         <div class="spinner"></div>
@@ -61,7 +61,7 @@
         </button>
       </div>
     } @else {
-      <!-- Pet cards grid (minimal — click to see details) -->
+     
       <div class="pets-grid">
         @for (m of mascotas(); track m.id) {
           <div class="pet-card pet-card-clickable" [class.pet-card-inactiva]="m.activa === false" (click)="openDetail(m)">
@@ -112,7 +112,7 @@
       </div>
     }
 
-    <!-- ── Modal detalle mascota ────────────────────────────── -->
+    
     @if (detailMascota()) {
       <div class="modal-overlay" (click)="closeDetail()">
         <div class="modal-box" (click)="$event.stopPropagation()">
@@ -123,7 +123,7 @@
             </button>
           </div>
           <div class="modal-body detail-body">
-            <!-- Avatar grande -->
+           
             <div class="detail-avatar-wrap">
               @if (detailMascota()!.urlFotoMascota) {
                 <div class="detail-avatar-photo" [style.border-color]="especieColor(detailMascota()!.especie) + '55'">
@@ -153,7 +153,7 @@
               </div>
             </div>
 
-            <!-- Datos en grid -->
+          
             <div class="detail-info-grid">
               @if (detailMascota()!.fechaNacimiento) {
                 <div class="detail-field">
@@ -169,7 +169,7 @@
               }
             </div>
 
-            <!-- Restricciones -->
+           
             @if (detailMascota()!.restricciones && detailMascota()!.restricciones!.length > 0) {
               <div class="detail-section">
                 <p class="detail-section-title">Condiciones especiales</p>
@@ -185,7 +185,7 @@
               </div>
             }
 
-            <!-- Carnet -->
+         
             @if (detailMascota()!.urlCarnet) {
               <a class="carnet-link" [href]="detailMascota()!.urlCarnet" target="_blank" rel="noopener">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
@@ -193,7 +193,7 @@
               </a>
             }
 
-            <!-- Acciones -->
+       
             <div class="detail-actions">
               @if (detailMascota()!.activa !== false) {
                 <button class="btn-detail-delete" (click)="toggleMascota(detailMascota()!)">
@@ -218,7 +218,7 @@
       </div>
     }
 
-    <!-- ── Modal registro/edición ──────────────────────────── -->
+
     @if (showModal()) {
       <div class="modal-overlay" (click)="closeModal()">
         <div class="modal-box" (click)="$event.stopPropagation()">
@@ -289,7 +289,7 @@
                         class="form-input form-textarea"></textarea>
             </div>
 
-            <!-- Restricciones / Condiciones especiales -->
+
             <div class="form-field">
               <div class="restr-header">
                 <label class="form-label">Restricciones / Condiciones especiales</label>
@@ -326,7 +326,7 @@
               }
             </div>
 
-            <!-- Foto de perfil -->
+       
             <div class="form-field">
               <label class="form-label">Foto de la mascota</label>
               <label class="file-zone" [class.has-file]="selectedPhotoName()">
@@ -346,7 +346,6 @@
               }
             </div>
 
-            <!-- Carnet de vacunas -->
             <div class="form-field">
               <label class="form-label">Carnet de vacunas</label>
               <label class="file-zone file-zone-carnet" [class.has-file]="selectedFileName()">
@@ -385,7 +384,6 @@
   </div>
 }
 
-<!-- ── Vista STAFF: Clientes y Mascotas ──────────────── -->
 @if (isStaff()) {
   <div class="clientes-page">
 
@@ -488,7 +486,7 @@
       </div>
     }
 
-    <!-- ── Modal detalle cliente ──────────────────────── -->
+
     @if (clienteDetalle()) {
       <div class="modal-overlay" (click)="closeClienteDetalle()">
         <div class="modal-box" (click)="$event.stopPropagation()">
@@ -503,7 +501,7 @@
           </div>
           <div class="modal-body detail-body">
 
-            <!-- Datos de contacto -->
+            
             <p class="detail-section-title">Datos de contacto</p>
             <div class="detail-info-grid">
               @if (clienteDetalle()!.ci) {
@@ -534,7 +532,7 @@
               </div>
             </div>
 
-            <!-- Preferencias -->
+         
             @if (prefEntries(clienteDetalle()!.preferencias).length > 0) {
               <p class="detail-section-title" style="margin-top:0.5rem">Preferencias</p>
               <div class="detail-info-grid">
@@ -554,7 +552,7 @@
       </div>
     }
 
-    <!-- ── Staff: detalle de una mascota (solo lectura) ─── -->
+
     @if (staffDetailMascota()) {
       <div class="modal-overlay staff-detail-overlay" (click)="closeStaffDetail()">
         <div class="modal-box" (click)="$event.stopPropagation()">
@@ -635,7 +633,7 @@
       </div>
     }
 
-    <!-- ── Panel: mascotas del cliente (staff) ─────────── -->
++
     @if (staffPanel()) {
       <div class="modal-overlay" (click)="closeStaffPanel()">
         <div class="modal-box modal-lg" (click)="$event.stopPropagation()">
@@ -661,7 +659,7 @@
                 <p>Este cliente no tiene mascotas registradas</p>
               </div>
             } @else {
-              <!-- Minimal pet cards for staff — click to see full details -->
+
               <div class="staff-pets-mini-grid">
                 @for (m of staffPanel()!.mascotas; track m.id) {
                   <div class="staff-pet-mini">

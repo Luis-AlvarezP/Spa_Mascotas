@@ -1,6 +1,4 @@
-<!-- ══ INVENTARIO / TIENDA ══════════════════════════════════════════ -->
 
-<!-- Notificaciones globales -->
 @if (error()) {
   <div class="inv-alert inv-alert-error" (click)="dismissError()">
     <span>{{ error() }}</span><button class="close-btn" title="Cerrar">✕</button>
@@ -10,7 +8,7 @@
   <div class="inv-alert inv-alert-success"><span>{{ success() }}</span></div>
 }
 
-<!-- ══ ADMIN ══════════════════════════════════════════════════════════ -->
+
 @if (isAdmin()) {
 
   <div class="inv-header">
@@ -26,7 +24,7 @@
     }
   </nav>
 
-  <!-- ── TAB: Productos ────────────────────────────────────────── -->
+
   @if (adminTab() === 'productos') {
     <div class="tab-actions">
       <button class="btn-primary" (click)="openProductoModal()">+ Nuevo producto</button>
@@ -67,7 +65,6 @@
     </div>
   }
 
-  <!-- ── TAB: Categorías ───────────────────────────────────────── -->
   @if (adminTab() === 'categorias') {
     <div class="tab-actions">
       <button class="btn-primary" (click)="openCategoriaModal()">+ Nueva categoría</button>
@@ -91,7 +88,7 @@
     </div>
   }
 
-  <!-- ── TAB: Promociones ──────────────────────────────────────── -->
+
   @if (adminTab() === 'promociones') {
     <div class="tab-actions">
       <button class="btn-primary" (click)="openPromoModal()">+ Nueva promoción</button>
@@ -113,7 +110,7 @@
     </div>
   }
 
-  <!-- ── TAB: Cupones ──────────────────────────────────────────── -->
+
   @if (adminTab() === 'cupones') {
     <div class="tab-actions">
       <button class="btn-primary" (click)="openCuponModal()">+ Nuevo cupón</button>
@@ -145,7 +142,7 @@
 
 }
 
-<!-- ══ RECEPCION ════════════════════════════════════════════════════ -->
+
 @if (isRecepcion()) {
   <div class="inv-header">
     <div>
@@ -171,7 +168,7 @@
   </nav>
 
   @if (staffTab() === 'tienda') {
-    <!-- Selector de cliente -->
+   
     <div class="recep-cliente-bar">
       @if (selectedCliente()) {
         <div class="rcb-card rcb-selected">
@@ -198,7 +195,7 @@
         </button>
       }
     </div>
-    <!-- Filtros + catálogo -->
+  
     <div class="inv-filters">
       <input class="inv-search" type="text" placeholder="Buscar producto…"
         [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)">
@@ -296,7 +293,7 @@
   }
 }
 
-<!-- ══ GROOMER ═══════════════════════════════════════════════════════ -->
+
 @if (isGroomer()) {
   <div class="inv-header">
     <h2 class="inv-title">Catálogo de Productos</h2>
@@ -336,7 +333,7 @@
   </div>
 }
 
-<!-- ══ CLIENTE ═══════════════════════════════════════════════════════ -->
+
 @if (isCliente()) {
   <div class="inv-header">
     <div>
@@ -358,7 +355,7 @@
     <button class="inv-tab" [class.active]="clienteTab() === 'pedidos'" (click)="clienteTab.set('pedidos')">Mis Pedidos</button>
   </nav>
 
-  <!-- TIENDA tab -->
+
   @if (clienteTab() === 'tienda') {
     <div class="inv-filters">
       <input class="inv-search" type="text" placeholder="Buscar producto…"
@@ -417,7 +414,7 @@
     }
   }
 
-  <!-- CARRITO tab -->
+
   @if (clienteTab() === 'carrito') {
     @if (cart().length === 0) {
       <div class="empty-state">
@@ -460,7 +457,7 @@
         <div class="cart-sidebar">
           <h3 class="cart-sidebar-title">Resumen del pedido</h3>
 
-          <!-- Cupón -->
+        
           <div class="coupon-section">
             @if (!cuponValidado()) {
               <div class="coupon-input-row">
@@ -478,7 +475,7 @@
             }
           </div>
 
-          <!-- Método de pago -->
+         
           <div class="cart-field">
             <label class="field-label">Método de pago</label>
             <select class="inv-select" (change)="selectedMetodoPago.set(+$any($event.target).value)">
@@ -488,7 +485,7 @@
             </select>
           </div>
 
-          <!-- Totales -->
+         
           <div class="cart-totals">
             <div class="total-row"><span>Subtotal</span><span>Bs. {{ cartSubtotal().toFixed(2) }}</span></div>
             @if (cuponValidado()) {
@@ -507,7 +504,7 @@
     }
   }
 
-  <!-- MIS PEDIDOS tab -->
+  
   @if (clienteTab() === 'pedidos') {
     @if (pedidos().length === 0) {
       <div class="empty-state">
@@ -555,7 +552,7 @@
   }
 }
 
-<!-- ══ MODAL: Checkout ═══════════════════════════════════════════════ -->
+
 @if (showCheckoutModal()) {
   <div class="modal-overlay" (click)="showCheckoutModal.set(false)">
     <div class="modal-box" (click)="$event.stopPropagation()">
@@ -565,9 +562,8 @@
         <p class="checkout-cliente">Cliente: <strong>{{ selectedCliente()!.nombre }}</strong></p>
       }
 
-      <!-- Descuento manual (solo recepcion) -->
       @if (isRecepcion()) {
-        <!-- Cupón -->
+       
         <div class="coupon-section">
           @if (!cuponValidado()) {
             <div class="coupon-input-row">
@@ -584,7 +580,7 @@
             </div>
           }
         </div>
-        <!-- Método de pago -->
+     
         <div class="cart-field">
           <label class="field-label">Método de pago</label>
           <select class="inv-select" (change)="selectedMetodoPago.set(+$any($event.target).value)">
@@ -593,7 +589,7 @@
             }
           </select>
         </div>
-        <!-- Descuento manual -->
+       
         <div class="cart-field">
           <label class="field-label">Descuento manual (Bs.)</label>
           <input class="inv-input" type="number" min="0" [value]="descuentoManual()"
@@ -601,7 +597,7 @@
         </div>
       }
 
-      <!-- Tipo de entrega (solo para clientes) -->
+   
       @if (!isRecepcion()) {
         <div class="cart-field">
           <label class="field-label">Tipo de entrega</label>
@@ -623,8 +619,7 @@
           </div>
         }
       }
-
-      <!-- Teléfono cliente (siempre visible para confirmar o actualizar) -->
+ 
       @if (isCliente()) {
         <div class="cart-field">
           <label class="field-label">
@@ -667,7 +662,6 @@
   </div>
 }
 
-<!-- ══ MODAL: Venta confirmada ══════════════════════════════════════ -->
 @if (ventaCreada()) {
   <div class="modal-overlay" (click)="cerrarVentaCreada()">
     <div class="modal-box venta-ok-modal" (click)="$event.stopPropagation()">
@@ -722,7 +716,7 @@
   </div>
 }
 
-<!-- ══ MODAL: Producto ═══════════════════════════════════════════════ -->
+
 @if (showProductoModal()) {
   <div class="modal-overlay" (click)="closeProductoModal()">
     <div class="modal-box modal-lg" (click)="$event.stopPropagation()">
@@ -795,7 +789,7 @@
   </div>
 }
 
-<!-- ══ MODAL: Categoría ══════════════════════════════════════════════ -->
+
 @if (showCategoriaModal()) {
   <div class="modal-overlay" (click)="closeCategoriaModal()">
     <div class="modal-box" (click)="$event.stopPropagation()">
@@ -820,7 +814,7 @@
   </div>
 }
 
-<!-- ══ MODAL: Promoción ══════════════════════════════════════════════ -->
+
 @if (showPromoModal()) {
   <div class="modal-overlay" (click)="closePromoModal()">
     <div class="modal-box" (click)="$event.stopPropagation()">
@@ -889,7 +883,7 @@
   </div>
 }
 
-<!-- ══ MODAL: Seleccionar cliente ════════════════════════════════════ -->
+
 @if (showClienteModal()) {
   <div class="modal-overlay" (click)="showClienteModal.set(false); clienteSearch.set('')">
     <div class="modal-box modal-lg" (click)="$event.stopPropagation()">
@@ -918,7 +912,6 @@
   </div>
 }
 
-<!-- ══ MODAL: Cupón ══════════════════════════════════════════════════ -->
 @if (showCuponModal()) {
   <div class="modal-overlay" (click)="closeCuponModal()">
     <div class="modal-box" (click)="$event.stopPropagation()">

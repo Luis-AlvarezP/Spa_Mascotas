@@ -1,8 +1,6 @@
 @use '../auth-shared' as auth;
 
-/* ═══════════════════════════════════════════════════════════
-   Activación — Dark Premium Centered
-   ═══════════════════════════════════════════════════════════ */
+
 
 .activacion-page {
   min-height: 100vh;
@@ -15,7 +13,7 @@
   padding: 2rem;
 }
 
-/* Orbes decorativos */
+
 .bg-orb {
   position: absolute;
   border-radius: 50%;
@@ -35,7 +33,7 @@
   animation: orb-float 18s ease-in-out infinite alternate-reverse;
 }
 
-/* Card */
+
 .activacion-card {
   background: rgba(255,255,255,0.04);
   backdrop-filter: blur(24px);
@@ -72,7 +70,7 @@
   }
 }
 
-/* Contenedor de estado */
+
 .state-box {
   display: flex;
   flex-direction: column;
@@ -81,7 +79,7 @@
   animation: fadeUp 0.4s var(--t-slow) both;
 }
 
-/* Spinner de carga */
+
 .spinner-ring {
   width: 72px; height: 72px;
   margin-bottom: 0.5rem;
@@ -90,7 +88,7 @@
   svg { width: 100%; height: 100%; }
 }
 
-/* Iconos de estado */
+
 .state-icon {
   width: 72px; height: 72px;
   margin-bottom: 0.5rem;
@@ -106,7 +104,7 @@
   svg { width: 100%; height: 100%; }
 }
 
-/* Títulos */
+
 .state-title {
   font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;
 
@@ -124,7 +122,7 @@
   }
 }
 
-/* Mensaje */
+
 .state-msg {
   font-size: 0.9rem;
   color: var(--text-muted);
@@ -133,7 +131,7 @@
   margin-bottom: 0.75rem;
 }
 
-/* Botones */
+
 .btn-primary, .btn-secondary {
   display: inline-flex;
   align-items: center;

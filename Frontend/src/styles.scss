@@ -1,18 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap');
 
-/* ═══════════════════════════════════════════════════════════
-   SpaMascotas — Design System Global (Dark Premium)
-   ═══════════════════════════════════════════════════════════ */
+
 
 :root {
-  /* ── Fondos ─────────────────────────────────────────────── */
+
   --bg-base:     #07050f;
   --bg-raised:   #0e0b1c;
   --bg-elevated: #16112b;
   --bg-card:     rgba(255, 255, 255, 0.04);
   --bg-hover:    rgba(255, 255, 255, 0.07);
 
-  /* ── Marca ──────────────────────────────────────────────── */
   --brand:        #7c3aed;
   --brand-dark:   #6d28d9;
   --brand-light:  #8b5cf6;
@@ -22,23 +19,23 @@
   --accent-glow:  rgba(236, 72, 153, 0.28);
   --gold:         #f59e0b;
 
-  /* ── Gradientes ─────────────────────────────────────────── */
+
   --grad-brand:      linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
   --grad-brand-soft: linear-gradient(135deg, rgba(124,58,237,0.20) 0%, rgba(236,72,153,0.15) 100%);
   --grad-surface:    linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
   --grad-sidebar:    linear-gradient(180deg, #0e0b1c 0%, #160d2e 100%);
 
-  /* ── Cristal (glassmorphism) ────────────────────────────── */
+
   --glass:        rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.09);
   --glass-strong: rgba(255, 255, 255, 0.09);
 
-  /* ── Texto ──────────────────────────────────────────────── */
+
   --text:        #f1f5f9;
   --text-muted:  #8b94a3;
   --text-dim:    #4b5563;
 
-  /* ── Estados ────────────────────────────────────────────── */
+
   --success:      #10b981;
   --success-soft: rgba(16, 185, 129, 0.15);
   --error:        #ef4444;
@@ -48,31 +45,30 @@
   --info:         #3b82f6;
   --info-soft:    rgba(59, 130, 246, 0.15);
 
-  /* ── Bordes ─────────────────────────────────────────────── */
+  
   --border:        rgba(255, 255, 255, 0.08);
   --border-active: var(--brand);
 
-  /* ── Sombras ────────────────────────────────────────────── */
+  
   --shadow-sm:     0 2px 8px rgba(0, 0, 0, 0.40);
   --shadow-md:     0 8px 24px rgba(0, 0, 0, 0.50);
   --shadow-lg:     0 24px 64px rgba(0, 0, 0, 0.60);
   --shadow-brand:  0 8px 32px rgba(124, 58, 237, 0.40);
   --shadow-accent: 0 8px 32px rgba(236, 72, 153, 0.35);
 
-  /* ── Radios ─────────────────────────────────────────────── */
+  
   --r-sm:  6px;
   --r-md:  10px;
   --r-lg:  16px;
   --r-xl:  24px;
   --r-2xl: 32px;
 
-  /* ── Transiciones ───────────────────────────────────────── */
+  
   --t-fast:   0.15s ease;
   --t-normal: 0.25s ease;
   --t-slow:   0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Reset ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
@@ -104,13 +100,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 input, textarea, select { font-family: inherit; }
 img { max-width: 100%; display: block; }
 
-/* ── Scrollbar personalizada ────────────────────────────────── */
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg-raised); }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--brand); }
 
-/* ── Utilidades ─────────────────────────────────────────────── */
+
 .gradient-text {
   background: var(--grad-brand);
   -webkit-background-clip: text;
@@ -141,7 +136,7 @@ img { max-width: 100%; display: block; }
   &.badge-recepcion{ background: rgba(59,130,246,0.2); color: #93c5fd; }
 }
 
-/* Animación global "fade-up" para entradas */
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }

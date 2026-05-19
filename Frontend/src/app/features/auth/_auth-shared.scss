@@ -1,8 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   SpaMascotas — Auth Shared Mixins (Dark Glassmorphism)
-   ═══════════════════════════════════════════════════════════ */
 
-/* ── Página completa split-screen ────────────────────────── */
 @mixin auth-split-page {
   min-height: 100vh;
   display: grid;
@@ -16,7 +12,7 @@
   }
 }
 
-/* ── Panel izquierdo (branding) ──────────────────────────── */
+
 @mixin auth-brand-panel {
   position: relative;
   overflow: hidden;
@@ -26,7 +22,7 @@
   padding: 3rem 3.5rem;
   background: linear-gradient(155deg, #0e0b20 0%, #1a0f38 50%, #0d1630 100%);
 
-  /* Orbes de fondo animados */
+  
   &::before, &::after {
     content: '';
     position: absolute;
@@ -53,7 +49,7 @@
   }
 }
 
-/* ── Panel derecho (formulario) ──────────────────────────── */
+
 @mixin auth-form-panel {
   display: flex;
   align-items: center;
@@ -75,7 +71,7 @@
   }
 }
 
-/* ── Card del formulario ─────────────────────────────────── */
+
 @mixin auth-form-card {
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(24px);
@@ -99,7 +95,7 @@
   }
 }
 
-/* ── Inputs ─────────────────────────────────────────────── */
+
 @mixin auth-input {
   width: 100%;
   padding: 0.8rem 1rem;
@@ -131,7 +127,7 @@
   }
 }
 
-/* ── Botón primario ─────────────────────────────────────── */
+
 @mixin btn-primary {
   width: 100%;
   padding: 0.875rem 1.5rem;
@@ -172,7 +168,7 @@
   svg { width: 18px; height: 18px; flex-shrink: 0; }
 }
 
-/* ── Botón Google ───────────────────────────────────────── */
+
 @mixin btn-google {
   width: 100%;
   padding: 0.8rem 1.5rem;
@@ -198,7 +194,7 @@
   &:active { transform: translateY(0); }
 }
 
-/* ── Divisor ────────────────────────────────────────────── */
+
 @mixin auth-divider {
   display: flex;
   align-items: center;
@@ -214,7 +210,7 @@
   }
 }
 
-/* ── Keyframes ──────────────────────────────────────────── */
+
 @keyframes orb-float {
   from { transform: translate(0, 0) scale(1); }
   to   { transform: translate(40px, 28px) scale(1.12); }

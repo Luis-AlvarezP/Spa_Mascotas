@@ -41,7 +41,6 @@ export class LoginComponent {
         next: resp => {
           this.cargando.set(false);
           if (resp.requiere2faSetup) {
-            // Staff: must set up 2FA before accessing the system
             this.authService.pendingSetupCorreo.set(resp.correo ?? identificador!);
             this.authService.pendingSetupPassword.set(password!);
             this.router.navigate(['/auth/setup-2fa']);

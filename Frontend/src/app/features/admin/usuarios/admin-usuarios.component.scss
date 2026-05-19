@@ -7,7 +7,7 @@
   @media (max-width: 768px) { padding: 1rem; }
 }
 
-/* ── Header ─────────────────────────────────────────────── */
+
 .page-header {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
@@ -36,13 +36,12 @@
   &:hover { background: rgba(124,58,237,0.1); border-color: var(--brand); }
 }
 
-/* ── Content grid ───────────────────────────────────────── */
 .content-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
   @media (max-width: 900px) { grid-template-columns: 1fr; }
 }
 
-/* ── Cards ──────────────────────────────────────────────── */
+
 .form-card, .staff-card {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.07);
@@ -57,7 +56,6 @@
 
 .card-sub { font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.5rem; }
 
-/* ── Form fields ────────────────────────────────────────── */
 .field-group { margin-bottom: 1.1rem; }
 
 .field-label {
@@ -78,7 +76,6 @@ input[type="text"], input[type="email"] {
 
 .field-error { display: block; font-size: 0.78rem; color: var(--error); margin-top: 0.3rem; }
 
-/* ── Rol selector ───────────────────────────────────────── */
 .rol-select {
   display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
 }
@@ -103,7 +100,7 @@ input[type="text"], input[type="email"] {
   &:hover { background: rgba(255,255,255,0.06); color: var(--text); }
 }
 
-/* ── Submit ─────────────────────────────────────────────── */
+
 .btn-primary {
   width: 100%; padding: 0.875rem 1.5rem; margin-top: 0.5rem;
   background: var(--grad-brand); color: #fff; border: none;
@@ -121,7 +118,6 @@ input[type="text"], input[type="email"] {
   border-radius: 50%; animation: spin 0.7s linear infinite;
 }
 
-/* ── Alertas ────────────────────────────────────────────── */
 .alert-success, .alert-error {
   display: flex; align-items: flex-start; gap: 0.6rem;
   padding: 0.75rem 1rem; border-radius: var(--r-md);
@@ -132,7 +128,7 @@ input[type="text"], input[type="email"] {
 .alert-success { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
 .alert-error   { background: rgba(239,68,68,0.1);   border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
 
-/* ── Lista de staff ─────────────────────────────────────── */
+
 .staff-list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1rem; }
 
 .staff-row {
@@ -180,7 +176,7 @@ input[type="text"], input[type="email"] {
   border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block;
 }
 
-/* ── Modal ───────────────────────────────────────────────── */
+
 .modal-backdrop {
   position: fixed; inset: 0; z-index: 1000;
   background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);

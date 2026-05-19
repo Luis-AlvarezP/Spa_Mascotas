@@ -14,7 +14,6 @@ export class PedidoNotificacionService implements OnDestroy {
   private interval: ReturnType<typeof setInterval> | null = null;
 
   init(): void {
-    // Run immediately and then every 5 minutes
     this.check();
     this.interval = setInterval(() => this.check(), 5 * 60 * 1000);
   }

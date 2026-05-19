@@ -5,7 +5,6 @@ import { authGuard, adminGuard, guestGuard } from './core/guards/auth.guard';
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
 
-  // ── Rutas públicas (sin layout) ──────────────────────────
   {
     path: 'auth',
     children: [
@@ -42,7 +41,7 @@ export const routes: Routes = [
     ],
   },
 
-  // ── Rutas protegidas (con MainLayout: sidebar + topbar) ──
+
   {
     path: '',
     canActivate: [authGuard],

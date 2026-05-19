@@ -27,7 +27,7 @@ export class PerfilComponent implements OnInit {
   exito        = signal<string | null>(null);
   onboarding   = signal(false);
 
-  // ── Datos personales ──────────────────────────────────
+
   datoForm = this.fb.group({
     nombre:        [''],
     ci:            [''],
@@ -36,7 +36,6 @@ export class PerfilComponent implements OnInit {
     direccion:     [''],
   });
 
-  // ── Cambio de contraseña ──────────────────────────────
   guardandoPass     = signal(false);
   exitoPass         = signal<string | null>(null);
   errorPass         = signal<string | null>(null);
@@ -73,7 +72,6 @@ export class PerfilComponent implements OnInit {
     return { texto: labels[s] ?? '', color: colors[s] ?? '' };
   });
 
-  // ── Canal de comunicación (CLIENTE) ──────────────────
   canalPreferencia  = signal<PreferenciaResponse | null>(null);
   guardandoCanal    = signal(false);
   exitoCanal        = signal<string | null>(null);
@@ -85,7 +83,6 @@ export class PerfilComponent implements OnInit {
 
   canales = ['WhatsApp', 'Correo electrónico'];
 
-  // ── Preferencias adicionales (CLIENTE) ───────────────
   preferencias      = signal<PreferenciaResponse[]>([]);
   cargandoPref      = signal(false);
   guardandoPref     = signal(false);
@@ -98,7 +95,7 @@ export class PerfilComponent implements OnInit {
     valor:  ['', Validators.required],
   });
 
-  // ── 2FA ───────────────────────────────────────────────
+
   modoTotp     = signal<'idle' | 'setup' | 'disable'>('idle');
   totpQrUrl    = signal<string | null>(null);
   totpSecret   = signal<string | null>(null);
@@ -165,7 +162,6 @@ export class PerfilComponent implements OnInit {
     });
   }
 
-  // ── Cambio de contraseña ──────────────────────────────
 
   cambiarPassword(): void {
     if (this.changePassForm.invalid) { this.changePassForm.markAllAsTouched(); return; }
@@ -191,7 +187,7 @@ export class PerfilComponent implements OnInit {
     });
   }
 
-  // ── Canal de comunicación ─────────────────────────────
+
 
   private cargarPreferencias(): void {
     this.cargandoPref.set(true);
@@ -227,7 +223,7 @@ export class PerfilComponent implements OnInit {
     });
   }
 
-  // ── Preferencias adicionales ──────────────────────────
+
 
   guardarPreferencia(): void {
     if (this.prefForm.invalid) return;
@@ -259,7 +255,7 @@ export class PerfilComponent implements OnInit {
     });
   }
 
-  // ── 2FA ───────────────────────────────────────────────
+
 
   iniciarSetup2fa(): void {
     this.modoTotp.set('setup');

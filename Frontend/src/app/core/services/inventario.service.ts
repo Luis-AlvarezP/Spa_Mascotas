@@ -184,8 +184,6 @@ export class InventarioService {
   private http = inject(HttpClient);
   private base  = `${environment.apiUrl}`;
 
-  // ── Catálogo (todos los roles) ───────────────────────────────
-
   getProductos(): Observable<ProductoResponse[]> {
     return this.http.get<ProductoResponse[]>(`${this.base}/catalogo/productos`);
   }
@@ -202,8 +200,6 @@ export class InventarioService {
     return this.http.post<CuponValidadoResponse>(`${this.base}/catalogo/validar-cupon`, { codigo, productoIds, subtotal });
   }
 
-  // ── Ventas ────────────────────────────────────────────────────
-
   crearVenta(req: VentaRequest): Observable<VentaResponse> {
     return this.http.post<VentaResponse>(`${this.base}/ventas`, req);
   }
@@ -211,8 +207,6 @@ export class InventarioService {
   misPedidos(): Observable<VentaResponse[]> {
     return this.http.get<VentaResponse[]>(`${this.base}/ventas/mis-pedidos`);
   }
-
-  // ── Admin: Productos ─────────────────────────────────────────
 
   getProductosAdmin(): Observable<ProductoResponse[]> {
     return this.http.get<ProductoResponse[]>(`${this.base}/admin/inventario/productos`);
@@ -236,8 +230,6 @@ export class InventarioService {
     return this.http.post<ProductoResponse>(`${this.base}/admin/inventario/productos/${id}/imagen`, fd);
   }
 
-  // ── Admin: Categorías ────────────────────────────────────────
-
   getCategoriasAdmin(): Observable<CategoriaResponse[]> {
     return this.http.get<CategoriaResponse[]>(`${this.base}/admin/inventario/categorias`);
   }
@@ -253,8 +245,6 @@ export class InventarioService {
   toggleCategoria(id: number): Observable<CategoriaResponse> {
     return this.http.patch<CategoriaResponse>(`${this.base}/admin/inventario/categorias/${id}/toggle`, {});
   }
-
-  // ── Admin: Promociones ───────────────────────────────────────
 
   getPromocionesAdmin(): Observable<PromocionResponse[]> {
     return this.http.get<PromocionResponse[]>(`${this.base}/admin/inventario/promociones`);
@@ -272,8 +262,6 @@ export class InventarioService {
     return this.http.delete<void>(`${this.base}/admin/inventario/promociones/${id}`);
   }
 
-  // ── Admin: Cupones ───────────────────────────────────────────
-
   getCuponesAdmin(): Observable<CuponResponse[]> {
     return this.http.get<CuponResponse[]>(`${this.base}/admin/inventario/cupones`);
   }
@@ -290,8 +278,6 @@ export class InventarioService {
     return this.http.patch<CuponResponse>(`${this.base}/admin/inventario/cupones/${id}/toggle`, {});
   }
 
-  // ── Pedidos ───────────────────────────────────────────────────
-
   listarPedidosAdmin(): Observable<PedidoResponse[]> {
     return this.http.get<PedidoResponse[]>(`${this.base}/pedidos`);
   }
@@ -303,8 +289,6 @@ export class InventarioService {
   cancelarPedido(id: number): Observable<PedidoResponse> {
     return this.http.patch<PedidoResponse>(`${this.base}/pedidos/${id}/cancelar`, {});
   }
-
-  // ── Helpers ───────────────────────────────────────────────────
 
   generarMensajeVenta(venta: VentaResponse, entregado = false): string {
     const fecha = new Date(venta.fechaVenta).toLocaleString('es-BO', {
@@ -323,7 +307,7 @@ export class InventarioService {
     ).join('\n');
 
     if (entregado) {
-      // ── Mensaje de entrega ──────────────────────────────────────
+      
       let msg = `✅ *SpaMascotas — Pedido entregado #${venta.id}*\n`;
       msg += `📅 ${fecha}\n`;
       msg += cliente;
@@ -340,7 +324,7 @@ export class InventarioService {
       return msg;
     }
 
-    // ── Mensaje de confirmación de compra (pendiente) ───────────
+    
     let msg = `🛒 *SpaMascotas — Pedido confirmado #${venta.id}*\n`;
     msg += `📅 ${fecha}\n`;
     msg += cliente;

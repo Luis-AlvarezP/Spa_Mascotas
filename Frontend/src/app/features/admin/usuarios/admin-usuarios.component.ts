@@ -32,7 +32,7 @@ export class AdminUsuariosComponent implements OnInit {
   error = signal<string | null>(null);
   exito = signal<string | null>(null);
 
-  // Edición modal
+
   editandoId      = signal<number | null>(null);
   miembroEditando = signal<StaffResponse | null>(null);
   guardandoEdicion = signal(false);

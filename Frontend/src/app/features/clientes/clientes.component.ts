@@ -69,21 +69,21 @@ export class ClientesComponent implements OnInit {
   isCliente = computed(() => this.auth.rol() === 'CLIENTE');
   isStaff   = computed(() => ['ADMIN','RECEPCION','GROOMER'].includes(this.auth.rol() ?? ''));
 
-  // ── Staff state ─────────────────────────────────────────────
+
   clientes   = signal<ClienteItem[]>([]);
   cargando   = signal(false);
   error      = signal<string | null>(null);
   exito      = signal<string | null>(null);
   toggleando = signal<number | null>(null);
 
-  // Staff: panel mascotas de un cliente
+
   staffPanel = signal<{ clienteId: number; clienteNombre: string; mascotas: MascotaResponse[] } | null>(null);
   loadingPanel = signal(false);
 
-  // Staff: detalle de un cliente
+
   clienteDetalle = signal<ClienteItem | null>(null);
 
-  // ── Cliente (Mis Mascotas) state ─────────────────────────────
+
   mascotas        = signal<MascotaResponse[]>([]);
   temperamentos   = signal<TemperamentoResponse[]>([]);
   loadingMascotas = signal(false);
@@ -95,13 +95,13 @@ export class ClientesComponent implements OnInit {
   detailMascota   = signal<MascotaResponse | null>(null);
   staffDetailMascota = signal<MascotaResponse | null>(null);
 
-  // Archivos
+
   selectedFile     = signal<File | null>(null);
   selectedFileName = signal<string>('');
   selectedPhoto    = signal<File | null>(null);
   selectedPhotoName = signal<string>('');
 
-  // Restricciones dinámicas
+
   restriccionesForm = signal<RestriccionRequest[]>([]);
 
   form!: FormGroup;
@@ -122,7 +122,7 @@ export class ClientesComponent implements OnInit {
     }
   }
 
-  // ── Staff: clientes ──────────────────────────────────────────
+  
 
   cargar(): void {
     this.cargando.set(true);
@@ -182,7 +182,7 @@ export class ClientesComponent implements OnInit {
     this.staffDetailMascota.set(null);
   }
 
-  // ── Cliente: mis mascotas ────────────────────────────────────
+  
 
   private buildForm() {
     this.form = this.fb.group({
@@ -277,7 +277,7 @@ export class ClientesComponent implements OnInit {
     }
   }
 
-  // Restricciones
+  
   addRestriccion() {
     this.restriccionesForm.update(r => [...r, { tipo: 'ALERGIA', descripcion: '', gravedad: 'LEVE' }]);
   }
@@ -371,7 +371,7 @@ export class ClientesComponent implements OnInit {
     });
   }
 
-  // ── Helpers ──────────────────────────────────────────────────
+
 
   calcularEdad(fechaNacimiento?: string): string {
     if (!fechaNacimiento) return '';
