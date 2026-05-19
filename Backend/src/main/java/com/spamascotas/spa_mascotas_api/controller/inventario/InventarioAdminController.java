@@ -19,7 +19,7 @@ public class InventarioAdminController {
 
     private final InventarioAdminService service;
 
-    // ── Productos ────────────────────────────────────────────────
+    
 
     @GetMapping("/productos")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -52,7 +52,7 @@ public class InventarioAdminController {
         return service.subirImagen(id, file);
     }
 
-    // ── Categorías ───────────────────────────────────────────────
+    
 
     @GetMapping("/categorias")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -79,7 +79,7 @@ public class InventarioAdminController {
         return service.toggleCategoria(id);
     }
 
-    // ── Promociones ──────────────────────────────────────────────
+
 
     @GetMapping("/promociones")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -106,7 +106,6 @@ public class InventarioAdminController {
         service.eliminarPromocion(id);
     }
 
-    // ── Cupones ──────────────────────────────────────────────────
 
     @GetMapping("/cupones")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")

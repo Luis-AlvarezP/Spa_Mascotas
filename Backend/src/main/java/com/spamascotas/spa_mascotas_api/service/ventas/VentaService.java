@@ -43,7 +43,7 @@ public class VentaService {
 
     @Transactional
     public VentaResponse crearVenta(VentaRequest req, String correoUsuario, boolean esRecepcion) {
-        // Resolver cliente (crea registro lazy si aún no existe)
+    
         Cliente cliente;
         if (esRecepcion && req.getClienteId() != null) {
             cliente = clienteRepository.findById(req.getClienteId())
@@ -60,7 +60,7 @@ public class VentaService {
                 });
         }
 
-        // Actualizar teléfono si se proveyó y no tiene
+    
         if (req.getTelefonoContacto() != null && !req.getTelefonoContacto().isBlank()
                 && (cliente.getTelefono() == null || cliente.getTelefono().isBlank())) {
             cliente.setTelefono(req.getTelefonoContacto());
@@ -70,13 +70,13 @@ public class VentaService {
         MetodoPago metodoPago = metodoPagoRepository.findById(req.getMetodoPagoId())
             .orElseThrow(() -> new RuntimeException("Método de pago no encontrado"));
 
-        // Resolver vendedor (solo para RECEPCION)
+        
         Empleado vendedor = null;
         if (esRecepcion) {
             vendedor = empleadoRepository.findByUsuarioCorreo(correoUsuario).orElse(null);
         }
 
-        // Validar ítems y calcular subtotal (aplicando promociones activas)
+        
         List<Promocion> promocionesActivas = promocionRepository.findActivas(LocalDate.now());
         List<Producto> productos = new ArrayList<>();
         List<BigDecimal> preciosUnitarios = new ArrayList<>();
@@ -94,7 +94,6 @@ public class VentaService {
             subtotal = subtotal.add(precio.multiply(BigDecimal.valueOf(item.getCantidad())));
         }
 
-        // Descuento cliente frecuente: 1% por cada 10 pedidos, máximo 5%
         long comprasAnteriores = ventaRepository.countByClienteIdAndEstado(cliente.getId(), "CONFIRMADA");
         int descuentoPct = (int) Math.min(FRECUENTE_MAX_PCT, comprasAnteriores / 10);
         boolean esFrecuente = descuentoPct > 0;
@@ -102,7 +101,7 @@ public class VentaService {
             ? subtotal.multiply(BigDecimal.valueOf(descuentoPct)).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
             : BigDecimal.ZERO;
 
-        // Descuento cupón
+
         Cupon cupon = null;
         BigDecimal descuentoCupon = BigDecimal.ZERO;
         if (req.getCodigoCupon() != null && !req.getCodigoCupon().isBlank()) {
@@ -114,7 +113,7 @@ public class VentaService {
             descuentoCupon = calcularDescuentoCupon(cupon, idsProductos, subtotal);
         }
 
-        // Descuento manual (solo RECEPCION)
+        
         BigDecimal descuentoManual = BigDecimal.ZERO;
         if (esRecepcion && req.getDescuentoManual() != null && req.getDescuentoManual().compareTo(BigDecimal.ZERO) > 0) {
             descuentoManual = req.getDescuentoManual();
@@ -123,7 +122,7 @@ public class VentaService {
         BigDecimal totalDescuento = descuentoCupon.add(descuentoFrecuente).add(descuentoManual);
         BigDecimal totalFinal = subtotal.subtract(totalDescuento).max(BigDecimal.ZERO);
 
-        // Crear venta
+    
         Venta venta = Venta.builder()
             .cliente(cliente).vendedor(vendedor).metodoPago(metodoPago).cupon(cupon)
             .subtotal(subtotal).descuento(totalDescuento)
@@ -132,7 +131,7 @@ public class VentaService {
             .build();
         venta = ventaRepository.save(venta);
 
-        // Crear ítems + descontar stock + registrar movimientos
+        
         List<VentaItem> ventaItems = new ArrayList<>();
         for (int i = 0; i < req.getItems().size(); i++) {
             var itemReq = req.getItems().get(i);
@@ -154,14 +153,11 @@ public class VentaService {
         }
         venta.setItems(ventaItems);
 
-        // Incrementar usos del cupón
         if (cupon != null) {
             cupon.setUsosActuales(cupon.getUsosActuales() + 1);
             cuponRepository.save(cupon);
         }
 
-        // Crear pedido asociado a la venta
-        // Recepción = venta en persona → entrega inmediata; Cliente = queda EN_ESPERA
         String tipoEntrega = esRecepcion ? "RECOGER"
             : (req.getTipoEntrega() != null && !req.getTipoEntrega().isBlank() ? req.getTipoEntrega() : "RECOGER");
         String estadoPedido = esRecepcion ? "ENTREGADO" : "EN_ESPERA";
@@ -325,7 +321,6 @@ public class VentaService {
 
     private String getCanal(Cliente c) {
         if (c.getUsuario() == null) return null;
-        // Canal guardado en cliente_preferencias con nombre='canal_preferido'
-        return null; // se obtiene en el frontend desde el perfil del cliente
+        return null;
     }
 }

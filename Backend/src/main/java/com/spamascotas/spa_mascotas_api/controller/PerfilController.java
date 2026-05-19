@@ -33,8 +33,6 @@ public class PerfilController {
         return ResponseEntity.ok(perfilService.actualizarPerfil(user.getUsername(), request));
     }
 
-    // ── 2FA desde perfil ────────────────────────────────────
-
     @GetMapping("/2fa/init")
     public ResponseEntity<Setup2faResponse> init2fa(@AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(perfilService.init2faLoggedIn(user.getUsername()));

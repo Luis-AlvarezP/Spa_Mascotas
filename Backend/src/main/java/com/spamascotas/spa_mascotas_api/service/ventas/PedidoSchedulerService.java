@@ -22,7 +22,7 @@ public class PedidoSchedulerService {
     private final PedidoRepository pedidoRepository;
     private final ProductoRepository productoRepository;
 
-    @Scheduled(fixedRate = 3600000) // cada hora
+    @Scheduled(fixedRate = 3600000) 
     @Transactional
     public void cancelarPedidosVencidos() {
         LocalDateTime limite = LocalDateTime.now().minusHours(24);

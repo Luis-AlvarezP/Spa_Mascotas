@@ -80,7 +80,6 @@ public class CatalogoService {
         if (!aplicaATodo && productoIds != null) {
             List<Long> idsProductosCupon = cupon.getProductos().stream()
                 .map(Producto::getId).collect(Collectors.toList());
-            // El descuento se calcula sobre los ítems que aplica; aquí retornamos el monto sobre subtotal para simplificar
             boolean tieneCoincidencia = productoIds.stream().anyMatch(idsProductosCupon::contains);
             if (!tieneCoincidencia) throw new RuntimeException("El cupón no aplica a los productos seleccionados");
         }

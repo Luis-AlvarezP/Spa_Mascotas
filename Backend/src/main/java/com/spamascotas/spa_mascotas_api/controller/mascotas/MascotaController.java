@@ -30,7 +30,7 @@ public class MascotaController {
         return service.listarTemperamentos();
     }
 
-    // ── CLIENTE endpoints ────────────────────────────────────────
+    
 
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_CLIENTE')")
@@ -81,7 +81,7 @@ public class MascotaController {
         return ResponseEntity.ok(Map.of("url", url));
     }
 
-    // ── STAFF endpoint ───────────────────────────────────────────
+    
 
     @GetMapping("/cliente/{clienteId}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_RECEPCION','ROLE_GROOMER')")

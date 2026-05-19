@@ -134,7 +134,7 @@ public class PerfilService {
         return new MessageResponse("Contraseña actualizada correctamente");
     }
 
-    // ── 2FA desde perfil (usuario ya autenticado) ────────────
+    
 
     @Transactional
     public Setup2faResponse init2faLoggedIn(String correo) {

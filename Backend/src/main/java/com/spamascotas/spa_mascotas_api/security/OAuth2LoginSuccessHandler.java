@@ -66,7 +66,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             usuario.getRoles().add(rolCliente);
             usuarioRepository.save(usuario);
 
-            // Create partial client record; user can complete data in /perfil
             String displayName = nombre != null ? nombre : correo.split("@")[0];
             Cliente cliente = Cliente.builder()
                     .usuario(usuario)

@@ -43,7 +43,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.refreshToken(request.getRefreshToken()));
     }
 
-    // ── 2FA setup (pre-login, para staff sin JWT aún) ──────────
+
 
     @PostMapping("/2fa/init")
     public ResponseEntity<Setup2faResponse> init2fa(@Valid @RequestBody Init2faRequest request) {
