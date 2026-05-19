@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -37,12 +37,14 @@ const TIPOS_PROMO = ['TEMPORADA', 'CAMPANA', 'CLIENTE_FRECUENTE', 'OTRO'];
   templateUrl: './inventario.component.html',
   styleUrl: './inventario.component.scss',
 })
-export class InventarioComponent implements OnInit {
+export class InventarioComponent implements OnInit, OnDestroy {
   private svc     = inject(InventarioService);
   private auth    = inject(AuthService);
   private confirm = inject(ConfirmService);
   private fb      = inject(FormBuilder);
   private http    = inject(HttpClient);
+
+  private refreshInterval: ReturnType<typeof setInterval> | null = null;
 
   isAdmin     = computed(() => this.auth.rol() === 'ADMIN');
   isRecepcion = computed(() => this.auth.rol() === 'RECEPCION');
@@ -186,10 +188,12 @@ export class InventarioComponent implements OnInit {
       this.loadProductosAdmin();
       this.loadPromociones();
       this.loadCupones();
+      this.refreshInterval = setInterval(() => this.silentRefreshProductos(), 60_000);
     } else if (this.isRecepcion()) {
       this.loadCatalogo();
       this.loadClientes();
       this.loadPedidosAdmin();
+      this.refreshInterval = setInterval(() => this.silentRefreshCatalogo(), 60_000);
     } else {
       this.loadCatalogo();
       if (this.isCliente()) {
@@ -197,6 +201,18 @@ export class InventarioComponent implements OnInit {
         this.auth.getPerfil().subscribe({ next: p => this.miPerfil.set(p) });
       }
     }
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) clearInterval(this.refreshInterval);
+  }
+
+  private silentRefreshProductos(): void {
+    this.svc.getProductosAdmin().subscribe({ next: p => this.productos.set(p) });
+  }
+
+  private silentRefreshCatalogo(): void {
+    this.svc.getProductos().subscribe({ next: p => this.productos.set(p) });
   }
 
   loadCatalogo() {
@@ -320,6 +336,7 @@ export class InventarioComponent implements OnInit {
   }
 
   confirmarVenta() {
+    if (this.saving()) return;
     const clienteActual = this.isCliente()
       ? null
       : this.selectedCliente()?.id ?? null;
@@ -352,9 +369,11 @@ export class InventarioComponent implements OnInit {
         this.clearCart();
         if (this.isCliente()) {
           this.loadPedidos();
+          this.loadCatalogo();
           this.actualizarPerfilSiCambio(clienteTelf, req.direccionEntrega);
         }
-        if (this.isStaff()) { this.loadPedidosAdmin(); }
+        if (this.isRecepcion()) { this.loadPedidosAdmin(); this.loadCatalogo(); }
+        if (this.isAdmin()) { this.loadPedidosAdmin(); this.loadProductosAdmin(); }
       },
       error: e => { this.error.set(this.apiErr(e) ?? 'Error al procesar la venta'); this.saving.set(false); },
     });
@@ -907,9 +926,16 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
     return 'stock-ok';
   }
 
+  esVencido(p: ProductoResponse): boolean {
+    if (!p.fechaVencimiento) return false;
+    const hoy = new Date();
+    const hoyLocal = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+    return p.fechaVencimiento <= hoyLocal;
+  }
+
   formatDate(d?: string): string {
     if (!d) return '—';
-    return new Date(d).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(d + 'T12:00:00').toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   formatDateTime(dt?: string): string {

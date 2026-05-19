@@ -154,6 +154,11 @@
   position: absolute; top: 6px; right: 6px; background: rgba(239,68,68,.8);
   color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 100px;
 }
+.badge-vencido {
+  position: absolute; top: 6px; right: 6px; background: rgba(249,115,22,.9);
+  color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 100px;
+  box-shadow: 0 0 8px rgba(249,115,22,.5);
+}
 .apc-body { padding: 0.75rem; flex: 1; }
 .apc-cat  { font-size: 0.7rem; color: var(--text-muted); margin: 0 0 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
 .apc-name { font-size: 0.9rem; font-weight: 700; color: var(--text); margin: 0 0 0.25rem; }
@@ -161,6 +166,10 @@
 .apc-price { font-size: 0.95rem; font-weight: 800; color: #a78bfa; margin: 0; }
 .apc-stock { font-size: 0.75rem; margin-top: 0.3rem; &.stock-ok { color: #86efac; } &.stock-low { color: #fbbf24; } &.stock-out { color: #f87171; } }
 .stock-warn { margin-left: 0.3rem; font-weight: 700; }
+.apc-venc {
+  font-size: 0.72rem; color: var(--text-muted); margin-top: 0.3rem;
+  &.venc-alerta { color: #fb923c; font-weight: 700; }
+}
 .apc-actions { padding: 0.5rem 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 0.5rem; }
 
 // ── Catalog grid (cliente/groomer/recepcion) ───────────────────────
@@ -201,6 +210,7 @@
 .cc-price-original { font-size: 0.75rem; color: var(--text-muted); text-decoration: line-through; }
 .cc-price { font-size: 0.95rem; font-weight: 800; color: #a78bfa; margin: 0; }
 .cc-stock { font-size: 0.73rem; margin-top: 0.25rem; &.stock-ok { color: #86efac; } &.stock-low { color: #fbbf24; } &.stock-out { color: #f87171; } }
+.cc-venc  { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; &.venc-alerta { color: #fb923c; font-weight: 700; } }
 .cc-footer { padding: 0.6rem 0.7rem; border-top: 1px solid rgba(255,255,255,0.06); }
 
 // ── Add to cart / qty ─────────────────────────────────────────────

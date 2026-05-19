@@ -1,0 +1,13 @@
+@if (notif.visible()) {
+  <div class="stock-toast">
+    <div class="st-dot"></div>
+    <div class="st-body">
+      <span class="st-title">Bajo stock</span>
+      <span class="st-msg">
+        {{ notif.productos().length }} producto{{ notif.productos().length > 1 ? 's' : '' }} por reabastecer
+      </span>
+    </div>
+    <button class="st-ver" (click)="irAInventario()">Ver</button>
+    <button class="st-close" (click)="notif.dismiss()">✕</button>
+  </div>
+}

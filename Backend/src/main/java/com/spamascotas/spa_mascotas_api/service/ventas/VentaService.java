@@ -94,7 +94,7 @@ public class VentaService {
             subtotal = subtotal.add(precio.multiply(BigDecimal.valueOf(item.getCantidad())));
         }
 
-        long comprasAnteriores = ventaRepository.countByClienteIdAndEstado(cliente.getId(), "CONFIRMADA");
+        long comprasAnteriores = pedidoRepository.countByVentaClienteIdAndEstado(cliente.getId(), "ENTREGADO");
         int descuentoPct = (int) Math.min(FRECUENTE_MAX_PCT, comprasAnteriores / 10);
         boolean esFrecuente = descuentoPct > 0;
         BigDecimal descuentoFrecuente = descuentoPct > 0

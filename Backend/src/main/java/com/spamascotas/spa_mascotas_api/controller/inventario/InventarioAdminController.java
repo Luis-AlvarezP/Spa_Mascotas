@@ -27,6 +27,12 @@ public class InventarioAdminController {
         return service.listarTodosProductos();
     }
 
+    @GetMapping("/stock-bajo")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_RECEPCION')")
+    public List<ProductoResponse> listarStockBajo() {
+        return service.listarProductosBajoStock();
+    }
+
     @PostMapping("/productos")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ProductoResponse crear(@Valid @RequestBody ProductoRequest req) {

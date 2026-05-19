@@ -12,4 +12,5 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findAllByOrderByIdDesc();
     List<Pedido> findByVentaClienteIdOrderByIdDesc(Long clienteId);
     List<Pedido> findByEstadoAndVenta_FechaVentaBefore(String estado, LocalDateTime fechaLimite);
+    long countByVentaClienteIdAndEstado(Long clienteId, String estado);
 }

@@ -212,6 +212,10 @@ export class InventarioService {
     return this.http.get<ProductoResponse[]>(`${this.base}/admin/inventario/productos`);
   }
 
+  getProductosBajoStock(): Observable<ProductoResponse[]> {
+    return this.http.get<ProductoResponse[]>(`${this.base}/admin/inventario/stock-bajo`);
+  }
+
   crearProducto(req: ProductoRequest): Observable<ProductoResponse> {
     return this.http.post<ProductoResponse>(`${this.base}/admin/inventario/productos`, req);
   }

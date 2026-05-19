@@ -8,4 +8,6 @@ import java.util.List;
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findByActivoTrue();
     List<Producto> findByCategoriaIdAndActivoTrue(Long categoriaId);
+    List<Producto> findByStockActualLessThanEqualAndActivoTrue(int stockMaximo);
+    List<Producto> findByFechaVencimientoLessThanEqualAndActivoTrue(java.time.LocalDate fecha);
 }

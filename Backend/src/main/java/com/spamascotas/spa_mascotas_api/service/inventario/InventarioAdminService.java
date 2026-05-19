@@ -38,6 +38,12 @@ public class InventarioAdminService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarProductosBajoStock() {
+        return productoRepository.findByStockActualLessThanEqualAndActivoTrue(5)
+            .stream().map(catalogoService::toProductoResponse).collect(Collectors.toList());
+    }
+
     @Transactional
     public ProductoResponse crearProducto(ProductoRequest req) {
         Producto p = Producto.builder()

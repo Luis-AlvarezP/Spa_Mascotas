@@ -6,12 +6,14 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
 import { ConfirmModalComponent } from '../../shared/components/confirm-modal/confirm-modal.component';
 import { PedidoToastComponent } from '../../shared/components/pedido-toast/pedido-toast.component';
+import { StockToastComponent } from '../../shared/components/stock-toast/stock-toast.component';
 import { PedidoNotificacionService } from '../../core/services/pedido-notificacion.service';
+import { StockNotificacionService } from '../../core/services/stock-notificacion.service';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, TopbarComponent, ConfirmModalComponent, PedidoToastComponent],
+  imports: [RouterOutlet, SidebarComponent, TopbarComponent, ConfirmModalComponent, PedidoToastComponent, StockToastComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
 })
@@ -19,11 +21,13 @@ export class MainLayoutComponent implements OnInit {
   private router = inject(Router);
   private route  = inject(ActivatedRoute);
   private pedidoNotif = inject(PedidoNotificacionService);
+  private stockNotif  = inject(StockNotificacionService);
 
   sidebarOpen = signal(false);
 
   ngOnInit(): void {
     this.pedidoNotif.init();
+    this.stockNotif.init();
   }
 
   title = toSignal(
