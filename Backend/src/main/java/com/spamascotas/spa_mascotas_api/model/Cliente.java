@@ -28,4 +28,8 @@ public class Cliente {
     private String telefono;
 
     private String direccion;
+
+    @Column(name = "penalizacion_porcentaje", precision = 5, scale = 2)
+    @Builder.Default
+    private java.math.BigDecimal penalizacionPorcentaje = java.math.BigDecimal.ZERO;
 }

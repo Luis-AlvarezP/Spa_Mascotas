@@ -398,6 +398,21 @@ INSERT INTO categoria (nom_categoria) VALUES
     ('Alimentos'), ('Accesorios'), ('Higiene'), ('Juguetes'), ('Salud')
 ON CONFLICT DO NOTHING;
 
+-- Columnas adicionales para el módulo de citas
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS servicio_id           BIGINT       REFERENCES servicios(id);
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS empleado_preferido_id BIGINT       REFERENCES empleados(id);
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS precio_final          NUMERIC(10,2);
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS motivo_cancelacion    TEXT;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS notas                 TEXT;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS creado_en             TIMESTAMP    DEFAULT NOW();
+
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS penalizacion_porcentaje NUMERIC(5,2) NOT NULL DEFAULT 0;
+
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS duracion_minutos      INTEGER;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS tamano_mascota        TEXT;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS temperamento_mascota  TEXT;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS recargo_porcentaje    NUMERIC(5,2) NOT NULL DEFAULT 0;
+
 INSERT INTO servicios (nombre, descripcion, duracion_minutos, precio_base, activo) VALUES
     ('Baño rápido',       'Baño básico con secado',                    30,  40.00, TRUE),
     ('Baño completo',     'Baño completo con acondicionador y secado',  60,  60.00, TRUE),

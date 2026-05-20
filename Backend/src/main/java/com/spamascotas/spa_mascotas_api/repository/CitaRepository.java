@@ -1,0 +1,55 @@
+package com.spamascotas.spa_mascotas_api.repository;
+
+import com.spamascotas.spa_mascotas_api.model.Cita;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public interface CitaRepository extends JpaRepository<Cita, Long> {
+
+    List<Cita> findByClienteIdOrderByFechaHoraInicioDesc(Long clienteId);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado NOT IN ('CANCELADO','REALIZADO') " +
+           "AND c.fechaHoraInicio < :fin AND c.fechaHoraFin > :inicio")
+    List<Cita> findSolapadas(@Param("inicio") LocalDateTime inicio,
+                             @Param("fin")   LocalDateTime fin);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado NOT IN ('CANCELADO','REALIZADO') " +
+           "AND c.fechaHoraInicio >= :desde AND c.fechaHoraInicio < :hasta")
+    List<Cita> findActivasEnDia(@Param("desde") LocalDateTime desde,
+                                @Param("hasta") LocalDateTime hasta);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado NOT IN ('CANCELADO','REALIZADO') " +
+           "AND c.fechaHoraInicio >= :desde AND c.fechaHoraInicio < :hasta " +
+           "AND (c.empleadoPreferido IS NOT NULL AND c.empleadoPreferido.id = :empleadoId " +
+           "  OR c.empleadoAsignado  IS NOT NULL AND c.empleadoAsignado.id  = :empleadoId)")
+    List<Cita> findActivasEnDiaByEmpleado(@Param("desde")      LocalDateTime desde,
+                                          @Param("hasta")      LocalDateTime hasta,
+                                          @Param("empleadoId") Long empleadoId);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado IN ('ACEPTADO','PENDIENTE_PAGO') " +
+           "AND c.fechaHoraInicio >= :desde AND c.fechaHoraInicio < :hasta " +
+           "AND (c.empleadoPreferido IS NOT NULL AND c.empleadoPreferido.id = :empleadoId " +
+           "  OR c.empleadoAsignado  IS NOT NULL AND c.empleadoAsignado.id  = :empleadoId)")
+    List<Cita> findAceptadasEnDiaByEmpleado(@Param("desde")      LocalDateTime desde,
+                                             @Param("hasta")      LocalDateTime hasta,
+                                             @Param("empleadoId") Long empleadoId);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado NOT IN ('CANCELADO') ORDER BY c.fechaHoraInicio DESC")
+    List<Cita> findAllActivasOrderByFecha();
+
+    @Query("SELECT c FROM Cita c WHERE c.estado IN ('ACEPTADO','PENDIENTE_PAGO') " +
+           "AND (c.empleadoAsignado IS NOT NULL AND c.empleadoAsignado.id = :empleadoId " +
+           "  OR c.empleadoPreferido IS NOT NULL AND c.empleadoPreferido.id = :empleadoId) " +
+           "ORDER BY c.fechaHoraInicio")
+    List<Cita> findServiciosPendientesByEmpleado(@Param("empleadoId") Long empleadoId);
+
+    @Query("SELECT c FROM Cita c WHERE c.cliente.id = :clienteId " +
+           "AND c.estado IN ('EN_REVISION','ACEPTADO') AND c.id <> :excluirId " +
+           "ORDER BY c.fechaHoraInicio ASC")
+    List<Cita> findProximaActivaByCliente(@Param("clienteId") Long clienteId,
+                                          @Param("excluirId") Long excluirId);
+}
