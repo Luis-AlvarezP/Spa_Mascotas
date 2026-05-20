@@ -397,3 +397,10 @@ ON CONFLICT DO NOTHING;
 INSERT INTO categoria (nom_categoria) VALUES
     ('Alimentos'), ('Accesorios'), ('Higiene'), ('Juguetes'), ('Salud')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO servicios (nombre, descripcion, duracion_minutos, precio_base, activo) VALUES
+    ('Baño rápido',       'Baño básico con secado',                    30,  40.00, TRUE),
+    ('Baño completo',     'Baño completo con acondicionador y secado',  60,  60.00, TRUE),
+    ('Corte y peinado',   'Corte de pelo y peinado profesional',        90,  80.00, TRUE),
+    ('Servicio completo', 'Baño, corte, peinado y arreglo completo',   120, 100.00, TRUE)
+ON CONFLICT DO NOTHING;

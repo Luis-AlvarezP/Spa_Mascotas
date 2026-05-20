@@ -134,6 +134,13 @@ export class AuthService {
     }
   }
 
+  actualizarNombreUsuario(nombreUsuario: string | null): void {
+    const actual = this._auth();
+    if (!actual) return;
+    const actualizado = { ...actual, nombreUsuario };
+    this.guardarSesion(actualizado);
+  }
+
   private guardarSesion(auth: AuthResponse): void {
     localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
     this._auth.set(auth);

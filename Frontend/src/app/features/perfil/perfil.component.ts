@@ -152,6 +152,7 @@ export class PerfilComponent implements OnInit {
     }).subscribe({
       next: p => {
         this.perfil.set(p);
+        this.auth.actualizarNombreUsuario(p.nombreUsuario ?? null);
         this.guardando.set(false);
         this.exito.set('Datos actualizados correctamente');
       },

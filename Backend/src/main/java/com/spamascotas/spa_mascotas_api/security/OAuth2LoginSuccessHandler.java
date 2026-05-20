@@ -91,11 +91,16 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         String token = jwtUtil.generateAccessToken(correo, rolNombre);
 
+        String nuParam = usuario.getNombreUsuario() != null
+                ? "&nombreUsuario=" + URLEncoder.encode(usuario.getNombreUsuario(), StandardCharsets.UTF_8)
+                : "";
+
         String redirectUrl = frontendUrl + "/auth/oauth-callback"
                 + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8)
                 + "&correo=" + URLEncoder.encode(correo, StandardCharsets.UTF_8)
                 + "&rol=" + URLEncoder.encode(rolNombre, StandardCharsets.UTF_8)
-                + "&setup=" + esNuevo;
+                + "&setup=" + esNuevo
+                + nuParam;
 
         response.sendRedirect(redirectUrl);
     }

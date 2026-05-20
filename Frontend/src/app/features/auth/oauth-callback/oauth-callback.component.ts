@@ -18,11 +18,12 @@ export class OAuthCallbackComponent implements OnInit {
   private auth   = inject(AuthService);
 
   ngOnInit(): void {
-    const token  = this.route.snapshot.queryParamMap.get('token');
-    const correo = this.route.snapshot.queryParamMap.get('correo');
-    const rol    = this.route.snapshot.queryParamMap.get('rol');
-    const setup  = this.route.snapshot.queryParamMap.get('setup') === 'true';
-    const error  = this.route.snapshot.queryParamMap.get('error');
+    const token         = this.route.snapshot.queryParamMap.get('token');
+    const correo        = this.route.snapshot.queryParamMap.get('correo');
+    const rol           = this.route.snapshot.queryParamMap.get('rol');
+    const nombreUsuario = this.route.snapshot.queryParamMap.get('nombreUsuario');
+    const setup         = this.route.snapshot.queryParamMap.get('setup') === 'true';
+    const error         = this.route.snapshot.queryParamMap.get('error');
 
     if (error) {
       this.router.navigate(['/auth/login'], { queryParams: { error } });
@@ -37,6 +38,7 @@ export class OAuthCallbackComponent implements OnInit {
     const authResp: AuthResponse = {
       accessToken:      token,
       correo:           correo,
+      nombreUsuario:    nombreUsuario ?? null,
       rol:              rol,
       requiere2fa:      false,
       requiere2faSetup: false,
