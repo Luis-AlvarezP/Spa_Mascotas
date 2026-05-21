@@ -31,6 +31,7 @@ export interface PreferenciaResponse {
 
 export interface AuthResponse {
   accessToken:       string;
+  refreshToken?:     string;
   correo:            string;
   nombreUsuario?:    string | null;
   rol:               string;

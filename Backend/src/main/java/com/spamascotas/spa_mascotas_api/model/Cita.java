@@ -64,10 +64,21 @@ public class Cita {
     @Builder.Default
     private BigDecimal recargoPorcentaje = BigDecimal.ZERO;
 
+    @Column(name = "metodo_pago")
+    private String metodoPago;
+
     @Column(name = "motivo_cancelacion")
     private String motivoCancelacion;
 
     private String notas;
+
+    @Column(name = "recordatorio_24h")
+    @Builder.Default
+    private Boolean recordatorio24hEnviado = false;
+
+    @Column(name = "recordatorio_2h")
+    @Builder.Default
+    private Boolean recordatorio2hEnviado = false;
 
     @Column(name = "creado_en")
     @Builder.Default

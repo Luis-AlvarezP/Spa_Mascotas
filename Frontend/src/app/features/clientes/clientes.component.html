@@ -41,6 +41,16 @@
     }
 
    
+    @if (mascotas().length > 0) {
+      <div class="search-toolbar">
+        <app-search-bar
+          placeholder="Buscar mascota por nombre…"
+          [value]="busquedaMascota()"
+          (valueChange)="busquedaMascota.set($event)">
+        </app-search-bar>
+      </div>
+    }
+
     @if (loadingMascotas()) {
       <div class="mp-center">
         <div class="spinner"></div>
@@ -60,10 +70,19 @@
           Registrar primera mascota
         </button>
       </div>
+    } @else if (mascotasFiltradas().length === 0) {
+      <div class="mp-empty">
+        <div class="mp-empty-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4.5 11a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm15 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM7 6.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 0a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM12 13c-3.5 0-6 2.5-6 5.5 0 1.5 2 2.5 6 2.5s6-1 6-2.5c0-3-2.5-5.5-6-5.5z"/>
+          </svg>
+        </div>
+        <p>Sin resultados para "{{ busquedaMascota() }}"</p>
+      </div>
     } @else {
-     
+
       <div class="pets-grid">
-        @for (m of mascotas(); track m.id) {
+        @for (m of mascotasFiltradas(); track m.id) {
           <div class="pet-card pet-card-clickable" [class.pet-card-inactiva]="m.activa === false" (click)="openDetail(m)">
             <div class="pet-card-top">
               @if (m.urlFotoMascota) {
@@ -391,7 +410,7 @@
       <div>
         <h1 class="page-title">Clientes y Mascotas</h1>
         <p class="page-sub">
-          {{ clientes().length }} cliente{{ clientes().length !== 1 ? 's' : '' }} registrado{{ clientes().length !== 1 ? 's' : '' }}
+          {{ clientesFiltrados().length }} cliente{{ clientesFiltrados().length !== 1 ? 's' : '' }} registrado{{ clientesFiltrados().length !== 1 ? 's' : '' }}
         </p>
       </div>
       <button class="btn-refresh" (click)="cargar()" [disabled]="cargando()">
@@ -413,12 +432,20 @@
       </div>
     }
 
+    <div class="search-toolbar">
+      <app-search-bar
+        placeholder="Buscar por nombre, CI o teléfono…"
+        [value]="busqueda()"
+        (valueChange)="busqueda.set($event)">
+      </app-search-bar>
+    </div>
+
     @if (cargando()) {
       <div class="loading-state">
         <div class="spinner"></div>
         <span>Cargando clientes...</span>
       </div>
-    } @else if (clientes().length === 0) {
+    } @else if (clientesFiltrados().length === 0) {
       <div class="empty-state">
         <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
         <p>No hay clientes registrados aún</p>
@@ -437,7 +464,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (c of clientes(); track c.id) {
+            @for (c of clientesFiltrados(); track c.id) {
               <tr>
                 <td>
                   <div class="client-cell">

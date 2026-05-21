@@ -47,6 +47,18 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
            "ORDER BY c.fechaHoraInicio")
     List<Cita> findServiciosPendientesByEmpleado(@Param("empleadoId") Long empleadoId);
 
+    @Query("SELECT c FROM Cita c WHERE c.estado = 'ACEPTADO' " +
+           "AND c.fechaHoraInicio >= :desde AND c.fechaHoraInicio < :hasta " +
+           "AND c.recordatorio24hEnviado = false")
+    List<Cita> findPendientes24h(@Param("desde") LocalDateTime desde,
+                                 @Param("hasta") LocalDateTime hasta);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado = 'ACEPTADO' " +
+           "AND c.fechaHoraInicio >= :desde AND c.fechaHoraInicio < :hasta " +
+           "AND c.recordatorio2hEnviado = false")
+    List<Cita> findPendientes2h(@Param("desde") LocalDateTime desde,
+                                @Param("hasta") LocalDateTime hasta);
+
     @Query("SELECT c FROM Cita c WHERE c.cliente.id = :clienteId " +
            "AND c.estado IN ('EN_REVISION','ACEPTADO') AND c.id <> :excluirId " +
            "ORDER BY c.fechaHoraInicio ASC")

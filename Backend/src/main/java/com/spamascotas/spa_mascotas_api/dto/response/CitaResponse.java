@@ -12,6 +12,11 @@ public class CitaResponse {
     private Long id;
     private String estado;
 
+    private Long clienteId;
+    private String clienteNombre;
+    private String clienteCorreo;
+    private String clienteCi;
+
     private Long mascotaId;
     private String mascotaNombre;
     private String mascotaEspecie;
@@ -32,6 +37,7 @@ public class CitaResponse {
     private LocalDateTime fechaHoraFin;
     private BigDecimal precioFinal;
     private BigDecimal recargoPorcentaje;
+    private String metodoPago;
     private BigDecimal penalizacionCliente;
     private String motivoCancelacion;
     private String notas;

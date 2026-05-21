@@ -1,0 +1,54 @@
+.sb-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-md);
+  padding: 0 0.75rem;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: rgba(124, 58, 237, 0.4);
+    background: rgba(124, 58, 237, 0.04);
+  }
+}
+
+.sb-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.sb-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 0.6rem 0;
+  font-size: 0.875rem;
+  color: var(--text);
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+.sb-clear {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s, color 0.15s;
+
+  &:hover {
+    opacity: 1;
+    color: var(--text);
+  }
+}

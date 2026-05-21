@@ -11,6 +11,7 @@ import {
   RestriccionRequest,
 } from '../../core/services/mascotas.service';
 import { ConfirmService } from '../../core/services/confirm.service';
+import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
 
 interface ClienteItem {
   id: number;
@@ -53,7 +54,7 @@ const GRAVEDADES = [
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, SearchBarComponent],
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss',
 })
@@ -75,6 +76,26 @@ export class ClientesComponent implements OnInit {
   error      = signal<string | null>(null);
   exito      = signal<string | null>(null);
   toggleando = signal<number | null>(null);
+  busqueda   = signal('');
+
+  clientesFiltrados = computed(() => {
+    const q = this.busqueda().toLowerCase().trim();
+    if (!q) return this.clientes();
+    return this.clientes().filter(c =>
+      c.nombre?.toLowerCase().includes(q) ||
+      c.ci?.toLowerCase().includes(q) ||
+      c.correo?.toLowerCase().includes(q) ||
+      c.telefono?.includes(q)
+    );
+  });
+
+  busquedaMascota   = signal('');
+
+  mascotasFiltradas = computed(() => {
+    const q = this.busquedaMascota().toLowerCase().trim();
+    if (!q) return this.mascotas();
+    return this.mascotas().filter(m => m.nombre.toLowerCase().includes(q));
+  });
 
 
   staffPanel = signal<{ clienteId: number; clienteNombre: string; mascotas: MascotaResponse[] } | null>(null);

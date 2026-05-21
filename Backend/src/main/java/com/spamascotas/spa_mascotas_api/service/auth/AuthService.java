@@ -176,12 +176,14 @@ public class AuthService {
 
         resetearIntentos(usuario);
 
-        String accessToken = jwtUtil.generateAccessToken(usuario.getCorreo(), rolNombre);
+        String accessToken  = jwtUtil.generateAccessToken(usuario.getCorreo(), rolNombre);
+        String refreshToken = jwtUtil.generateRefreshToken(usuario.getCorreo());
         auditService.registrar(TipoAccion.LOGIN_EXITOSO, usuario.getCorreo(), rolNombre, true, null);
         log.info("Login exitoso: {} ({})", usuario.getCorreo(), rolNombre);
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .correo(usuario.getCorreo())
                 .nombreUsuario(usuario.getNombreUsuario())
                 .rol(rolNombre)
@@ -207,6 +209,7 @@ public class AuthService {
 
         return AuthResponse.builder()
                 .accessToken(jwtUtil.generateAccessToken(correo, rolNombre))
+                .refreshToken(jwtUtil.generateRefreshToken(correo))
                 .correo(correo)
                 .nombreUsuario(usuario.getNombreUsuario())
                 .rol(rolNombre)
@@ -264,6 +267,7 @@ public class AuthService {
 
         return AuthResponse.builder()
                 .accessToken(jwtUtil.generateAccessToken(correo, rolNombre))
+                .refreshToken(jwtUtil.generateRefreshToken(correo))
                 .correo(correo)
                 .nombreUsuario(u.getNombreUsuario())
                 .rol(rolNombre)

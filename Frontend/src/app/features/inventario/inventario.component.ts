@@ -19,6 +19,7 @@ import {
   CuponValidadoResponse,
 } from '../../core/services/inventario.service';
 import { environment } from '../../../environments/environment';
+import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
 
 type AdminTab = 'productos' | 'categorias' | 'promociones' | 'cupones';
 
@@ -33,7 +34,7 @@ const TIPOS_PROMO = ['TEMPORADA', 'CAMPANA', 'CLIENTE_FRECUENTE', 'OTRO'];
 @Component({
   selector: 'app-inventario',
   standalone: true,
-  imports: [ReactiveFormsModule, NgClass],
+  imports: [ReactiveFormsModule, NgClass, SearchBarComponent],
   templateUrl: './inventario.component.html',
   styleUrl: './inventario.component.scss',
 })
@@ -628,40 +629,90 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
   }
 
   descargarReciboPedido(p: PedidoResponse): void {
-    const doc = new jsPDF({ unit: 'mm', format: 'a5', orientation: 'portrait' });
-    const W = 148, L = 10, R = 138;
-    let y = 16;
-    const hr = () => { doc.setDrawColor(160); doc.line(L, y, R, y); y += 5; };
+    const doc = new jsPDF({ format: 'a5', unit: 'mm' });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const L = 12, R = W - 12;
 
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
-    doc.text('SpaMascotas', W / 2, y, { align: 'center' }); y += 6;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-    doc.text('Recibo de Compra - ENTREGADO', W / 2, y, { align: 'center' }); y += 6;
-    hr();
+    // Fondo oscuro
+    doc.setFillColor(18, 14, 35);
+    doc.rect(0, 0, W, H, 'F');
 
-    const fecha = new Date(p.fechaVenta as any).toLocaleString('es-BO', {
+    // Franja header
+    doc.setFillColor(28, 10, 60);
+    doc.rect(0, 0, W, 34, 'F');
+    doc.setDrawColor(124, 58, 237); doc.setLineWidth(0.5);
+    doc.line(0, 34, W, 34);
+
+    // Título
+    doc.setFontSize(17); doc.setTextColor(196, 181, 253); doc.setFont('helvetica', 'bold');
+    doc.text('SpaMascotas', W / 2, 14, { align: 'center' });
+    doc.setFontSize(9); doc.setTextColor(148, 163, 184); doc.setFont('helvetica', 'normal');
+    doc.text('Recibo de compra · ENTREGADO', W / 2, 22, { align: 'center' });
+
+    const fechaVenta = new Date(p.fechaVenta as any).toLocaleString('es-BO', {
       day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold'); doc.text(`Pedido #${p.ventaId}`, L, y); y += 4;
-    doc.setFont('helvetica', 'normal');
-    doc.text(fecha, L, y); y += 4;
-    doc.text(`Cliente: ${p.clienteNombre ?? '-'}`, L, y); y += 4;
-    if (p.clienteCi) { doc.text(`CI: ${p.clienteCi}`, L, y); y += 4; }
-    if (p.clienteTelefono) { doc.text(`Tel: ${p.clienteTelefono}`, L, y); y += 4; }
-    y += 1; hr();
+    doc.setFontSize(8); doc.setTextColor(100, 116, 139);
+    doc.text(fechaVenta, W / 2, 29, { align: 'center' });
 
-    const lineas = doc.splitTextToSize(p.itemsResumen, R - L);
-    doc.text(lineas, L, y); y += lineas.length * 5 + 2;
-    hr();
+    // Datos cliente
+    let y = 42;
+    const fila = (label: string, val: string, destacado = false) => {
+      doc.setFillColor(26, 21, 48);
+      doc.roundedRect(L, y - 4, R - L, 8, 1.5, 1.5, 'F');
+      doc.setFontSize(8.5); doc.setTextColor(107, 114, 128); doc.setFont('helvetica', 'normal');
+      doc.text(label, L + 3, y + 0.5);
+      doc.setTextColor(destacado ? 167 : 226, destacado ? 139 : 232, destacado ? 250 : 240);
+      doc.setFont('helvetica', 'bold');
+      doc.text(val, R - 3, y + 0.5, { align: 'right' });
+      y += 10;
+    };
 
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
-    doc.text('TOTAL:', L, y);
-    doc.text(`Bs. ${p.totalFinal.toFixed(2)}`, R, y, { align: 'right' });
-    y += 7; hr();
+    fila('N° Pedido', `#${p.ventaId}`);
+    fila('Cliente', p.clienteNombre ?? '—');
+    if (p.clienteCi)       fila('CI', p.clienteCi);
+    if (p.clienteTelefono) fila('Teléfono', p.clienteTelefono);
+    fila('Entrega', p.tipoEntrega === 'DOMICILIO' ? 'Domicilio' : 'Retiro en tienda');
+    if (p.direccionEntrega) fila('Dirección', p.direccionEntrega);
+    if (p.fechaEntregaPedido) {
+      const fechaEntrega = new Date(p.fechaEntregaPedido as any).toLocaleString('es-BO', {
+        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+      });
+      fila('Entregado', fechaEntrega);
+    }
 
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-    doc.text('¡Gracias por su compra!', W / 2, y, { align: 'center' });
+    // Separador
+    y += 2;
+    doc.setDrawColor(124, 58, 237); doc.setLineWidth(0.3);
+    doc.line(L, y, R, y); y += 6;
+
+    // Productos
+    doc.setFontSize(7.5); doc.setTextColor(148, 163, 184); doc.setFont('helvetica', 'bold');
+    doc.text('PRODUCTOS', L, y); y += 5;
+
+    const lineas = doc.splitTextToSize(p.itemsResumen, R - L - 4);
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(203, 213, 225); doc.setFontSize(8.5);
+    doc.text(lineas, L + 2, y);
+    y += lineas.length * 5 + 4;
+
+    // Separador total
+    doc.setDrawColor(124, 58, 237); doc.line(L, y, R, y); y += 7;
+
+    // Total
+    doc.setFillColor(124, 58, 237, 0.15 as any);
+    doc.setFillColor(40, 20, 80);
+    doc.roundedRect(L, y - 5, R - L, 11, 2, 2, 'F');
+    doc.setFontSize(11); doc.setTextColor(167, 139, 250); doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL', L + 4, y + 2);
+    doc.setFontSize(13); doc.setTextColor(196, 181, 253);
+    doc.text(`Bs. ${p.totalFinal.toFixed(2)}`, R - 4, y + 2, { align: 'right' });
+    y += 16;
+
+    // Pie
+    doc.setFontSize(8); doc.setTextColor(100, 116, 139); doc.setFont('helvetica', 'italic');
+    doc.text('¡Gracias por tu compra en SpaMascotas!', W / 2, y, { align: 'center' });
+
     doc.save(`recibo-pedido-${p.ventaId}.pdf`);
   }
 

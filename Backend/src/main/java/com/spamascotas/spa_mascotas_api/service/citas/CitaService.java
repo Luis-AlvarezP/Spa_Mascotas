@@ -2,7 +2,10 @@ package com.spamascotas.spa_mascotas_api.service.citas;
 
 import com.spamascotas.spa_mascotas_api.dto.request.CancelacionRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.CitaRequest;
+import com.spamascotas.spa_mascotas_api.dto.request.CobrarRequest;
+import com.spamascotas.spa_mascotas_api.dto.request.RechazarRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.ReprogramarRequest;
+import com.spamascotas.spa_mascotas_api.service.auth.EmailService;
 import com.spamascotas.spa_mascotas_api.dto.response.CitaResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.GroomerResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.ServicioResponse;
@@ -19,6 +22,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +51,7 @@ public class CitaService {
     private final EmpleadoRepository        empleadoRepo;
     private final HorarioTrabajoRepository  horarioRepo;
     private final BloqueoAgendaRepository   bloqueoRepo;
+    private final EmailService              emailService;
 
     // ── Servicios disponibles ────────────────────────────────
 
@@ -285,7 +290,13 @@ public class CitaService {
                 .notas(req.getNotas())
                 .build();
 
-        return toResponse(citaRepo.save(cita));
+        CitaResponse resp = toResponse(citaRepo.save(cita));
+        try {
+            String correo = cliente.getUsuario().getCorreo();
+            emailService.enviarCitaEnRevision(correo, cliente.getNombre(),
+                    servicio.getNombre(), fmtDT(inicio));
+        } catch (Exception e) { log.warn("Email solicitar: {}", e.getMessage()); }
+        return resp;
     }
 
     // ── Mis citas ────────────────────────────────────────────
@@ -343,7 +354,15 @@ public class CitaService {
 
         cita.setEstado("CANCELADO");
         cita.setMotivoCancelacion(req.getMotivo());
-        return toResponse(citaRepo.save(cita));
+        CitaResponse resp = toResponse(citaRepo.save(cita));
+        try {
+            emailService.enviarCitaCancelada(cliente.getUsuario().getCorreo(),
+                    cliente.getNombre(),
+                    cita.getServicio().getNombre(),
+                    fmtDT(cita.getFechaHoraInicio()),
+                    req.getMotivo());
+        } catch (Exception e) { log.warn("Email cancelar: {}", e.getMessage()); }
+        return resp;
     }
 
     // ── Reprogramar ──────────────────────────────────────────
@@ -391,7 +410,13 @@ public class CitaService {
                 .notas(req.getNotas())
                 .build();
 
-        return toResponse(citaRepo.save(nueva));
+        CitaResponse resp = toResponse(citaRepo.save(nueva));
+        try {
+            Cliente cl = original.getCliente();
+            emailService.enviarCitaReprogramada(cl.getUsuario().getCorreo(),
+                    cl.getNombre(), original.getServicio().getNombre(), fmtDT(nuevoInicio));
+        } catch (Exception e) { log.warn("Email reprogramar: {}", e.getMessage()); }
+        return resp;
     }
 
     // ── Aceptar (Recepcion/Admin) ────────────────────────────
@@ -406,7 +431,37 @@ public class CitaService {
             cita.setEmpleadoAsignado(cita.getEmpleadoPreferido());
         }
         cita.setEstado("ACEPTADO");
-        return toResponse(citaRepo.save(cita));
+        CitaResponse resp = toResponse(citaRepo.save(cita));
+        try {
+            Cliente cl = cita.getCliente();
+            Empleado groomer = cita.getEmpleadoAsignado() != null
+                    ? cita.getEmpleadoAsignado() : cita.getEmpleadoPreferido();
+            emailService.enviarCitaConfirmada(cl.getUsuario().getCorreo(),
+                    cl.getNombre(), cita.getServicio().getNombre(),
+                    fmtDT(cita.getFechaHoraInicio()),
+                    groomer != null ? groomer.getNombre() : null);
+        } catch (Exception e) { log.warn("Email aceptar: {}", e.getMessage()); }
+        return resp;
+    }
+
+    // ── Rechazar (Recepcion/Admin) ───────────────────────────
+
+    @Transactional
+    public CitaResponse rechazar(Long id, RechazarRequest req) {
+        Cita cita = getCita(id);
+        if (!"EN_REVISION".equals(cita.getEstado())) {
+            throw new RuntimeException("Solo se pueden rechazar citas en estado EN_REVISION");
+        }
+        cita.setEstado("CANCELADO");
+        cita.setMotivoCancelacion(req.getMotivo());
+        CitaResponse resp = toResponse(citaRepo.save(cita));
+        try {
+            Cliente cl = cita.getCliente();
+            emailService.enviarCitaCancelada(cl.getUsuario().getCorreo(),
+                    cl.getNombre(), cita.getServicio().getNombre(),
+                    fmtDT(cita.getFechaHoraInicio()), req.getMotivo());
+        } catch (Exception e) { log.warn("Email rechazar: {}", e.getMessage()); }
+        return resp;
     }
 
     // ── Finalizar servicio (Groomer) ─────────────────────────
@@ -418,19 +473,58 @@ public class CitaService {
             throw new RuntimeException("Solo se pueden finalizar citas en estado ACEPTADO");
         }
         cita.setEstado("PENDIENTE_PAGO");
-        return toResponse(citaRepo.save(cita));
+        CitaResponse resp = toResponse(citaRepo.save(cita));
+        try {
+            if (cita.getCliente() != null) {
+                String correo  = cita.getCliente().getUsuario().getCorreo();
+                String cliente = cita.getCliente().getNombre();
+                String mascota = cita.getMascota() != null ? cita.getMascota().getNombre() : "tu mascota";
+                String groomer = cita.getEmpleadoAsignado() != null
+                        ? cita.getEmpleadoAsignado().getNombre() : "nuestro equipo";
+                emailService.enviarListaParaRecoger(correo, cliente, mascota,
+                        cita.getServicio().getNombre(), groomer);
+            }
+        } catch (Exception ignored) {}
+        return resp;
     }
 
     // ── Cobrar (Recepcion/Admin) ─────────────────────────────
 
     @Transactional
-    public CitaResponse cobrar(Long id) {
+    public CitaResponse cobrar(Long id, CobrarRequest req) {
         Cita cita = getCita(id);
         if (!"PENDIENTE_PAGO".equals(cita.getEstado())) {
             throw new RuntimeException("Solo se pueden cobrar citas en estado PENDIENTE_PAGO");
         }
         cita.setEstado("REALIZADO");
-        return toResponse(citaRepo.save(cita));
+        cita.setMetodoPago(req.getMetodoPago());
+        CitaResponse resp = toResponse(citaRepo.save(cita));
+        try {
+            Cliente cl = cita.getCliente();
+            BigDecimal recargo = cita.getRecargoPorcentaje() != null ? cita.getRecargoPorcentaje() : BigDecimal.ZERO;
+            BigDecimal base    = cita.getPrecioFinal();
+            BigDecimal total   = recargo.compareTo(BigDecimal.ZERO) > 0
+                    ? base.add(base.multiply(recargo).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP))
+                    : base;
+            String groomer   = cita.getEmpleadoAsignado() != null ? cita.getEmpleadoAsignado().getNombre() : "Por asignar";
+            String duracion  = cita.getDuracionMinutos() != null ? cita.getDuracionMinutos().toString() : "—";
+            String mascota   = cita.getMascota() != null ? cita.getMascota().getNombre() : "—";
+            emailService.enviarReciboCita(
+                    cl.getUsuario().getCorreo(),
+                    cl.getNombre(),
+                    cl.getCi(),
+                    mascota,
+                    cita.getServicio().getNombre(),
+                    groomer,
+                    duracion,
+                    fmtDT(cita.getFechaHoraInicio()),
+                    req.getMetodoPago(),
+                    base.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    recargo.stripTrailingZeros().toPlainString(),
+                    total.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                    cita.getId());
+        } catch (Exception e) { log.warn("Email cobrar: {}", e.getMessage()); }
+        return resp;
     }
 
     // ── Todas las citas (Staff) ──────────────────────────────
@@ -533,6 +627,13 @@ public class CitaService {
         }
     }
 
+    private static final DateTimeFormatter FMT_DT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    private String fmtDT(LocalDateTime dt) {
+        return dt != null ? dt.format(FMT_DT) : "—";
+    }
+
     private void validarPropietario(Cita cita, String correoCliente) {
         if (!cita.getCliente().getUsuario().getCorreo().equals(correoCliente)) {
             throw new RuntimeException("No autorizado");
@@ -547,6 +648,11 @@ public class CitaService {
         return CitaResponse.builder()
                 .id(c.getId())
                 .estado(c.getEstado())
+                .clienteId(c.getCliente() != null ? c.getCliente().getId() : null)
+                .clienteNombre(c.getCliente() != null ? c.getCliente().getNombre() : null)
+                .clienteCorreo(c.getCliente() != null && c.getCliente().getUsuario() != null
+                        ? c.getCliente().getUsuario().getCorreo() : null)
+                .clienteCi(c.getCliente() != null ? c.getCliente().getCi() : null)
                 .mascotaId(c.getMascota() != null ? c.getMascota().getId() : null)
                 .mascotaNombre(c.getMascota() != null ? c.getMascota().getNombre() : null)
                 .mascotaEspecie(c.getMascota() != null ? c.getMascota().getEspecie() : null)
@@ -570,6 +676,7 @@ public class CitaService {
                 .fechaHoraFin(c.getFechaHoraFin())
                 .precioFinal(c.getPrecioFinal())
                 .recargoPorcentaje(c.getRecargoPorcentaje() != null ? c.getRecargoPorcentaje() : BigDecimal.ZERO)
+                .metodoPago(c.getMetodoPago())
                 .penalizacionCliente(c.getCliente() != null && c.getCliente().getPenalizacionPorcentaje() != null
                         ? c.getCliente().getPenalizacionPorcentaje() : BigDecimal.ZERO)
                 .motivoCancelacion(c.getMotivoCancelacion())

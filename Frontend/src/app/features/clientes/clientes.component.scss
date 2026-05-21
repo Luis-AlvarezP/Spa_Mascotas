@@ -5,6 +5,12 @@
   @media (max-width: 768px) { padding: 1rem; }
 }
 
+.search-toolbar {
+  display: flex; gap: 0.75rem; align-items: center;
+  margin-bottom: 1.25rem;
+  app-search-bar { flex: 1; max-width: 420px; }
+}
+
 .mp-header {
   display: flex; align-items: center; justify-content: space-between;
   gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;

@@ -118,12 +118,13 @@ CREATE TABLE IF NOT EXISTS bloqueos_agenda (
 -- ── CLIENTES ─────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS clientes (
-    id         BIGINT PRIMARY KEY DEFAULT nextval('clientes_id_seq'),
-    usuario_id BIGINT UNIQUE REFERENCES usuarios(id),
-    nombre     TEXT NOT NULL,
-    ci         TEXT,
-    telefono   TEXT,
-    direccion  TEXT
+    id                      BIGINT       PRIMARY KEY DEFAULT nextval('clientes_id_seq'),
+    usuario_id              BIGINT       UNIQUE REFERENCES usuarios(id),
+    nombre                  TEXT         NOT NULL,
+    ci                      TEXT,
+    telefono                TEXT,
+    direccion               TEXT,
+    penalizacion_porcentaje NUMERIC(5,2) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS cliente_preferencias (
@@ -176,31 +177,30 @@ CREATE TABLE IF NOT EXISTS servicios (
     activo           BOOLEAN  NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE IF NOT EXISTS servicios_precios (
-    id             BIGINT  PRIMARY KEY DEFAULT nextval('servicios_precios_id_seq'),
-    servicio_id    BIGINT  NOT NULL REFERENCES servicios(id),
-    tamaño_mascota TEXT    NOT NULL,
-    precio         NUMERIC NOT NULL,
-    UNIQUE (servicio_id, tamaño_mascota)
-);
 
 CREATE TABLE IF NOT EXISTS citas (
-    id                BIGINT    PRIMARY KEY DEFAULT nextval('citas_id_seq'),
-    cliente_id        BIGINT    REFERENCES clientes(id),
-    mascota_id        BIGINT    REFERENCES mascotas(id),
-    empleado_id       BIGINT    REFERENCES empleados(id),
-    fecha_hora_inicio TIMESTAMP NOT NULL,
-    fecha_hora_fin    TIMESTAMP NOT NULL,
-    estado            TEXT      DEFAULT 'solicitada'
+    id                    BIGINT        PRIMARY KEY DEFAULT nextval('citas_id_seq'),
+    cliente_id            BIGINT        REFERENCES clientes(id),
+    mascota_id            BIGINT        REFERENCES mascotas(id),
+    empleado_id           BIGINT        REFERENCES empleados(id),
+    empleado_preferido_id BIGINT        REFERENCES empleados(id),
+    servicio_id           BIGINT        REFERENCES servicios(id),
+    fecha_hora_inicio     TIMESTAMP     NOT NULL,
+    fecha_hora_fin        TIMESTAMP     NOT NULL,
+    duracion_minutos      INTEGER,
+    estado                TEXT          DEFAULT 'solicitada',
+    precio_final          NUMERIC(10,2),
+    recargo_porcentaje    NUMERIC(5,2)  NOT NULL DEFAULT 0,
+    tamano_mascota        TEXT,
+    temperamento_mascota  TEXT,
+    metodo_pago           TEXT,
+    motivo_cancelacion    TEXT,
+    notas                 TEXT,
+    recordatorio_24h      BOOLEAN       NOT NULL DEFAULT FALSE,
+    recordatorio_2h       BOOLEAN       NOT NULL DEFAULT FALSE,
+    creado_en             TIMESTAMP     DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS cita_detalles (
-    id           BIGINT  PRIMARY KEY DEFAULT nextval('cita_detalles_id_seq'),
-    cita_id      BIGINT  REFERENCES citas(id),
-    servicio_id  BIGINT  REFERENCES servicios(id),
-    completado   BOOLEAN DEFAULT FALSE,
-    precio_final NUMERIC
-);
 
 -- ── GROOMING ─────────────────────────────────────────────────
 
@@ -341,19 +341,14 @@ CREATE TABLE IF NOT EXISTS venta_items (
 );
 
 CREATE TABLE IF NOT EXISTS pedido (
-    id             BIGINT PRIMARY KEY DEFAULT nextval('pedido_id_seq'),
-    venta_items    BIGINT REFERENCES venta_items(id),
-    estado         TEXT,
-    "fechaEnvio"   DATE,
-    "fechaEntrega" DATE
+    id                    BIGINT    PRIMARY KEY DEFAULT nextval('pedido_id_seq'),
+    venta_id              BIGINT    REFERENCES ventas(id),
+    tipo_entrega          TEXT      NOT NULL DEFAULT 'RECOGER',
+    direccion_entrega     TEXT,
+    estado                TEXT      NOT NULL DEFAULT 'EN_ESPERA',
+    fecha_entrega_pedido  TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS venta_servicios (
-    id              BIGINT        PRIMARY KEY DEFAULT nextval('venta_servicios_id_seq'),
-    venta_id        BIGINT        REFERENCES ventas(id),
-    cita_detalle_id BIGINT        REFERENCES cita_detalles(id),
-    precio_cobrado  NUMERIC(10,2)
-);
 
 -- ── NOTIFICACIONES ───────────────────────────────────────────
 
@@ -397,21 +392,6 @@ ON CONFLICT DO NOTHING;
 INSERT INTO categoria (nom_categoria) VALUES
     ('Alimentos'), ('Accesorios'), ('Higiene'), ('Juguetes'), ('Salud')
 ON CONFLICT DO NOTHING;
-
--- Columnas adicionales para el módulo de citas
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS servicio_id           BIGINT       REFERENCES servicios(id);
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS empleado_preferido_id BIGINT       REFERENCES empleados(id);
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS precio_final          NUMERIC(10,2);
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS motivo_cancelacion    TEXT;
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS notas                 TEXT;
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS creado_en             TIMESTAMP    DEFAULT NOW();
-
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS penalizacion_porcentaje NUMERIC(5,2) NOT NULL DEFAULT 0;
-
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS duracion_minutos      INTEGER;
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS tamano_mascota        TEXT;
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS temperamento_mascota  TEXT;
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS recargo_porcentaje    NUMERIC(5,2) NOT NULL DEFAULT 0;
 
 INSERT INTO servicios (nombre, descripcion, duracion_minutos, precio_base, activo) VALUES
     ('Baño rápido',       'Baño básico con secado',                    30,  40.00, TRUE),

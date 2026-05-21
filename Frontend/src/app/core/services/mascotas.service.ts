@@ -2,6 +2,18 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface ClienteListResponse {
+  id: number;
+  usuarioId: number;
+  correo: string;
+  nombre: string;
+  ci: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  estado: string;
+  mascotas: string[];
+}
+
 export interface TemperamentoResponse {
   id: number;
   nombre: string;
@@ -88,5 +100,9 @@ export class MascotasService {
 
   mascotasByCliente(clienteId: number): Observable<MascotaResponse[]> {
     return this.http.get<MascotaResponse[]>(`${this.base}/cliente/${clienteId}`);
+  }
+
+  listarClientes(): Observable<ClienteListResponse[]> {
+    return this.http.get<ClienteListResponse[]>('/api/clientes');
   }
 }

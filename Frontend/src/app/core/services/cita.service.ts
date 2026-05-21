@@ -28,6 +28,10 @@ export interface GroomerBasicResponse {
 export interface CitaResponse {
   id: number;
   estado: string;
+  clienteId: number | null;
+  clienteNombre: string | null;
+  clienteCorreo: string | null;
+  clienteCi: string | null;
   mascotaId: number;
   mascotaNombre: string;
   mascotaEspecie: string | null;
@@ -45,6 +49,7 @@ export interface CitaResponse {
   fechaHoraFin: string;
   precioFinal: number;
   recargoPorcentaje: number;
+  metodoPago: string | null;
   penalizacionCliente: number;
   motivoCancelacion: string | null;
   notas: string | null;
@@ -121,8 +126,12 @@ export class CitaService {
     return this.http.patch<CitaResponse>(`${this.base}/${id}/finalizar`, {});
   }
 
-  cobrar(id: number): Observable<CitaResponse> {
-    return this.http.patch<CitaResponse>(`${this.base}/${id}/cobrar`, {});
+  cobrar(id: number, metodoPago: string): Observable<CitaResponse> {
+    return this.http.patch<CitaResponse>(`${this.base}/${id}/cobrar`, { metodoPago });
+  }
+
+  rechazar(id: number, motivo: string): Observable<CitaResponse> {
+    return this.http.patch<CitaResponse>(`${this.base}/${id}/rechazar`, { motivo });
   }
 
   calcularDuracion(base: number, tamano: string, temperamento: string | null): number {

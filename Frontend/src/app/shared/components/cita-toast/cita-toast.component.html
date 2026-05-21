@@ -1,0 +1,22 @@
+@if (notif.visible()) {
+  <div class="cita-toast">
+    <div class="ct-dot"></div>
+    <div class="ct-body">
+      <span class="ct-title">Citas pendientes</span>
+      <div class="ct-msgs">
+        @if (notif.enRevision() > 0) {
+          <span class="ct-item revision">
+            {{ notif.enRevision() }} por revisar
+          </span>
+        }
+        @if (notif.pendientePago() > 0) {
+          <span class="ct-item cobrar">
+            {{ notif.pendientePago() }} por cobrar
+          </span>
+        }
+      </div>
+    </div>
+    <button class="ct-ver" (click)="irAAgenda()">Ver</button>
+    <button class="ct-close" (click)="notif.dismiss()">✕</button>
+  </div>
+}

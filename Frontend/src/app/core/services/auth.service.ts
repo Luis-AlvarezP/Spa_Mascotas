@@ -57,6 +57,21 @@ export class AuthService {
     return this._auth()?.accessToken ?? null;
   }
 
+  getRefreshToken(): string | null {
+    return this._auth()?.refreshToken ?? null;
+  }
+
+  refresh(refreshToken: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, { refreshToken }).pipe(
+      tap(resp => {
+        if (resp.accessToken) {
+          const actual = this._auth();
+          this.guardarSesion({ ...actual, ...resp });
+        }
+      })
+    );
+  }
+
   guardarSesionOauth(auth: AuthResponse): void {
     this.guardarSesion(auth);
     this.resetInactividadTimer();

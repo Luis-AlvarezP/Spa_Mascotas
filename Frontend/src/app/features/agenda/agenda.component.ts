@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import jsPDF from 'jspdf';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import {
@@ -8,6 +9,7 @@ import {
   GroomerResponse, HorarioRequest, HorarioTrabajo,
 } from '../../core/services/agenda.service';
 import { CitaService, CitaResponse, ServicioResponse, SlotResponse, GroomerBasicResponse } from '../../core/services/cita.service';
+import { CitaNotificacionService } from '../../core/services/cita-notificacion.service';
 import { MascotasService, MascotaResponse } from '../../core/services/mascotas.service';
 
 const DIAS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
@@ -32,9 +34,12 @@ export class AgendaComponent implements OnInit {
   auth        = inject(AuthService);
   agendaSvc   = inject(AgendaService);
   citaSvc     = inject(CitaService);
+  citaNotif   = inject(CitaNotificacionService);
   mascotasSvc = inject(MascotasService);
   confirm     = inject(ConfirmService);
   fb          = inject(FormBuilder);
+
+  citasBadge = computed(() => this.citaNotif.enRevision() + this.citaNotif.pendientePago());
 
   isCliente = computed(() => this.auth.rol() === 'CLIENTE');
   isGroomer = computed(() => this.auth.rol() === 'GROOMER');
@@ -87,9 +92,19 @@ export class AgendaComponent implements OnInit {
   loadingMisServicios = signal(false);
   savingCitaStaff     = signal<number | null>(null);
 
+  showCobrarModal  = signal(false);
+  showRechazarModal = signal(false);
+  citaEnAccion     = signal<CitaResponse | null>(null);
+  metodoPago       = signal<string>('EFECTIVO');
+  motivoRechazo    = signal<string>('');
+  savingCobro      = signal(false);
+  savingRechazo    = signal(false);
+
   loadingCitas        = signal(false);
   loadingSlots        = signal(false);
   savingCita          = signal(false);
+  savingCancelar      = signal(false);
+  savingReprog        = signal(false);
 
   showSolicitarModal  = signal(false);
   showCancelarModal   = signal(false);
@@ -341,12 +356,121 @@ export class AgendaComponent implements OnInit {
     });
   }
 
-  cobrarCita(id: number) {
-    this.savingCitaStaff.set(id);
-    this.citaSvc.cobrar(id).subscribe({
-      next: () => { this.loadTodasCitas(); this.showSuccess('Pago confirmado, cita realizada'); this.savingCitaStaff.set(null); },
-      error: e  => { this.error.set(e.error?.message ?? 'Error al cobrar'); this.savingCitaStaff.set(null); },
+  openCobrar(c: CitaResponse) {
+    this.citaEnAccion.set(c);
+    this.metodoPago.set('EFECTIVO');
+    this.showCobrarModal.set(true);
+  }
+
+  closeCobrar() { this.showCobrarModal.set(false); this.citaEnAccion.set(null); }
+
+  submitCobrar() {
+    const cita = this.citaEnAccion();
+    if (!cita || this.savingCobro()) return;
+    this.savingCobro.set(true);
+    this.citaSvc.cobrar(cita.id, this.metodoPago()).subscribe({
+      next: c => {
+        this.closeCobrar();
+        this.loadTodasCitas();
+        this.showSuccess('Pago confirmado, cita realizada');
+        this.savingCobro.set(false);
+        this.descargarReciboCita(c);
+      },
+      error: e => { this.error.set(e.error?.message ?? 'Error al cobrar'); this.savingCobro.set(false); },
     });
+  }
+
+  cobrarCita(id: number) {
+    const cita = this.todasCitas().find(c => c.id === id) ?? null;
+    if (cita) this.openCobrar(cita);
+  }
+
+  openRechazar(c: CitaResponse) {
+    this.citaEnAccion.set(c);
+    this.motivoRechazo.set('');
+    this.showRechazarModal.set(true);
+  }
+
+  closeRechazar() { this.showRechazarModal.set(false); this.citaEnAccion.set(null); }
+
+  submitRechazar() {
+    const cita = this.citaEnAccion();
+    const motivo = this.motivoRechazo().trim();
+    if (!cita || !motivo || this.savingRechazo()) return;
+    this.savingRechazo.set(true);
+    this.citaSvc.rechazar(cita.id, motivo).subscribe({
+      next: () => {
+        this.closeRechazar();
+        this.loadTodasCitas();
+        this.showSuccess('Cita rechazada');
+        this.savingRechazo.set(false);
+      },
+      error: e => { this.error.set(e.error?.message ?? 'Error al rechazar'); this.savingRechazo.set(false); },
+    });
+  }
+
+  descargarReciboCita(c: CitaResponse) {
+    const doc = new jsPDF({ format: 'a5', unit: 'mm' });
+    const W = doc.internal.pageSize.getWidth();
+
+    doc.setFillColor(18, 14, 35);
+    doc.rect(0, 0, W, doc.internal.pageSize.getHeight(), 'F');
+
+    doc.setFontSize(18); doc.setTextColor(196, 181, 253);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SpaMascotas', W / 2, 18, { align: 'center' });
+
+    doc.setFontSize(10); doc.setTextColor(148, 163, 184);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Recibo de servicio de grooming', W / 2, 25, { align: 'center' });
+
+    doc.setDrawColor(124, 58, 237); doc.setLineWidth(0.4);
+    doc.line(10, 30, W - 10, 30);
+
+    const rows: [string, string][] = [
+      ['N° Cita',    `#${c.id}`],
+      ['Cliente',    c.clienteNombre ?? '—'],
+      ['CI',         c.clienteCi ?? '—'],
+      ['Mascota',    c.mascotaNombre],
+      ['Servicio',   c.servicioNombre],
+      ['Duración',   `${c.duracionMinutos} min`],
+      ['Groomer',    c.empleadoAsignadoNombre ?? '—'],
+      ['Fecha',      this.formatDT(c.fechaHoraInicio)],
+      ['Método pago', c.metodoPago ?? this.metodoPago()],
+    ];
+
+    let y = 38;
+    doc.setFontSize(9);
+    for (const [label, val] of rows) {
+      doc.setTextColor(148, 163, 184); doc.setFont('helvetica', 'normal');
+      doc.text(label, 14, y);
+      doc.setTextColor(226, 232, 240); doc.setFont('helvetica', 'bold');
+      doc.text(val, 80, y);
+      y += 7;
+    }
+
+    doc.setDrawColor(124, 58, 237); doc.line(10, y, W - 10, y); y += 7;
+
+    if (c.recargoPorcentaje > 0) {
+      doc.setFontSize(9); doc.setTextColor(148, 163, 184); doc.setFont('helvetica', 'normal');
+      doc.text('Precio base:', 14, y);
+      doc.setTextColor(226, 232, 240);
+      doc.text(`Bs. ${c.precioFinal.toFixed(2)}`, 80, y); y += 7;
+
+      doc.setTextColor(251, 191, 36); doc.setFont('helvetica', 'normal');
+      doc.text(`Recargo (+${c.recargoPorcentaje}%):`, 14, y);
+      const recargo = +(c.precioFinal * c.recargoPorcentaje / 100).toFixed(2);
+      doc.text(`+Bs. ${recargo.toFixed(2)}`, 80, y); y += 7;
+    }
+
+    doc.setFontSize(12); doc.setTextColor(167, 139, 250); doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL:', 14, y);
+    doc.text(`Bs. ${this.precioFinalConRecargo(c).toFixed(2)}`, 80, y); y += 12;
+
+    doc.setFontSize(8); doc.setTextColor(100, 116, 139); doc.setFont('helvetica', 'italic');
+    doc.text('Gracias por confiar en SpaMascotas', W / 2, y, { align: 'center' });
+
+    doc.save(`recibo-cita-${c.id}.pdf`);
   }
 
   // ── Cliente: solicitar ───────────────────────────────────
@@ -447,11 +571,12 @@ export class AgendaComponent implements OnInit {
   closeCancelar() { this.showCancelarModal.set(false); this.citaSeleccionada.set(null); }
 
   submitCancelar() {
-    if (this.cancelarForm.invalid) return;
+    if (this.cancelarForm.invalid || this.savingCancelar()) return;
     const id = this.citaSeleccionada()!.id;
+    this.savingCancelar.set(true);
     this.citaSvc.cancelar(id, { motivo: this.cancelarForm.value.motivo }).subscribe({
-      next: () => { this.closeCancelar(); this.loadMisCitas(); this.showSuccess('Cita cancelada'); },
-      error: e  => this.error.set(e.error?.message ?? 'Error al cancelar'),
+      next: () => { this.savingCancelar.set(false); this.closeCancelar(); this.loadMisCitas(); this.showSuccess('Cita cancelada'); },
+      error: e  => { this.savingCancelar.set(false); this.error.set(e.error?.message ?? 'Error al cancelar'); },
     });
   }
 
@@ -490,16 +615,17 @@ export class AgendaComponent implements OnInit {
   }
 
   submitReprog() {
-    if (this.reprogForm.invalid || this.needsGroomerReprog()) return;
+    if (this.reprogForm.invalid || this.needsGroomerReprog() || this.savingReprog()) return;
     const v = this.reprogForm.value;
     const id = this.citaSeleccionada()!.id;
+    this.savingReprog.set(true);
     this.citaSvc.reprogramar(id, {
       fechaHoraInicio: v.slot,
       notas: v.notas || undefined,
       empleadoPreferidoId: this.groomerDelSlotReprogId() ?? undefined,
     }).subscribe({
-      next: () => { this.closeReprog(); this.loadMisCitas(); this.showSuccess('Cita reprogramada, queda en revisión'); },
-      error: e  => this.error.set(e.error?.message ?? 'Error al reprogramar'),
+      next: () => { this.savingReprog.set(false); this.closeReprog(); this.loadMisCitas(); this.showSuccess('Cita reprogramada, queda en revisión'); },
+      error: e  => { this.savingReprog.set(false); this.error.set(e.error?.message ?? 'Error al reprogramar'); },
     });
   }
 
