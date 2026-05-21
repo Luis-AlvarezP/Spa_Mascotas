@@ -22,7 +22,7 @@ export class CitaNotificacionService implements OnDestroy {
 
   private check(): void {
     const rol = this.auth.rol();
-    if (!['ADMIN', 'RECEPCION'].includes(rol ?? '')) {
+    if (rol !== 'RECEPCION') {
       this.enRevision.set(0); this.pendientePago.set(0); this.visible.set(false);
       return;
     }

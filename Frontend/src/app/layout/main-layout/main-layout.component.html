@@ -1,8 +1,10 @@
 <app-confirm-modal />
-<app-pedido-toast />
-<app-stock-toast />
-<app-cita-toast />
-<app-grooming-toast />
+<div class="toast-stack">
+  <app-pedido-toast />
+  <app-stock-toast />
+  <app-cita-toast />
+  <app-grooming-toast />
+</div>
 
 <app-sidebar
   [open]="sidebarOpen()"
