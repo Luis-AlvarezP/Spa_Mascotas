@@ -10,9 +10,6 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrl: './grooming.component.scss',
 })
 export class GroomingComponent {
-  auth = inject(AuthService);
+  auth      = inject(AuthService);
   isCliente = computed(() => this.auth.rol() === 'CLIENTE');
-  subtitulo = computed(() => this.isCliente()
-    ? 'Consulta los servicios y resultados de grooming de tus mascotas'
-    : 'Fichas de ingreso, checklist y galería de servicios');
 }

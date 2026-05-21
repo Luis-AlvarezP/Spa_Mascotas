@@ -111,7 +111,6 @@ public class CitaService {
         Map<Long, List<Cita>> citaMap = new HashMap<>();
         for (Empleado g : groomers) {
             horarioMap.put(g.getId(), horarioRepo.findVigenteByEmpleadoAndDia(g.getId(), diaSemana, fecha));
-            // Capacidad: solo ACEPTADO + PENDIENTE_PAGO, excluyendo cita en reprogramación
             List<Cita> aceptadas = citaRepo.findAceptadasEnDiaByEmpleado(diaCompleto, diaSiguiente, g.getId())
                     .stream().filter(c -> excluirCitaId == null || !c.getId().equals(excluirCitaId)).toList();
             citaMap.put(g.getId(), aceptadas);
@@ -198,7 +197,6 @@ public class CitaService {
         LocalDateTime diaCompleto = fecha.atStartOfDay();
         LocalDateTime diaSig      = fecha.plusDays(1).atStartOfDay();
 
-        // Sala, capacidad y bloqueos del día
         List<Cita>          todasCitasDelDia  = citaRepo.findActivasEnDia(diaCompleto, diaSig)
                 .stream().filter(c -> excluirCitaId == null || !c.getId().equals(excluirCitaId)).toList();
         List<Cita>          citasGroomer      = citaRepo.findAceptadasEnDiaByEmpleado(diaCompleto, diaSig, empleadoId)

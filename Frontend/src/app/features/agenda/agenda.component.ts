@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import jsPDF from 'jspdf';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfirmService } from '../../core/services/confirm.service';
@@ -10,6 +11,7 @@ import {
 } from '../../core/services/agenda.service';
 import { CitaService, CitaResponse, ServicioResponse, SlotResponse, GroomerBasicResponse } from '../../core/services/cita.service';
 import { CitaNotificacionService } from '../../core/services/cita-notificacion.service';
+import { GroomingNotificacionService } from '../../core/services/grooming-notificacion.service';
 import { MascotasService, MascotaResponse } from '../../core/services/mascotas.service';
 
 const DIAS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
@@ -26,7 +28,7 @@ const TIPOS_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, RouterLink],
   templateUrl: './agenda.component.html',
   styleUrl: './agenda.component.scss',
 })
@@ -34,8 +36,9 @@ export class AgendaComponent implements OnInit {
   auth        = inject(AuthService);
   agendaSvc   = inject(AgendaService);
   citaSvc     = inject(CitaService);
-  citaNotif   = inject(CitaNotificacionService);
-  mascotasSvc = inject(MascotasService);
+  citaNotif     = inject(CitaNotificacionService);
+  groomingNotif = inject(GroomingNotificacionService);
+  mascotasSvc   = inject(MascotasService);
   confirm     = inject(ConfirmService);
   fb          = inject(FormBuilder);
 
@@ -88,8 +91,15 @@ export class AgendaComponent implements OnInit {
   slots               = signal<SlotResponse[]>([]);
   todasCitas          = signal<CitaResponse[]>([]);
   misServciosGroomer  = signal<CitaResponse[]>([]);
+  misHorariosGroomer  = signal<HorarioTrabajo[]>([]);
+  groomerTab          = signal<'horarios' | 'servicios'>('horarios');
   loadingTodasCitas   = signal(false);
   loadingMisServicios = signal(false);
+  loadingMisHorarios  = signal(false);
+
+  groomerBadge = computed(() =>
+    this.misServciosGroomer().filter(c => c.estado === 'ACEPTADO').length
+  );
   savingCitaStaff     = signal<number | null>(null);
 
   showCobrarModal  = signal(false);
@@ -151,6 +161,7 @@ export class AgendaComponent implements OnInit {
       this.loadTodasCitas();
     } else if (this.isGroomer()) {
       this.loadMisServicios();
+      this.loadMisHorarios();
     } else if (this.isCliente()) {
       this.loadMisCitas();
       this.citaSvc.servicios().subscribe({ next: s => this.servicios.set(s) });
@@ -339,6 +350,23 @@ export class AgendaComponent implements OnInit {
       error: () => this.loadingMisServicios.set(false),
     });
   }
+
+  loadMisHorarios() {
+    this.loadingMisHorarios.set(true);
+    this.agendaSvc.misHorarios().subscribe({
+      next: h  => { this.misHorariosGroomer.set(h); this.loadingMisHorarios.set(false); },
+      error: () => this.loadingMisHorarios.set(false),
+    });
+  }
+
+  misHorariosOrdenados = computed(() => {
+    const ORDEN: Record<string, number> = {
+      LUNES: 1, MARTES: 2, MIERCOLES: 3, JUEVES: 4, VIERNES: 5, SABADO: 6, DOMINGO: 7,
+    };
+    return [...this.misHorariosGroomer()].sort((a, b) =>
+      (ORDEN[(a.diaSemana ?? '').toUpperCase()] ?? 9) - (ORDEN[(b.diaSemana ?? '').toUpperCase()] ?? 9)
+    );
+  });
 
   aceptarCita(id: number) {
     this.savingCitaStaff.set(id);

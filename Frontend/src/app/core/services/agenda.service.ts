@@ -96,4 +96,8 @@ export class AgendaService {
   eliminarBloqueo(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/bloqueos/${id}`);
   }
+
+  misHorarios(): Observable<HorarioTrabajo[]> {
+    return this.http.get<HorarioTrabajo[]>('/api/grooming/mis-horarios');
+  }
 }

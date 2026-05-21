@@ -8,23 +8,26 @@ import { ConfirmModalComponent } from '../../shared/components/confirm-modal/con
 import { PedidoToastComponent } from '../../shared/components/pedido-toast/pedido-toast.component';
 import { StockToastComponent } from '../../shared/components/stock-toast/stock-toast.component';
 import { CitaToastComponent } from '../../shared/components/cita-toast/cita-toast.component';
+import { GroomingToastComponent } from '../../shared/components/grooming-toast/grooming-toast.component';
 import { PedidoNotificacionService } from '../../core/services/pedido-notificacion.service';
 import { StockNotificacionService } from '../../core/services/stock-notificacion.service';
 import { CitaNotificacionService } from '../../core/services/cita-notificacion.service';
+import { GroomingNotificacionService } from '../../core/services/grooming-notificacion.service';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, TopbarComponent, ConfirmModalComponent, PedidoToastComponent, StockToastComponent, CitaToastComponent],
+  imports: [RouterOutlet, SidebarComponent, TopbarComponent, ConfirmModalComponent, PedidoToastComponent, StockToastComponent, CitaToastComponent, GroomingToastComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
 })
 export class MainLayoutComponent implements OnInit {
   private router = inject(Router);
   private route  = inject(ActivatedRoute);
-  private pedidoNotif = inject(PedidoNotificacionService);
-  private stockNotif  = inject(StockNotificacionService);
-  private citaNotif   = inject(CitaNotificacionService);
+  private pedidoNotif   = inject(PedidoNotificacionService);
+  private stockNotif    = inject(StockNotificacionService);
+  private citaNotif     = inject(CitaNotificacionService);
+  private groomingNotif = inject(GroomingNotificacionService);
 
   sidebarOpen = signal(false);
 
@@ -32,6 +35,7 @@ export class MainLayoutComponent implements OnInit {
     this.pedidoNotif.init();
     this.stockNotif.init();
     this.citaNotif.init();
+    this.groomingNotif.init();
   }
 
   title = toSignal(

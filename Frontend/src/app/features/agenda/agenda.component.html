@@ -494,92 +494,173 @@
   }
 
   @if (isGroomer()) {
-    <div class="citas-header">
-      <div>
-        <h2 class="section-title">Mis servicios</h2>
-        <p class="section-sub">Servicios asignados pendientes de atender</p>
-      </div>
-      <button class="btn-ghost" (click)="loadMisServicios()">
-        <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+
+    <div class="tabs">
+      <button class="tab-btn" [class.active]="groomerTab() === 'horarios'"
+              (click)="groomerTab.set('horarios')">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+          <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
         </svg>
-        Actualizar
+        Mis Horarios
+      </button>
+      <button class="tab-btn" [class.active]="groomerTab() === 'servicios'"
+              (click)="groomerTab.set('servicios')">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6zm0 4a1 1 0 000 2h4a1 1 0 100-2H6z" clip-rule="evenodd"/>
+        </svg>
+        Mis Servicios
+        @if (groomerBadge() > 0) {
+          <span class="tab-badge">{{ groomerBadge() }}</span>
+        }
       </button>
     </div>
 
-    @if (loadingMisServicios()) {
-      <div class="loading-rows">
-        @for (i of [1,2,3]; track i) { <div class="skeleton-row"></div> }
-      </div>
-    } @else if (misServciosGroomer().length === 0) {
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="3" y="4" width="18" height="18" rx="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
+    @if (groomerTab() === 'horarios') {
+      @if (loadingMisHorarios()) {
+        <div class="loading-rows">
+          @for (i of [1,2,3]; track i) { <div class="skeleton-row"></div> }
         </div>
-        <p>No tienes servicios pendientes asignados.</p>
-      </div>
-    } @else {
-      <div class="citas-list">
-        @for (c of misServciosGroomer(); track c.id) {
-          <div class="cita-card">
-            <div class="cita-card-top">
-              <span class="estado-chip estado-{{ estadoClass(c.estado) }}">{{ estadoLabel(c.estado) }}</span>
-              <span class="cita-fecha">{{ formatDT(c.fechaHoraInicio) }}</span>
-            </div>
-            <div class="cita-card-body">
-              <div class="cita-info-row">
-                <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-                  <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                </svg>
-                <span class="cita-info-label">Servicio:</span>
-                <span class="cita-info-val">{{ c.servicioNombre }}</span>
-                @if (c.duracionMinutos) {
-                  <span class="cita-badge">{{ c.duracionMinutos }} min</span>
-                }
-              </div>
-              <div class="cita-info-row">
-                <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-                  <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
-                </svg>
-                <span class="cita-info-label">Mascota:</span>
-                <span class="cita-info-val">{{ c.mascotaNombre }}</span>
-                @if (c.mascotaTamano) {
-                  <span class="badge-size" [class]="tamanoClass(c.mascotaTamano)">{{ c.mascotaTamano }}</span>
-                }
-                @if (c.mascotaTemperamento) {
-                  <span class="badge-temp"
-                        [style.background]="(c.mascotaTemperamentoColor || temperamentoColor(c.mascotaTemperamento)) + '22'"
-                        [style.color]="c.mascotaTemperamentoColor || temperamentoColor(c.mascotaTemperamento)"
-                        [style.border-color]="(c.mascotaTemperamentoColor || temperamentoColor(c.mascotaTemperamento)) + '55'">
-                    {{ c.mascotaTemperamento }}
-                  </span>
-                }
-              </div>
-              <div class="cita-price-row">
-                <span class="cita-price">Bs. {{ c.precioFinal | number:'1.2-2' }}</span>
-              </div>
-            </div>
-            @if (c.estado === 'ACEPTADO') {
-              <div class="cita-card-actions">
-                <button class="btn-primary btn-sm"
-                        [disabled]="savingCitaStaff() === c.id"
-                        (click)="finalizarCita(c.id)">
-                  <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                  {{ savingCitaStaff() === c.id ? 'Procesando...' : 'Marcar como terminado' }}
-                </button>
-              </div>
-            }
+      } @else if (misHorariosOrdenados().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
           </div>
-        }
-      </div>
+          <p>No tienes horarios asignados aún.</p>
+        </div>
+      } @else {
+        <div class="week-grid groomer-horarios">
+          @for (h of misHorariosOrdenados(); track h.id) {
+            <div class="day-row has-schedule">
+              <div class="day-label">
+                <span class="day-name">{{ diasLabels[h.diaSemana] ?? h.diaSemana }}</span>
+              </div>
+              <div class="day-content">
+                <div class="horario-item">
+                  <div class="horario-main">
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="time-range">{{ formatTime(h.horaInicio) }} – {{ formatTime(h.horaFin) }}</span>
+                    @if (h.inicioAlmuerzo) {
+                      <span class="lunch-badge">Almuerzo {{ formatTime(h.inicioAlmuerzo) }}–{{ formatTime(h.finAlmuerzo ?? '') }}</span>
+                    }
+                    <span class="cap-badge">
+                      <svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12">
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                      </svg>
+                      {{ h.capacidadMaxima }} serv.
+                    </span>
+                    @if (h.vigenteHasta) {
+                      <span class="until-badge">hasta {{ h.vigenteHasta }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
     }
+
+    @if (groomerTab() === 'servicios') {
+      <div class="citas-header" style="margin-bottom: 1rem">
+        <div>
+          <h2 class="section-title">Mis servicios</h2>
+          <p class="section-sub">Servicios asignados pendientes de atender</p>
+        </div>
+        <button class="btn-ghost" (click)="loadMisServicios()">
+          <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+          </svg>
+          Actualizar
+        </button>
+      </div>
+
+      @if (loadingMisServicios()) {
+        <div class="loading-rows">
+          @for (i of [1,2,3]; track i) { <div class="skeleton-row"></div> }
+        </div>
+      } @else if (misServciosGroomer().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <p>No tienes servicios pendientes asignados.</p>
+        </div>
+      } @else {
+        <div class="citas-list">
+          @for (c of misServciosGroomer(); track c.id) {
+            <div class="cita-card">
+              <div class="cita-card-top">
+                <span class="estado-chip estado-{{ estadoClass(c.estado) }}">{{ estadoLabel(c.estado) }}</span>
+                <span class="cita-fecha">{{ formatDT(c.fechaHoraInicio) }}</span>
+              </div>
+              <div class="cita-card-body">
+                <div class="cita-info-row">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                    <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  <span class="cita-info-label">Servicio:</span>
+                  <span class="cita-info-val">{{ c.servicioNombre }}</span>
+                  @if (c.duracionMinutos) {
+                    <span class="cita-badge">{{ c.duracionMinutos }} min</span>
+                  }
+                </div>
+                <div class="cita-info-row">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                  </svg>
+                  <span class="cita-info-label">Mascota:</span>
+                  <span class="cita-info-val">{{ c.mascotaNombre }}</span>
+                  @if (c.mascotaTamano) {
+                    <span class="badge-size" [class]="tamanoClass(c.mascotaTamano)">{{ c.mascotaTamano }}</span>
+                  }
+                  @if (c.mascotaTemperamento) {
+                    <span class="badge-temp"
+                          [style.background]="(c.mascotaTemperamentoColor || temperamentoColor(c.mascotaTemperamento)) + '22'"
+                          [style.color]="c.mascotaTemperamentoColor || temperamentoColor(c.mascotaTemperamento)"
+                          [style.border-color]="(c.mascotaTemperamentoColor || temperamentoColor(c.mascotaTemperamento)) + '55'">
+                      {{ c.mascotaTemperamento }}
+                    </span>
+                  }
+                </div>
+                <div class="cita-info-row">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                  </svg>
+                  <span class="cita-info-label">Cliente:</span>
+                  <span class="cita-info-val">{{ c.clienteNombre ?? '—' }}</span>
+                </div>
+                <div class="cita-price-row">
+                  <span class="cita-price">Bs. {{ c.precioFinal | number:'1.2-2' }}</span>
+                </div>
+              </div>
+              @if (c.estado === 'ACEPTADO') {
+                <div class="cita-card-actions">
+                  <a class="btn-primary btn-sm" routerLink="/grooming">
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                      <path fill-rule="evenodd" d="M5.5 2a3.5 3.5 0 101.665 6.58L8.585 10l-1.42 1.42a3.5 3.5 0 101.414 1.414L10 11.415l1.42 1.42a3.5 3.5 0 101.415-1.415L11.414 10l1.42-1.42A3.5 3.5 0 105 5.5a3.5 3.5 0 00.5 1.58zm1.5 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm7 7a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-7 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" clip-rule="evenodd"/>
+                    </svg>
+                    Iniciar servicio
+                  </a>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+
   }
 
 

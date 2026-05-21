@@ -30,7 +30,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
                                           @Param("hasta")      LocalDateTime hasta,
                                           @Param("empleadoId") Long empleadoId);
 
-    @Query("SELECT c FROM Cita c WHERE c.estado IN ('ACEPTADO','PENDIENTE_PAGO') " +
+    @Query("SELECT c FROM Cita c WHERE c.estado NOT IN ('CANCELADO') " +
            "AND c.fechaHoraInicio >= :desde AND c.fechaHoraInicio < :hasta " +
            "AND (c.empleadoPreferido IS NOT NULL AND c.empleadoPreferido.id = :empleadoId " +
            "  OR c.empleadoAsignado  IS NOT NULL AND c.empleadoAsignado.id  = :empleadoId)")

@@ -1,0 +1,13 @@
+@if (notif.visible()) {
+  <div class="grooming-toast">
+    <div class="gt-dot"></div>
+    <div class="gt-body">
+      <span class="gt-title">Servicios pendientes</span>
+      <span class="gt-count">
+        {{ notif.confirmadas() }} servicio{{ notif.confirmadas() !== 1 ? 's' : '' }} por atender
+      </span>
+    </div>
+    <button class="gt-ver" (click)="irAGrooming()">Ver</button>
+    <button class="gt-close" (click)="notif.dismiss()">✕</button>
+  </div>
+}

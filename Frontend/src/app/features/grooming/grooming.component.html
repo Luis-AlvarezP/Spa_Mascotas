@@ -7,19 +7,24 @@
     </div>
     <div>
       <h1 class="module-title">Grooming</h1>
-      <p class="module-sub">{{ subtitulo() }}</p>
+      <p class="module-sub">
+        @if (isCliente()) { Servicios y resultados de grooming de tus mascotas }
+        @else { Gestión de fichas de servicio y grooming }
+      </p>
     </div>
   </div>
 
   <div class="coming-soon">
     <div class="cs-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 6v6l4 2"/>
+        <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
       </svg>
     </div>
-    <h2>Módulo en desarrollo</h2>
-    <p>{{ subtitulo() }}. Estará disponible próximamente.</p>
+    <h2>Próximamente</h2>
+    <p>
+      @if (isCliente()) { Aquí podrás ver el historial de servicios y fichas de grooming de tus mascotas. }
+      @else { La gestión de fichas de ingreso, checklist y galería de resultados estará disponible pronto. }
+    </p>
     <a routerLink="/dashboard" class="btn-back">Volver al inicio</a>
   </div>
 </div>
