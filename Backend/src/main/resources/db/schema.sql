@@ -16,9 +16,7 @@ CREATE SEQUENCE IF NOT EXISTS clientes_id_seq          START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS mascotas_id_seq          START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS horarios_id_seq          START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS servicios_id_seq         START 1 INCREMENT 1;
-CREATE SEQUENCE IF NOT EXISTS servicios_precios_id_seq START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS citas_id_seq             START 1 INCREMENT 1;
-CREATE SEQUENCE IF NOT EXISTS cita_detalles_id_seq     START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS categoria_id_seq         START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS productos_id_seq         START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS es_de_catego_id_seq      START 1 INCREMENT 1;
@@ -29,14 +27,10 @@ CREATE SEQUENCE IF NOT EXISTS fichas_id_seq            START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS ficha_detalles_id_seq    START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS ventas_id_seq            START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS venta_items_id_seq       START 1 INCREMENT 1;
-CREATE SEQUENCE IF NOT EXISTS venta_servicios_id_seq   START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS pedido_id_seq            START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS galeria_id_seq           START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS recomendaciones_id_seq   START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS bloqueos_id_seq          START 1 INCREMENT 1;
-CREATE SEQUENCE IF NOT EXISTS vacunas_id_seq           START 1 INCREMENT 1;
-CREATE SEQUENCE IF NOT EXISTS mascota_vacunas_id_seq   START 1 INCREMENT 1;
-CREATE SEQUENCE IF NOT EXISTS restricciones_id_seq     START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS cli_prefs_id_seq         START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS calificaciones_id_seq    START 1 INCREMENT 1;
 CREATE SEQUENCE IF NOT EXISTS notificaciones_id_seq    START 1 INCREMENT 1;
@@ -71,9 +65,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
 );
 
 CREATE TABLE IF NOT EXISTS usuario_roles (
-    id          BIGINT PRIMARY KEY DEFAULT nextval('usuario_roles_id_seq'),
-    usuario_id  BIGINT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    rol_id      BIGINT NOT NULL REFERENCES roles(id),
+    id          BIGINT    PRIMARY KEY DEFAULT nextval('usuario_roles_id_seq'),
+    usuario_id  BIGINT    NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    rol_id      BIGINT    NOT NULL REFERENCES roles(id),
     asignado_el TIMESTAMP DEFAULT NOW(),
     UNIQUE (usuario_id, rol_id)
 );
@@ -91,16 +85,16 @@ CREATE TABLE IF NOT EXISTS empleados (
 );
 
 CREATE TABLE IF NOT EXISTS horarios_trabajo (
-    id               BIGINT  PRIMARY KEY DEFAULT nextval('horarios_id_seq'),
-    empleado_id      BIGINT  REFERENCES empleados(id),
-    dia_semana       TEXT    NOT NULL,
-    hora_inicio      TIME    NOT NULL,
-    hora_fin         TIME    NOT NULL,
+    id               BIGINT   PRIMARY KEY DEFAULT nextval('horarios_id_seq'),
+    empleado_id      BIGINT   REFERENCES empleados(id),
+    dia_semana       TEXT     NOT NULL,
+    hora_inicio      TIME     NOT NULL,
+    hora_fin         TIME     NOT NULL,
     inicio_almuerzo  TIME,
     fin_almuerzo     TIME,
-    vigente_desde    DATE    NOT NULL,
+    vigente_desde    DATE     NOT NULL,
     vigente_hasta    DATE,
-    capacidad_maxima INTEGER NOT NULL DEFAULT 8,
+    capacidad_maxima INTEGER  NOT NULL DEFAULT 8,
     UNIQUE (empleado_id, dia_semana, vigente_desde)
 );
 
@@ -130,7 +124,7 @@ CREATE TABLE IF NOT EXISTS clientes (
 CREATE TABLE IF NOT EXISTS cliente_preferencias (
     id         BIGINT PRIMARY KEY DEFAULT nextval('cli_prefs_id_seq'),
     cliente_id BIGINT REFERENCES clientes(id),
-    nombre     TEXT NOT NULL,
+    nombre     TEXT   NOT NULL,
     valor      TEXT,
     UNIQUE (cliente_id, nombre)
 );
@@ -139,7 +133,7 @@ CREATE TABLE IF NOT EXISTS cliente_preferencias (
 
 CREATE TABLE IF NOT EXISTS cat_temperamentos (
     id           BIGINT PRIMARY KEY DEFAULT nextval('cat_temp_id_seq'),
-    nombre       TEXT UNIQUE NOT NULL,
+    nombre       TEXT   UNIQUE NOT NULL,
     color_alerta TEXT
 );
 
@@ -177,30 +171,28 @@ CREATE TABLE IF NOT EXISTS servicios (
     activo           BOOLEAN  NOT NULL DEFAULT TRUE
 );
 
-
 CREATE TABLE IF NOT EXISTS citas (
-    id                    BIGINT        PRIMARY KEY DEFAULT nextval('citas_id_seq'),
-    cliente_id            BIGINT        REFERENCES clientes(id),
-    mascota_id            BIGINT        REFERENCES mascotas(id),
-    empleado_id           BIGINT        REFERENCES empleados(id),
-    empleado_preferido_id BIGINT        REFERENCES empleados(id),
-    servicio_id           BIGINT        REFERENCES servicios(id),
-    fecha_hora_inicio     TIMESTAMP     NOT NULL,
-    fecha_hora_fin        TIMESTAMP     NOT NULL,
+    id                    BIGINT       PRIMARY KEY DEFAULT nextval('citas_id_seq'),
+    cliente_id            BIGINT       REFERENCES clientes(id),
+    mascota_id            BIGINT       REFERENCES mascotas(id),
+    empleado_id           BIGINT       REFERENCES empleados(id),
+    empleado_preferido_id BIGINT       REFERENCES empleados(id),
+    servicio_id           BIGINT       REFERENCES servicios(id),
+    fecha_hora_inicio     TIMESTAMP    NOT NULL,
+    fecha_hora_fin        TIMESTAMP    NOT NULL,
     duracion_minutos      INTEGER,
-    estado                TEXT          DEFAULT 'solicitada',
+    estado                TEXT         DEFAULT 'solicitada',
     precio_final          NUMERIC(10,2),
-    recargo_porcentaje    NUMERIC(5,2)  NOT NULL DEFAULT 0,
+    recargo_porcentaje    NUMERIC(5,2) NOT NULL DEFAULT 0,
     tamano_mascota        TEXT,
     temperamento_mascota  TEXT,
     metodo_pago           TEXT,
     motivo_cancelacion    TEXT,
     notas                 TEXT,
-    recordatorio_24h      BOOLEAN       NOT NULL DEFAULT FALSE,
-    recordatorio_2h       BOOLEAN       NOT NULL DEFAULT FALSE,
-    creado_en             TIMESTAMP     DEFAULT NOW()
+    recordatorio_24h      BOOLEAN      NOT NULL DEFAULT FALSE,
+    recordatorio_2h       BOOLEAN      NOT NULL DEFAULT FALSE,
+    creado_en             TIMESTAMP    DEFAULT NOW()
 );
-
 
 -- ── GROOMING ─────────────────────────────────────────────────
 
@@ -260,18 +252,18 @@ CREATE TABLE IF NOT EXISTS categoria (
 );
 
 CREATE TABLE IF NOT EXISTS productos (
-    id                BIGINT   PRIMARY KEY DEFAULT nextval('productos_id_seq'),
-    nombre            TEXT     NOT NULL,
+    id                BIGINT       PRIMARY KEY DEFAULT nextval('productos_id_seq'),
+    nombre            TEXT         NOT NULL,
     descripcion       TEXT,
-    sku               TEXT     UNIQUE,
-    stock_actual      INTEGER  NOT NULL DEFAULT 0,
-    stock_minimo      INTEGER  NOT NULL DEFAULT 0,
-    precio_venta      NUMERIC,
+    sku               TEXT         UNIQUE,
+    stock_actual      INTEGER      NOT NULL DEFAULT 0,
+    stock_minimo      INTEGER      NOT NULL DEFAULT 0,
+    precio_venta      NUMERIC(10,2),
     fecha_vencimiento DATE,
     lote              TEXT,
     url_imagen        TEXT,
-    activo            BOOLEAN  NOT NULL DEFAULT TRUE,
-    categoria_id      BIGINT   REFERENCES categoria(id)
+    activo            BOOLEAN      NOT NULL DEFAULT TRUE,
+    categoria_id      BIGINT       REFERENCES categoria(id)
 );
 
 CREATE TABLE IF NOT EXISTS es_de_catego (
@@ -289,6 +281,12 @@ CREATE TABLE IF NOT EXISTS promociones (
     fecha_inicio         DATE         NOT NULL,
     fecha_fin            DATE         NOT NULL,
     activa               BOOLEAN      NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS promo_productos (
+    promo_id    BIGINT NOT NULL REFERENCES promociones(id) ON DELETE CASCADE,
+    producto_id BIGINT NOT NULL REFERENCES productos(id)  ON DELETE CASCADE,
+    PRIMARY KEY (promo_id, producto_id)
 );
 
 CREATE TABLE IF NOT EXISTS cupones (
@@ -310,22 +308,22 @@ CREATE TABLE IF NOT EXISTS cupon_productos (
 );
 
 CREATE TABLE IF NOT EXISTS movimientos_inventario (
-    id                 BIGINT    PRIMARY KEY DEFAULT nextval('movimientos_inv_id_seq'),
-    empleado_id        BIGINT    REFERENCES empleados(id),
+    id               BIGINT    PRIMARY KEY DEFAULT nextval('movimientos_inv_id_seq'),
+    empleado_id      BIGINT    REFERENCES empleados(id),
     tipo_movimiento_id TEXT,
-    cantidad           INTEGER   NOT NULL,
-    producto_id        BIGINT    NOT NULL REFERENCES productos(id),
-    cita_id            BIGINT    REFERENCES citas(id),
-    estado             TEXT      NOT NULL DEFAULT 'ENTREGADO',
-    notas              TEXT,
-    fecha              TIMESTAMP NOT NULL DEFAULT NOW()
+    cantidad         INTEGER   NOT NULL,
+    producto_id      BIGINT    NOT NULL REFERENCES productos(id),
+    cita_id          BIGINT    REFERENCES citas(id),
+    estado           TEXT      NOT NULL DEFAULT 'ENTREGADO',
+    notas            TEXT,
+    fecha            TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- ── VENTAS ───────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS metodos_pago (
     id     BIGINT PRIMARY KEY DEFAULT nextval('metodos_pago_id_seq'),
-    nombre TEXT NOT NULL
+    nombre TEXT   NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ventas (
@@ -353,14 +351,13 @@ CREATE TABLE IF NOT EXISTS venta_items (
 );
 
 CREATE TABLE IF NOT EXISTS pedido (
-    id                    BIGINT    PRIMARY KEY DEFAULT nextval('pedido_id_seq'),
-    venta_id              BIGINT    REFERENCES ventas(id),
-    tipo_entrega          TEXT      NOT NULL DEFAULT 'RECOGER',
-    direccion_entrega     TEXT,
-    estado                TEXT      NOT NULL DEFAULT 'EN_ESPERA',
-    fecha_entrega_pedido  TIMESTAMP
+    id                   BIGINT    PRIMARY KEY DEFAULT nextval('pedido_id_seq'),
+    venta_id             BIGINT    REFERENCES ventas(id),
+    tipo_entrega         TEXT      NOT NULL DEFAULT 'RECOGER',
+    direccion_entrega    TEXT,
+    estado               TEXT      NOT NULL DEFAULT 'EN_ESPERA',
+    fecha_entrega_pedido TIMESTAMP
 );
-
 
 -- ── NOTIFICACIONES ───────────────────────────────────────────
 
@@ -376,32 +373,16 @@ CREATE TABLE IF NOT EXISTS notificaciones_programadas (
 -- ── AUDITORÍA ────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS audit_logs (
-    id             BIGINT       PRIMARY KEY DEFAULT nextval('audit_logs_id_seq'),
-    accion         VARCHAR(50)  NOT NULL,
+    id             BIGINT      PRIMARY KEY DEFAULT nextval('audit_logs_id_seq'),
+    accion         VARCHAR(50) NOT NULL,
     correo_usuario VARCHAR(255),
     rol            VARCHAR(20),
     ip             VARCHAR(60),
     user_agent     TEXT,
     detalles       TEXT,
-    exitoso        BOOLEAN      NOT NULL DEFAULT TRUE,
-    timestamp      TIMESTAMP    NOT NULL DEFAULT NOW()
+    exitoso        BOOLEAN     NOT NULL DEFAULT TRUE,
+    timestamp      TIMESTAMP   NOT NULL DEFAULT NOW()
 );
-
-ALTER TABLE fichas_ingreso
-    ADD COLUMN IF NOT EXISTS estado_ingreso      TEXT,
-    ADD COLUMN IF NOT EXISTS checklist_unas      BOOLEAN   NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS checklist_oidos     BOOLEAN   NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS checklist_glandulas BOOLEAN   NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS checklist_corte     BOOLEAN   NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS checklist_bano      BOOLEAN   NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS checklist_perfume   BOOLEAN   NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS checklist_peinado   BOOLEAN   NOT NULL DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS estado              TEXT      NOT NULL DEFAULT 'ABIERTA',
-    ADD COLUMN IF NOT EXISTS creado_en           TIMESTAMP NOT NULL DEFAULT NOW();
-
-ALTER TABLE movimientos_inventario
-    ADD COLUMN IF NOT EXISTS cita_id BIGINT REFERENCES citas(id),
-    ADD COLUMN IF NOT EXISTS estado  TEXT   NOT NULL DEFAULT 'ENTREGADO';
 
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs (timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_correo    ON audit_logs (correo_usuario);
