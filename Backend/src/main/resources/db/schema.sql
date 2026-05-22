@@ -216,6 +216,7 @@ CREATE TABLE IF NOT EXISTS fichas_ingreso (
     checklist_corte         BOOLEAN   NOT NULL DEFAULT FALSE,
     checklist_bano          BOOLEAN   NOT NULL DEFAULT FALSE,
     checklist_perfume       BOOLEAN   NOT NULL DEFAULT FALSE,
+    checklist_peinado       BOOLEAN   NOT NULL DEFAULT FALSE,
     estado                  TEXT      NOT NULL DEFAULT 'ABIERTA',
     creado_en               TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -394,6 +395,7 @@ ALTER TABLE fichas_ingreso
     ADD COLUMN IF NOT EXISTS checklist_corte     BOOLEAN   NOT NULL DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS checklist_bano      BOOLEAN   NOT NULL DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS checklist_perfume   BOOLEAN   NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS checklist_peinado   BOOLEAN   NOT NULL DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS estado              TEXT      NOT NULL DEFAULT 'ABIERTA',
     ADD COLUMN IF NOT EXISTS creado_en           TIMESTAMP NOT NULL DEFAULT NOW();
 
@@ -422,6 +424,6 @@ ON CONFLICT DO NOTHING;
 INSERT INTO servicios (nombre, descripcion, duracion_minutos, precio_base, activo) VALUES
     ('Baño rápido',       'Baño básico con secado',                    30,  40.00, TRUE),
     ('Baño completo',     'Baño completo con acondicionador y secado',  60,  60.00, TRUE),
-    ('Corte y peinado',   'Corte de pelo y peinado profesional',        90,  80.00, TRUE),
+    ('Corte y peinado',   'Corte de pelo y peinado profesional',        90,  50.00, TRUE),
     ('Servicio completo', 'Baño, corte, peinado y arreglo completo',   120, 100.00, TRUE)
 ON CONFLICT DO NOTHING;

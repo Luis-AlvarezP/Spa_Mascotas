@@ -79,7 +79,19 @@
                 </svg>
                 <span class="scc-label">Cliente:</span>
                 <span class="scc-val">{{ c.clienteNombre ?? '—' }}</span>
+                @if (c.clienteCi) {
+                  <span class="scc-ci">CI: {{ c.clienteCi }}</span>
+                }
               </div>
+              @if (c.notas) {
+                <div class="scc-detail-row scc-notas-row">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13">
+                    <path fill-rule="evenodd" d="M18 5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h8l4 4V5zM5 7.5h10v1.5H5zM5 10.5h6v1.5H5z" clip-rule="evenodd"/>
+                  </svg>
+                  <span class="scc-label">Notas:</span>
+                  <span class="scc-notas-val">{{ c.notas }}</span>
+                </div>
+              }
               @if (c.precioFinal) {
                 <div class="scc-precio-block">
                   <span class="scc-precio-final">Bs. {{ c.precioFinal | number:'1.2-2' }}</span>
@@ -111,7 +123,11 @@
               <span class="ficha-sep">·</span>
               <div class="ficha-meta-item">
                 <span class="ficha-meta-label">Cliente</span>
-                <span class="ficha-meta-val">{{ citaSeleccionada()!.clienteNombre }}</span>
+                <span class="ficha-meta-val">{{ citaSeleccionada()!.clienteNombre }}
+                  @if (citaSeleccionada()!.clienteCi) {
+                    <span class="ficha-meta-ci"> · CI {{ citaSeleccionada()!.clienteCi }}</span>
+                  }
+                </span>
               </div>
               <span class="ficha-sep">·</span>
               <div class="ficha-meta-item">
@@ -143,7 +159,7 @@
 
               <div class="form-row">
                 <label class="form-label">Estado de ingreso</label>
-                <select class="form-select" [disabled]="fichaCerrada() || !canEdit()"
+                <select class="form-select" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
                   [ngModel]="estadoIngreso()" (ngModelChange)="estadoIngreso.set($event)">
                   @for (e of estadosIngreso; track e) {
                     <option [value]="e">{{ formatEstado(e) }}</option>
@@ -153,14 +169,14 @@
 
               <div class="form-row">
                 <label class="form-label">Observaciones generales</label>
-                <textarea class="form-textarea" rows="3" [disabled]="fichaCerrada() || !canEdit()"
+                <textarea class="form-textarea" rows="3" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
                   [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)"
                   placeholder="Condición general del animal, comportamiento, novedades..."></textarea>
               </div>
 
               <div class="form-row">
                 <label class="form-label">Estado detallado</label>
-                @if (!fichaCerrada() && canEdit()) {
+                @if (!fichaCerrada() && canEdit() && esHoy()) {
                   <div class="detalle-input-row">
                     <input class="form-input" placeholder="Ej: Nudo en zona dorsal"
                       [ngModel]="nuevoDetalle()" (ngModelChange)="nuevoDetalle.set($event)"
@@ -173,7 +189,7 @@
                     @for (d of detalles(); track $index; let i = $index) {
                       <div class="detalle-chip">
                         <span>{{ d }}</span>
-                        @if (!fichaCerrada() && canEdit()) {
+                        @if (!fichaCerrada() && canEdit() && esHoy()) {
                           <button class="chip-remove" (click)="eliminarDetalle(i)">×</button>
                         }
                       </div>
@@ -185,57 +201,80 @@
               <div class="checklist-section">
                 <div class="checklist-header">
                   <span class="form-label">Checklist del servicio</span>
-                  <span class="checklist-count" [class.ready]="checklistCount() === 6">{{ checklistCount() }}/6</span>
+                  <span class="checklist-count" [class.ready]="checklistCount() === checklistTotal()">{{ checklistCount() }}/{{ checklistTotal() }}</span>
                 </div>
                 <div class="checklist-grid">
-                  <label class="check-item" [class.checked]="checklistUnas()">
-                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
-                      [ngModel]="checklistUnas()" (ngModelChange)="checklistUnas.set($event)">
-                    <span class="check-icon">✂</span><span>Uñas</span>
-                  </label>
-                  <label class="check-item" [class.checked]="checklistOidos()">
-                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
-                      [ngModel]="checklistOidos()" (ngModelChange)="checklistOidos.set($event)">
-                    <span class="check-icon">👂</span><span>Oídos</span>
-                  </label>
-                  <label class="check-item" [class.checked]="checklistGlandulas()">
-                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
-                      [ngModel]="checklistGlandulas()" (ngModelChange)="checklistGlandulas.set($event)">
-                    <span class="check-icon">💧</span><span>Glándulas</span>
-                  </label>
-                  <label class="check-item" [class.checked]="checklistCorte()">
-                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
-                      [ngModel]="checklistCorte()" (ngModelChange)="checklistCorte.set($event)">
-                    <span class="check-icon">✂</span><span>Corte</span>
-                  </label>
-                  <label class="check-item" [class.checked]="checklistBano()">
-                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
-                      [ngModel]="checklistBano()" (ngModelChange)="checklistBano.set($event)">
-                    <span class="check-icon">🛁</span><span>Baño</span>
-                  </label>
-                  <label class="check-item" [class.checked]="checklistPerfume()">
-                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
-                      [ngModel]="checklistPerfume()" (ngModelChange)="checklistPerfume.set($event)">
-                    <span class="check-icon">✨</span><span>Perfume</span>
-                  </label>
+                  @if (checklistVisibles(citaSeleccionada()?.servicioNombre ?? null).has('unas')) {
+                    <label class="check-item" [class.checked]="checklistUnas()">
+                      <input type="checkbox" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
+                        [ngModel]="checklistUnas()" (ngModelChange)="checklistUnas.set($event)">
+                      <span class="check-icon">✂</span><span>Uñas</span>
+                    </label>
+                  }
+                  @if (checklistVisibles(citaSeleccionada()?.servicioNombre ?? null).has('oidos')) {
+                    <label class="check-item" [class.checked]="checklistOidos()">
+                      <input type="checkbox" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
+                        [ngModel]="checklistOidos()" (ngModelChange)="checklistOidos.set($event)">
+                      <span class="check-icon">👂</span><span>Oídos</span>
+                    </label>
+                  }
+                  @if (checklistVisibles(citaSeleccionada()?.servicioNombre ?? null).has('glandulas')) {
+                    <label class="check-item" [class.checked]="checklistGlandulas()">
+                      <input type="checkbox" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
+                        [ngModel]="checklistGlandulas()" (ngModelChange)="checklistGlandulas.set($event)">
+                      <span class="check-icon">💧</span><span>Glándulas</span>
+                    </label>
+                  }
+                  @if (checklistVisibles(citaSeleccionada()?.servicioNombre ?? null).has('corte')) {
+                    <label class="check-item" [class.checked]="checklistCorte()">
+                      <input type="checkbox" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
+                        [ngModel]="checklistCorte()" (ngModelChange)="checklistCorte.set($event)">
+                      <span class="check-icon">✂</span><span>Corte</span>
+                    </label>
+                  }
+                  @if (checklistVisibles(citaSeleccionada()?.servicioNombre ?? null).has('bano')) {
+                    <label class="check-item" [class.checked]="checklistBano()">
+                      <input type="checkbox" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
+                        [ngModel]="checklistBano()" (ngModelChange)="checklistBano.set($event)">
+                      <span class="check-icon">🛁</span><span>Baño</span>
+                    </label>
+                  }
+                  @if (checklistVisibles(citaSeleccionada()?.servicioNombre ?? null).has('perfume')) {
+                    <label class="check-item" [class.checked]="checklistPerfume()">
+                      <input type="checkbox" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
+                        [ngModel]="checklistPerfume()" (ngModelChange)="checklistPerfume.set($event)">
+                      <span class="check-icon">✨</span><span>Perfume</span>
+                    </label>
+                  }
+                  @if (checklistVisibles(citaSeleccionada()?.servicioNombre ?? null).has('peinado')) {
+                    <label class="check-item" [class.checked]="checklistPeinado()">
+                      <input type="checkbox" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
+                        [ngModel]="checklistPeinado()" (ngModelChange)="checklistPeinado.set($event)">
+                      <span class="check-icon">💈</span><span>Peinado</span>
+                    </label>
+                  }
                 </div>
               </div>
 
               @if (!fichaCerrada() && canEdit()) {
                 <div class="ficha-actions">
-                  <button class="btn-guardar" [disabled]="loading()" (click)="guardarFicha()">
+                  <button class="btn-guardar"
+                    [disabled]="loading() || !esHoy()"
+                    [title]="!esHoy() ? 'Disponible para el día de la cita' : ''"
+                    (click)="guardarFicha()">
                     @if (loading()) { Guardando... } @else { Guardar ficha }
                   </button>
-                  @if (ficha()) {
-                    <button class="btn-cerrar" [disabled]="loading() || !puedesCerrar()" (click)="cerrarFicha()">
-                      Cerrar servicio
-                    </button>
-                  }
+                  <button class="btn-cerrar"
+                    [disabled]="loading() || !ficha() || !puedesCerrar() || !esHoy()"
+                    [title]="!esHoy() ? 'Disponible para el día de la cita' : ''"
+                    (click)="cerrarFicha()">
+                    Cerrar servicio
+                  </button>
                 </div>
                 @if (ficha() && !puedesCerrar()) {
                   <div class="cierre-hints">
-                    <div class="cierre-hint" [class.ok]="checklistCount() === 6">
-                      <span class="hint-dot"></span>Checklist {{ checklistCount() }}/6
+                    <div class="cierre-hint" [class.ok]="checklistCount() === checklistTotal()">
+                      <span class="hint-dot"></span>Checklist {{ checklistCount() }}/{{ checklistTotal() }}
                     </div>
                     <div class="cierre-hint" [class.ok]="tieneFotos()">
                       <span class="hint-dot"></span>
@@ -272,12 +311,12 @@
                     @for (foto of fotosPorMomento(momento); track foto.id) {
                       <div class="foto-thumb">
                         <img [src]="foto.url" [alt]="momento">
-                        @if (!fichaCerrada() && canEdit()) {
+                        @if (!fichaCerrada() && canEdit() && esHoy()) {
                           <button class="foto-del" (click)="eliminarFoto(foto.id)">×</button>
                         }
                       </div>
                     }
-                    @if (!fichaCerrada() && canEdit()) {
+                    @if (!fichaCerrada() && canEdit() && esHoy()) {
                       <label class="foto-add">
                         @if (uploadingFoto()) {
                           <span class="uploading-spinner"></span>
@@ -300,7 +339,7 @@
             <div class="tab-body">
               <div class="insumos-header">
                 <span class="form-label" style="margin:0">Materiales del servicio</span>
-                @if (!fichaCerrada() && canEdit()) {
+                @if (!fichaCerrada() && canEdit() && esHoy()) {
                   <button class="btn-add" (click)="abrirModalInsumo()">+ Pedir insumo</button>
                 }
               </div>
@@ -311,7 +350,7 @@
                   <thead>
                     <tr>
                       <th>Producto</th><th>Cant.</th><th>Estado</th><th>Notas</th>
-                      @if (!fichaCerrada() && canEdit()) { <th>Acción</th> }
+                      @if (!fichaCerrada() && canEdit() && esHoy()) { <th>Acción</th> }
                     </tr>
                   </thead>
                   <tbody>
@@ -325,7 +364,7 @@
                           </span>
                         </td>
                         <td>{{ ins.notas ?? '—' }}</td>
-                        @if (!fichaCerrada() && canEdit()) {
+                        @if (!fichaCerrada() && canEdit() && esHoy()) {
                           <td>
                             @if (ins.estado === 'SOLICITADO') {
                               <span class="insumo-pendiente">Pendiente aprobación</span>
@@ -350,18 +389,21 @@
             <div class="tab-body">
               <div class="form-row">
                 <label class="form-label">Recomendaciones para el cliente</label>
-                <textarea class="form-textarea" rows="4" [disabled]="fichaCerrada() || !canEdit()"
+                <textarea class="form-textarea" rows="4" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
                   [ngModel]="recomendacion()" (ngModelChange)="recomendacion.set($event)"
                   placeholder="Cuidados en casa, productos recomendados, frecuencia de visitas..."></textarea>
               </div>
               <div class="form-row">
                 <label class="form-label">Próxima cita sugerida</label>
-                <input type="date" class="form-input" [disabled]="fichaCerrada() || !canEdit()"
+                <input type="date" class="form-input" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
                   [ngModel]="proximaCita()" (ngModelChange)="proximaCita.set($event)">
               </div>
               @if (!fichaCerrada() && canEdit()) {
                 <div class="ficha-actions">
-                  <button class="btn-guardar" [disabled]="loading()" (click)="guardarFicha()">
+                  <button class="btn-guardar"
+                    [disabled]="loading() || !esHoy()"
+                    [title]="!esHoy() ? 'Disponible para el día de la cita' : ''"
+                    (click)="guardarFicha()">
                     @if (loading()) { Guardando... } @else { Guardar recomendación }
                   </button>
                 </div>

@@ -59,6 +59,10 @@ public class FichaIngreso {
     private Boolean checklistPerfume = false;
 
     @Builder.Default
+    @Column(name = "checklist_peinado")
+    private Boolean checklistPeinado = false;
+
+    @Builder.Default
     @Column(nullable = false)
     private String estado = "ABIERTA";
 

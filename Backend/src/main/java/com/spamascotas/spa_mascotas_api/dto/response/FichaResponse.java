@@ -24,6 +24,7 @@ public class FichaResponse {
     private Boolean checklistCorte;
     private Boolean checklistBano;
     private Boolean checklistPerfume;
+    private Boolean checklistPeinado;
     private int checklistCompletados;
     private String estado;
     private LocalDateTime creadoEn;

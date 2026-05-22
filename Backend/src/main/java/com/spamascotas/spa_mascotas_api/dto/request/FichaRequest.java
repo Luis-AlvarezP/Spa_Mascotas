@@ -16,6 +16,7 @@ public class FichaRequest {
     private Boolean checklistCorte;
     private Boolean checklistBano;
     private Boolean checklistPerfume;
+    private Boolean checklistPeinado;
     private String recomendacion;
     private String proximaCitaSugerida;
 }

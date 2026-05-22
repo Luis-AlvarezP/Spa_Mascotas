@@ -44,6 +44,7 @@ export class GroomingComponent implements OnInit {
   checklistCorte     = signal(false);
   checklistBano      = signal(false);
   checklistPerfume   = signal(false);
+  checklistPeinado   = signal(false);
   recomendacion      = signal('');
   proximaCita        = signal('');
 
@@ -57,12 +58,43 @@ export class GroomingComponent implements OnInit {
   insumoItems     = signal<{ productoId: number | null; cantidad: number; notas: string; busqueda: string; open: boolean }[]>([]);
   insumoEnviando  = signal(false);
 
-  checklistCount = computed(() =>
-    [this.checklistUnas(), this.checklistOidos(), this.checklistGlandulas(),
-     this.checklistCorte(), this.checklistBano(), this.checklistPerfume()]
-    .filter(Boolean).length
+  checklistVisibles(servicio: string | null): Set<string> {
+    if (!servicio) return new Set(['bano','corte','unas','oidos','glandulas','perfume','peinado']);
+    const s = servicio.toLowerCase();
+    if (s.includes('rápido') || s.includes('rapido')) return new Set(['bano','oidos']);
+    if ((s.includes('baño') || s.includes('bano')) && !s.includes('servicio')) return new Set(['bano','oidos','unas']);
+    if (s.includes('corte') || s.includes('peinado')) return new Set(['corte','peinado']);
+    return new Set(['bano','corte','unas','oidos','glandulas','perfume','peinado']);
+  }
+
+  checklistTotal = computed(() =>
+    this.checklistVisibles(this.citaSeleccionada()?.servicioNombre ?? null).size
   );
-  fichaCerrada      = computed(() => this.ficha()?.estado === 'CERRADA');
+
+  checklistCount = computed(() => {
+    const vis = this.checklistVisibles(this.citaSeleccionada()?.servicioNombre ?? null);
+    let n = 0;
+    if (vis.has('unas')     && this.checklistUnas())      n++;
+    if (vis.has('oidos')    && this.checklistOidos())     n++;
+    if (vis.has('glandulas') && this.checklistGlandulas()) n++;
+    if (vis.has('corte')    && this.checklistCorte())     n++;
+    if (vis.has('bano')     && this.checklistBano())      n++;
+    if (vis.has('perfume')  && this.checklistPerfume())   n++;
+    if (vis.has('peinado')  && this.checklistPeinado())   n++;
+    return n;
+  });
+  fichaCerrada = computed(() => this.ficha()?.estado === 'CERRADA');
+
+  esHoy = computed(() => {
+    const cita = this.citaSeleccionada();
+    if (!cita?.fechaHoraInicio) return false;
+    const fecha = new Date(cita.fechaHoraInicio as any);
+    if (isNaN(fecha.getTime())) return false;
+    const hoy = new Date();
+    return fecha.getFullYear() === hoy.getFullYear() &&
+           fecha.getMonth()    === hoy.getMonth()    &&
+           fecha.getDate()     === hoy.getDate();
+  });
   tieneFotos        = computed(() => {
     const fotos = this.ficha()?.fotos ?? [];
     return ['ANTES','DURANTE','DESPUES'].every(m => fotos.some(f => f.momento === m));
@@ -70,7 +102,7 @@ export class GroomingComponent implements OnInit {
   insumosResueltos  = computed(() => this.insumos().every(i => i.estado !== 'SOLICITADO' && i.estado !== 'ENTREGADO'));
   tieneRecomendacion = computed(() => this.recomendacion().trim().length > 0);
   puedesCerrar      = computed(() =>
-    this.checklistCount() === 6 &&
+    this.checklistCount() === this.checklistTotal() &&
     this.tieneFotos() &&
     this.insumosResueltos() &&
     this.tieneRecomendacion()
@@ -114,6 +146,7 @@ export class GroomingComponent implements OnInit {
     this.checklistCorte.set(f.checklistCorte || false);
     this.checklistBano.set(f.checklistBano || false);
     this.checklistPerfume.set(f.checklistPerfume || false);
+    this.checklistPeinado.set(f.checklistPeinado || false);
     this.recomendacion.set(f.recomendacion || '');
     this.proximaCita.set(f.proximaCitaSugerida || '');
   }
@@ -128,6 +161,7 @@ export class GroomingComponent implements OnInit {
     this.checklistCorte.set(false);
     this.checklistBano.set(false);
     this.checklistPerfume.set(false);
+    this.checklistPeinado.set(false);
     this.recomendacion.set('');
     this.proximaCita.set('');
   }
@@ -148,6 +182,7 @@ export class GroomingComponent implements OnInit {
       checklistCorte: this.checklistCorte(),
       checklistBano: this.checklistBano(),
       checklistPerfume: this.checklistPerfume(),
+      checklistPeinado: this.checklistPeinado(),
       recomendacion: this.recomendacion(),
       proximaCitaSugerida: this.proximaCita() || undefined
     }).subscribe({

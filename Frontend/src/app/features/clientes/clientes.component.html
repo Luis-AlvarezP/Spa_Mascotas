@@ -214,23 +214,29 @@
 
        
             <div class="detail-actions">
-              @if (detailMascota()!.activa !== false) {
-                <button class="btn-detail-delete" (click)="toggleMascota(detailMascota()!)">
-                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524L13.477 14.89zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/></svg>
-                  Desactivar
-                </button>
-              } @else {
-                <button class="btn-detail-enable" (click)="toggleMascota(detailMascota()!)">
-                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
-                  Habilitar
-                </button>
-              }
-              @if (detailMascota()!.activa !== false) {
-                <button class="btn-detail-edit" (click)="editFromDetail()">
-                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
-                  Editar mascota
-                </button>
-              }
+              <button class="btn-historial-detail" (click)="$event.stopPropagation(); abrirHistorial(detailMascota()!)">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                Historial de servicios
+              </button>
+              <div class="detail-actions-right">
+                @if (detailMascota()!.activa !== false) {
+                  <button class="btn-detail-delete" (click)="toggleMascota(detailMascota()!)">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524L13.477 14.89zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/></svg>
+                    Desactivar
+                  </button>
+                } @else {
+                  <button class="btn-detail-enable" (click)="toggleMascota(detailMascota()!)">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
+                    Habilitar
+                  </button>
+                }
+                @if (detailMascota()!.activa !== false) {
+                  <button class="btn-detail-edit" (click)="editFromDetail()">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+                    Editar mascota
+                  </button>
+                }
+              </div>
             </div>
           </div>
         </div>
@@ -401,6 +407,238 @@
     }
 
   </div>
+
+  @if (showHistorial()) {
+    <div class="modal-overlay modal-historial-overlay" (click)="cerrarHistorial()">
+      <div class="modal-box modal-historial-box" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <div>
+            <h2>Historial de servicios</h2>
+            <p class="modal-sub">{{ mascotaHistorial()?.nombre }}</p>
+          </div>
+          <button class="modal-close" (click)="cerrarHistorial()">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+        <div class="historial-modal-body">
+          @if (loadingHistorial()) {
+            <div class="mp-center"><div class="spinner"></div><span>Cargando historial...</span></div>
+          } @else if (historialList().length === 0) {
+            <div class="staff-empty"><p>Esta mascota aún no tiene servicios realizados.</p></div>
+          } @else {
+            <div class="historial-list">
+              @for (h of historialList(); track h.citaId) {
+                <div class="historial-item" [class.expanded]="historialExpandido() === h.citaId">
+                  <div class="historial-header" (click)="toggleHistorialItem(h.citaId)">
+                    <div class="historial-header-main">
+                      <span class="historial-servicio">{{ h.servicio }}</span>
+                      <span class="historial-fecha">{{ h.fechaHoraInicio }}</span>
+                      <span class="historial-groomer">Groomer: {{ h.groomer }}</span>
+                    </div>
+                    <div class="historial-header-right">
+                      @if (h.calificacion) {
+                        <span class="calif-stars-mini">
+                          @for (s of estrellas; track s) {
+                            <span [class.filled]="s <= h.calificacion!.puntuacion">★</span>
+                          }
+                        </span>
+                      } @else {
+                        <button class="btn-calificar" (click)="$event.stopPropagation(); abrirCalificar(h)">
+                          Calificar
+                        </button>
+                      }
+                      <svg class="chevron-icon" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                  </div>
+                  @if (historialExpandido() === h.citaId) {
+                    <div class="historial-detail">
+                      <div class="hd-grid">
+                        <div class="hd-row">
+                          <span class="hd-label">Precio</span>
+                          <span class="hd-val">Bs {{ h.precioFinal?.toFixed(2) ?? '—' }}</span>
+                        </div>
+                        <div class="hd-row">
+                          <span class="hd-label">Pago</span>
+                          <span class="hd-val">{{ metodoPagoLabel(h.metodoPago) }}</span>
+                        </div>
+                        <div class="hd-row">
+                          <span class="hd-label">Estado ingreso</span>
+                          <span class="hd-val">{{ estadoIngresoLabel(h.estadoIngreso) }}</span>
+                        </div>
+                        @if (h.temperamento) {
+                          <div class="hd-row">
+                            <span class="hd-label">Temperamento</span>
+                            <span class="hd-val">{{ h.temperamento }}</span>
+                          </div>
+                        }
+                        @if (h.fechaHoraFin) {
+                          <div class="hd-row">
+                            <span class="hd-label">Hora fin</span>
+                            <span class="hd-val">{{ h.fechaHoraFin }}</span>
+                          </div>
+                        }
+                      </div>
+                      @if (h.notasCita) {
+                        <div class="hd-section hd-nota-groomer">
+                          <span class="hd-label">Nota para el Groomer</span>
+                          <p class="hd-nota-groomer-text">{{ h.notasCita }}</p>
+                        </div>
+                      }
+                      @if (h.checklistBano !== null || h.checklistCorte !== null) {
+                        <div class="hd-section">
+                          <span class="hd-label">Lista de servicios realizados</span>
+                          <div class="hd-checklist">
+                            @if (checklistVisibles(h.servicio).has('bano')) {
+                              <span class="hd-check-item" [class.done]="h.checklistBano">
+                                <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/></svg>
+                                Baño
+                              </span>
+                            }
+                            @if (checklistVisibles(h.servicio).has('corte')) {
+                              <span class="hd-check-item" [class.done]="h.checklistCorte">
+                                <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/></svg>
+                                Corte
+                              </span>
+                            }
+                            @if (checklistVisibles(h.servicio).has('unas')) {
+                              <span class="hd-check-item" [class.done]="h.checklistUnas">
+                                <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/></svg>
+                                Uñas
+                              </span>
+                            }
+                            @if (checklistVisibles(h.servicio).has('oidos')) {
+                              <span class="hd-check-item" [class.done]="h.checklistOidos">
+                                <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/></svg>
+                                Oídos
+                              </span>
+                            }
+                            @if (checklistVisibles(h.servicio).has('glandulas')) {
+                              <span class="hd-check-item" [class.done]="h.checklistGlandulas">
+                                <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/></svg>
+                                Glándulas
+                              </span>
+                            }
+                            @if (checklistVisibles(h.servicio).has('perfume')) {
+                              <span class="hd-check-item" [class.done]="h.checklistPerfume">
+                                <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/></svg>
+                                Perfume
+                              </span>
+                            }
+                            @if (checklistVisibles(h.servicio).has('peinado')) {
+                              <span class="hd-check-item" [class.done]="h.checklistPeinado">
+                                <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/></svg>
+                                Peinado
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      }
+                      @if (h.observaciones) {
+                        <div class="hd-section">
+                          <span class="hd-label">Observaciones</span>
+                          <p class="hd-text">{{ h.observaciones }}</p>
+                        </div>
+                      }
+                      @if (h.detalles && h.detalles.length > 0) {
+                        <div class="hd-section">
+                          <span class="hd-label">Notas adicionales del groomer</span>
+                          <ul class="hd-list">
+                            @for (d of h.detalles; track d) { <li>{{ d }}</li> }
+                          </ul>
+                        </div>
+                      }
+                      @if (h.recomendacion) {
+                        <div class="hd-section hd-recomendacion">
+                          <span class="hd-label">Recomendación del groomer</span>
+                          <p class="hd-text hd-highlight">{{ h.recomendacion }}</p>
+                          @if (h.proximaCitaSugerida) {
+                            <p class="hd-proxima">Próxima cita sugerida: {{ h.proximaCitaSugerida }}</p>
+                          }
+                        </div>
+                      }
+                      @if (h.fotos && h.fotos.length > 0) {
+                        <div class="hd-section">
+                          <span class="hd-label">Fotos del servicio</span>
+                          <div class="hd-fotos">
+                            @for (f of h.fotos; track f.id) {
+                              <div class="hd-foto-item" (click)="lightboxUrl.set(f.url)">
+                                <img [src]="f.url" [alt]="f.momento">
+                                <span>{{ f.momento }}</span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                      @if (h.calificacion) {
+                        <div class="hd-section">
+                          <span class="hd-label">Tu calificación</span>
+                          <div class="hd-calif-stars">
+                            @for (s of estrellas; track s) {
+                              <span [class.filled]="s <= h.calificacion!.puntuacion">★</span>
+                            }
+                            <span class="hd-calif-num">{{ h.calificacion!.puntuacion }}/5</span>
+                          </div>
+                          @if (h.calificacion!.comentario) {
+                            <p class="hd-text">{{ h.calificacion!.comentario }}</p>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (lightboxUrl()) {
+    <div class="lightbox-overlay" (click)="lightboxUrl.set(null)">
+      <button class="lightbox-close" (click)="lightboxUrl.set(null)">✕</button>
+      <img class="lightbox-img" [src]="lightboxUrl()!" (click)="$event.stopPropagation()">
+    </div>
+  }
+
+  @if (showCalificar()) {
+    <div class="modal-overlay modal-calificar-overlay" (click)="cerrarCalificar()">
+      <div class="modal-box modal-calificar-box" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <h2>Calificar servicio</h2>
+          <button class="modal-close" (click)="cerrarCalificar()">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="calif-info">
+            <strong>{{ citaACalificar()?.servicio }}</strong> · {{ citaACalificar()?.fechaHoraInicio }}<br>
+            Groomer: {{ citaACalificar()?.groomer }}
+          </p>
+          <div class="stars-selector">
+            @for (s of estrellas; track s) {
+              <button class="star-btn" [class.active]="s <= califPuntuacion()" (click)="setPuntuacion(s)">★</button>
+            }
+          </div>
+          <p class="stars-label">{{ califPuntuacion() > 0 ? califPuntuacion() + ' de 5 estrellas' : 'Selecciona una puntuación' }}</p>
+          <textarea class="form-input form-textarea" rows="3" placeholder="Comentario opcional…"
+            [value]="califComentario()" (input)="califComentario.set($any($event.target).value)"></textarea>
+          @if (califError()) {
+            <p style="color:#f87171;font-size:0.8rem;margin:0">{{ califError() }}</p>
+          }
+          <div class="modal-foot">
+            <button class="btn-cancel" (click)="cerrarCalificar()">Cancelar</button>
+            <button class="btn-save" [disabled]="califSaving() || califPuntuacion() < 1" (click)="submitCalificacion()">
+              {{ califSaving() ? 'Guardando…' : 'Enviar calificación' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
 }
 
 @if (isStaff()) {
@@ -670,7 +908,6 @@
       </div>
     }
 
-+
     @if (staffPanel()) {
       <div class="modal-overlay" (click)="closeStaffPanel()">
         <div class="modal-box modal-lg" (click)="$event.stopPropagation()">

@@ -14,6 +14,7 @@ export interface FichaRequest {
   checklistCorte?: boolean;
   checklistBano?: boolean;
   checklistPerfume?: boolean;
+  checklistPeinado?: boolean;
   recomendacion?: string;
   proximaCitaSugerida?: string;
 }
@@ -40,6 +41,7 @@ export interface FichaResponse {
   checklistCorte: boolean;
   checklistBano: boolean;
   checklistPerfume: boolean;
+  checklistPeinado: boolean;
   checklistCompletados: number;
   estado: string;
   creadoEn: string;

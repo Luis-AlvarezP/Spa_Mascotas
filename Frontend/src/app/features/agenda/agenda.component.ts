@@ -8,7 +8,7 @@ import {
   AgendaService, Bloqueo, BloqueoRequest,
   GroomerResponse, HorarioRequest, HorarioTrabajo,
 } from '../../core/services/agenda.service';
-import { CitaService, CitaResponse, ServicioResponse, SlotResponse, GroomerBasicResponse } from '../../core/services/cita.service';
+import { CitaService, CitaResponse, ServicioResponse, SlotResponse, GroomerBasicResponse, HistorialCitaResponse } from '../../core/services/cita.service';
 import { CitaNotificacionService } from '../../core/services/cita-notificacion.service';
 import { GroomingNotificacionService } from '../../core/services/grooming-notificacion.service';
 import { MascotasService, MascotaResponse } from '../../core/services/mascotas.service';
@@ -111,8 +111,39 @@ export class AgendaComponent implements OnInit {
     if (hasta)  lista = lista.filter(c => new Date(c.fechaHoraInicio) <= new Date(hasta + 'T23:59:59'));
     return lista;
   });
-  loadingMisHorarios  = signal(false);
-  savingCitaStaff     = signal<number | null>(null);
+  loadingMisHorarios     = signal(false);
+  savingCitaStaff        = signal<number | null>(null);
+  activeGroomerTab       = signal<'horarios' | 'historial'>('horarios');
+  historialGroomer       = signal<HistorialCitaResponse[]>([]);
+  loadingHistorialGroom  = signal(false);
+  historialExpandido     = signal<number | null>(null);
+  historialBusqueda      = signal('');
+  historialFechaDesde    = signal('');
+  historialFechaHasta    = signal('');
+
+  historialFiltrado = computed(() => {
+    const q    = this.historialBusqueda().toLowerCase().trim();
+    const desde = this.historialFechaDesde();
+    const hasta = this.historialFechaHasta();
+    return this.historialGroomer().filter(h => {
+      if (q) {
+        const match =
+          (h.clienteNombre ?? '').toLowerCase().includes(q) ||
+          (h.clienteCi ?? '').toLowerCase().includes(q) ||
+          (h.mascotaNombre ?? '').toLowerCase().includes(q);
+        if (!match) return false;
+      }
+      if (desde || hasta) {
+        const fecha = h.fechaHoraInicio ? h.fechaHoraInicio.substring(6, 10) + '-' +
+          h.fechaHoraInicio.substring(3, 5) + '-' + h.fechaHoraInicio.substring(0, 2) : '';
+        if (desde && fecha < desde) return false;
+        if (hasta && fecha > hasta) return false;
+      }
+      return true;
+    });
+  });
+  estrellas              = [1, 2, 3, 4, 5];
+  lightboxUrl            = signal<string | null>(null);
 
   showCobrarModal  = signal(false);
   showRechazarModal = signal(false);
@@ -360,6 +391,49 @@ export class AgendaComponent implements OnInit {
       next: h  => { this.misHorariosGroomer.set(h); this.loadingMisHorarios.set(false); },
       error: () => this.loadingMisHorarios.set(false),
     });
+  }
+
+  loadHistorialGroomer() {
+    this.loadingHistorialGroom.set(true);
+    this.citaSvc.historialGroomer().subscribe({
+      next: h  => { this.historialGroomer.set(h); this.loadingHistorialGroom.set(false); },
+      error: () => this.loadingHistorialGroom.set(false),
+    });
+  }
+
+  toggleHistorialExpandido(citaId: number) {
+    this.historialExpandido.set(this.historialExpandido() === citaId ? null : citaId);
+  }
+
+  switchGroomerTab(tab: 'horarios' | 'historial') {
+    this.activeGroomerTab.set(tab);
+    if (tab === 'historial' && this.historialGroomer().length === 0) {
+      this.loadHistorialGroomer();
+    }
+  }
+
+  estadoIngresoLabel(e: string | null): string {
+    const map: Record<string, string> = {
+      NORMAL: 'Normal', NUDOS: 'Nudos', HERIDAS: 'Heridas',
+      PULGAS: 'Pulgas', SUCIEDAD_EXTREMA: 'Suciedad extrema', AGRESIVO: 'Agresivo',
+    };
+    return e ? (map[e] ?? e) : '—';
+  }
+
+  metodoPagoLabel(m: string | null): string {
+    const map: Record<string, string> = {
+      EFECTIVO: 'Efectivo', TARJETA: 'Tarjeta', TRANSFERENCIA: 'Transferencia', QR: 'QR',
+    };
+    return m ? (map[m] ?? m) : '—';
+  }
+
+  checklistVisibles(servicio: string | null): Set<string> {
+    if (!servicio) return new Set(['bano','corte','unas','oidos','glandulas','perfume','peinado']);
+    const s = servicio.toLowerCase();
+    if (s.includes('rápido') || s.includes('rapido')) return new Set(['bano','oidos']);
+    if ((s.includes('baño') || s.includes('bano')) && !s.includes('servicio')) return new Set(['bano','oidos','unas']);
+    if (s.includes('corte') || s.includes('peinado')) return new Set(['corte','peinado']);
+    return new Set(['bano','corte','unas','oidos','glandulas','perfume','peinado']);
   }
 
   misHorariosOrdenados = computed(() => {

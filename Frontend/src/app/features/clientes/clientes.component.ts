@@ -12,8 +12,12 @@ import {
   MascotaRequest,
   RestriccionRequest,
 } from '../../core/services/mascotas.service';
+import {
+  CitaService, HistorialCitaResponse, CalificacionRequest,
+} from '../../core/services/cita.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
+import { FormsModule } from '@angular/forms';
 
 interface ClienteItem {
   id: number;
@@ -56,7 +60,7 @@ const GRAVEDADES = [
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [ReactiveFormsModule, SearchBarComponent],
+  imports: [ReactiveFormsModule, FormsModule, SearchBarComponent],
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss',
 })
@@ -64,6 +68,7 @@ export class ClientesComponent implements OnInit {
   private http        = inject(HttpClient);
   private auth        = inject(AuthService);
   private mascotasSvc = inject(MascotasService);
+  private citaSvc     = inject(CitaService);
   private confirm     = inject(ConfirmService);
   private fb          = inject(FormBuilder);
   private apiUrl      = `${environment.apiUrl}/clientes`;
@@ -395,6 +400,111 @@ export class ClientesComponent implements OnInit {
   }
 
 
+
+  showHistorial      = signal(false);
+  mascotaHistorial   = signal<MascotaResponse | null>(null);
+  historialList      = signal<HistorialCitaResponse[]>([]);
+  loadingHistorial   = signal(false);
+  historialExpandido = signal<number | null>(null);
+
+  showCalificar   = signal(false);
+  citaACalificar  = signal<HistorialCitaResponse | null>(null);
+  califPuntuacion = signal(0);
+  califComentario = signal('');
+  califSaving     = signal(false);
+  califError      = signal('');
+
+  estrellas    = [1, 2, 3, 4, 5];
+  lightboxUrl  = signal<string | null>(null);
+
+  abrirHistorial(m: MascotaResponse) {
+    this.mascotaHistorial.set(m);
+    this.historialList.set([]);
+    this.historialExpandido.set(null);
+    this.showHistorial.set(true);
+    this.loadingHistorial.set(true);
+    this.citaSvc.historialMascota(m.id).subscribe({
+      next: h  => { this.historialList.set(h); this.loadingHistorial.set(false); },
+      error: () => this.loadingHistorial.set(false),
+    });
+  }
+
+  cerrarHistorial() {
+    this.showHistorial.set(false);
+    this.mascotaHistorial.set(null);
+    this.historialList.set([]);
+  }
+
+  toggleHistorialItem(citaId: number) {
+    this.historialExpandido.set(this.historialExpandido() === citaId ? null : citaId);
+  }
+
+  abrirCalificar(item: HistorialCitaResponse) {
+    this.citaACalificar.set(item);
+    this.califPuntuacion.set(0);
+    this.califComentario.set('');
+    this.califError.set('');
+    this.showCalificar.set(true);
+  }
+
+  cerrarCalificar() {
+    this.showCalificar.set(false);
+    this.citaACalificar.set(null);
+  }
+
+  setPuntuacion(n: number) { this.califPuntuacion.set(n); }
+
+  submitCalificacion() {
+    const cita = this.citaACalificar();
+    if (!cita || this.califPuntuacion() < 1) {
+      this.califError.set('Selecciona al menos 1 estrella');
+      return;
+    }
+    this.califSaving.set(true);
+    this.califError.set('');
+    const req: CalificacionRequest = {
+      citaId: cita.citaId,
+      puntuacion: this.califPuntuacion(),
+      comentario: this.califComentario() || undefined,
+    };
+    this.citaSvc.calificar(req).subscribe({
+      next: resp => {
+        this.historialList.update(list =>
+          list.map(h => h.citaId === cita.citaId ? { ...h, calificacion: resp } : h)
+        );
+        this.califSaving.set(false);
+        this.cerrarCalificar();
+      },
+      error: e => {
+        this.califError.set(e.error?.message || 'Error al guardar la calificación');
+        this.califSaving.set(false);
+      },
+    });
+  }
+
+  metodoPagoLabel(m: string | null): string {
+    const map: Record<string, string> = {
+      EFECTIVO: 'Efectivo', TARJETA: 'Tarjeta', TRANSFERENCIA: 'Transferencia', QR: 'QR'
+    };
+    return m ? (map[m] ?? m) : '—';
+  }
+
+  estadoIngresoLabel(e: string | null): string {
+    const map: Record<string, string> = {
+      NORMAL: 'Normal', NUDOS: 'Nudos', HERIDAS: 'Heridas',
+      PULGAS: 'Pulgas', SUCIEDAD_EXTREMA: 'Suciedad extrema', AGRESIVO: 'Agresivo'
+    };
+    return e ? (map[e] ?? e) : '—';
+  }
+
+  checklistVisibles(servicio: string | null): Set<string> {
+    if (!servicio) return new Set(['bano','corte','unas','oidos','glandulas','perfume','peinado']);
+    const s = servicio.toLowerCase();
+    if (s.includes('rápido') || s.includes('rapido')) return new Set(['bano','oidos']);
+    if ((s.includes('baño') || s.includes('bano')) && !s.includes('servicio')) return new Set(['bano','oidos','unas']);
+    if (s.includes('corte') || s.includes('peinado')) return new Set(['corte','peinado']);
+    return new Set(['bano','corte','unas','oidos','glandulas','perfume','peinado']);
+  }
 
   calcularEdad(fechaNacimiento?: string): string {
     if (!fechaNacimiento) return '';

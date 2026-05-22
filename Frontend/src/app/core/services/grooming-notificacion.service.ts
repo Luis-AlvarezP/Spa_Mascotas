@@ -27,8 +27,15 @@ export class GroomingNotificacionService implements OnDestroy {
     }
     this.citaSvc.misServicios().subscribe({
       next: lista => {
-        const hoy = new Date().toISOString().slice(0, 10);
-        const count = lista.filter(c => c.estado === 'ACEPTADO' && c.fechaHoraInicio?.slice(0, 10) === hoy).length;
+        const hoy = new Date();
+        const count = lista.filter(c => {
+          if (c.estado !== 'ACEPTADO' || !c.fechaHoraInicio) return false;
+          const f = new Date(c.fechaHoraInicio as any);
+          return !isNaN(f.getTime()) &&
+                 f.getFullYear() === hoy.getFullYear() &&
+                 f.getMonth()    === hoy.getMonth()    &&
+                 f.getDate()     === hoy.getDate();
+        }).length;
         this.confirmadas.set(count);
         if (count > 0) {
           this.visible.set(true);

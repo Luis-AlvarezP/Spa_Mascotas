@@ -18,6 +18,58 @@ export interface SlotResponse {
   groomers: { id: number; nombre: string }[];
 }
 
+export interface FotoHistorial {
+  id: number;
+  url: string;
+  momento: string;
+}
+
+export interface CalificacionResponse {
+  id: number;
+  citaId: number;
+  puntuacion: number;
+  comentario: string | null;
+  fecha: string;
+}
+
+export interface HistorialCitaResponse {
+  citaId: number;
+  clienteNombre: string | null;
+  clienteCi: string | null;
+  mascotaNombre: string | null;
+  mascotaEspecie: string | null;
+  mascotaTamano: string | null;
+  mascotaFotoUrl: string | null;
+  servicio: string | null;
+  groomer: string | null;
+  fechaHoraInicio: string | null;
+  fechaHoraFin: string | null;
+  precioFinal: number | null;
+  metodoPago: string | null;
+  estadoIngreso: string | null;
+  temperamento: string | null;
+  notasCita: string | null;
+  observaciones: string | null;
+  checklistBano: boolean | null;
+  checklistCorte: boolean | null;
+  checklistUnas: boolean | null;
+  checklistOidos: boolean | null;
+  checklistGlandulas: boolean | null;
+  checklistPerfume: boolean | null;
+  checklistPeinado: boolean | null;
+  detalles: string[];
+  fotos: FotoHistorial[];
+  recomendacion: string | null;
+  proximaCitaSugerida: string | null;
+  calificacion: CalificacionResponse | null;
+}
+
+export interface CalificacionRequest {
+  citaId: number;
+  puntuacion: number;
+  comentario?: string;
+}
+
 export interface GroomerBasicResponse {
   id: number;
   nombre: string;
@@ -133,6 +185,18 @@ export class CitaService {
 
   rechazar(id: number, motivo: string): Observable<CitaResponse> {
     return this.http.patch<CitaResponse>(`${this.base}/${id}/rechazar`, { motivo });
+  }
+
+  historialMascota(mascotaId: number): Observable<HistorialCitaResponse[]> {
+    return this.http.get<HistorialCitaResponse[]>(`/api/historial/mascota/${mascotaId}`);
+  }
+
+  historialGroomer(): Observable<HistorialCitaResponse[]> {
+    return this.http.get<HistorialCitaResponse[]>('/api/historial/mis-servicios');
+  }
+
+  calificar(req: CalificacionRequest): Observable<CalificacionResponse> {
+    return this.http.post<CalificacionResponse>('/api/historial/calificar', req);
   }
 
   calcularDuracion(base: number, tamano: string, temperamento: string | null): number {

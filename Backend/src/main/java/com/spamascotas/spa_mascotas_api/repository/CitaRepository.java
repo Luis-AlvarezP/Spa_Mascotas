@@ -74,4 +74,9 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     @Query("SELECT c FROM Cita c WHERE c.estado = 'ACEPTADO' ORDER BY c.fechaHoraInicio")
     List<Cita> findAllAceptadas();
+
+    List<Cita> findByMascotaIdAndEstadoOrderByFechaHoraInicioDesc(Long mascotaId, String estado);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado = 'REALIZADO' AND c.empleadoAsignado.id = :empleadoId ORDER BY c.fechaHoraInicio DESC")
+    List<Cita> findRealizadasByGroomer(@Param("empleadoId") Long empleadoId);
 }

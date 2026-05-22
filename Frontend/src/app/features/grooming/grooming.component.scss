@@ -97,8 +97,11 @@
   font-size: 0.82rem;
   svg { color: var(--brand-light); opacity: 0.7; flex-shrink: 0; }
 }
-.scc-label { color: var(--text-muted); font-size: 0.77rem; white-space: nowrap; }
-.scc-val   { color: var(--text); font-weight: 500; }
+.scc-label     { color: var(--text-muted); font-size: 0.77rem; white-space: nowrap; }
+.scc-val       { color: var(--text); font-weight: 500; }
+.scc-ci        { font-size: 0.72rem; color: var(--text-muted); margin-left: 0.35rem; }
+.scc-notas-val { font-size: 0.77rem; color: var(--text-muted); font-style: italic; }
+.scc-notas-row { align-items: flex-start; }
 
 .scc-precio-block {
   display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;
@@ -118,10 +121,11 @@
 }
 .badge-size {
   padding: 0.1rem 0.4rem; border-radius: 999px; font-size: 0.68rem; font-weight: 600;
-  &.tam-p { background: rgba(34,197,94,0.12);  color: #86efac; }
-  &.tam-m { background: rgba(251,191,36,0.12); color: #fde68a; }
-  &.tam-g { background: rgba(239,68,68,0.12);  color: #fca5a5; }
-  &.tam-x { background: rgba(139,92,246,0.12); color: #c4b5fd; }
+  border: 1px solid transparent;
+  &.tam-p { background: rgba(94,234,212,0.1);  color: #5eead4; border-color: rgba(94,234,212,0.25); }
+  &.tam-m { background: rgba(96,165,250,0.1);  color: #93c5fd; border-color: rgba(96,165,250,0.25); }
+  &.tam-g { background: rgba(167,139,250,0.1); color: #c4b5fd; border-color: rgba(167,139,250,0.25); }
+  &.tam-x { background: rgba(251,146,60,0.1);  color: #fdba74; border-color: rgba(251,146,60,0.25); }
 }
 .badge-temp {
   padding: 0.1rem 0.4rem; border-radius: 999px; font-size: 0.68rem; font-weight: 600;
@@ -146,10 +150,19 @@
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
+.ficha-notas-cliente {
+  font-size: 0.77rem; color: var(--text-muted); font-style: italic;
+  display: flex; align-items: center; gap: 0.3rem; margin: 0;
+  padding: 0.4rem 1.5rem 0.6rem;
+  background: rgba(139,92,246,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-left: 3px solid rgba(139,92,246,0.3);
+}
 .ficha-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
 .ficha-meta-item { display: flex; flex-direction: column; gap: 0.05rem; }
 .ficha-meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
 .ficha-meta-val   { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+.ficha-meta-ci    { font-size: 0.78rem; font-weight: 400; color: var(--text-muted); }
 .ficha-sep { color: var(--text-muted); align-self: center; }
 
 .badge-cerrada { padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: rgba(100,100,100,0.2); color: #aaa; border: 1px solid rgba(255,255,255,0.1); }

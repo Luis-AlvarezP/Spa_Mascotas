@@ -63,6 +63,7 @@ public class FichaGroomingService {
         ficha.setChecklistCorte(Boolean.TRUE.equals(req.getChecklistCorte()));
         ficha.setChecklistBano(Boolean.TRUE.equals(req.getChecklistBano()));
         ficha.setChecklistPerfume(Boolean.TRUE.equals(req.getChecklistPerfume()));
+        ficha.setChecklistPeinado(Boolean.TRUE.equals(req.getChecklistPeinado()));
 
         FichaIngreso saved = fichaRepo.save(ficha);
 
@@ -94,8 +95,9 @@ public class FichaGroomingService {
                 .orElseThrow(() -> new RuntimeException("Ficha no encontrada"));
 
         int completados = contarChecklist(ficha);
-        if (completados < 6) {
-            throw new RuntimeException("Debes completar los 6 ítems del checklist para cerrar la ficha (completados: " + completados + ")");
+        int esperado    = contarChecklistEsperado(ficha);
+        if (completados < esperado) {
+            throw new RuntimeException("Debes completar los " + esperado + " ítems del checklist para cerrar la ficha (completados: " + completados + ")");
         }
 
         List<MovimientoInventario> insumos = movimientoRepo.findInsumosByCita(ficha.getCita().getId());
@@ -246,6 +248,15 @@ public class FichaGroomingService {
 
     // ── Helpers ──────────────────────────────────────────────
 
+    private int contarChecklistEsperado(FichaIngreso f) {
+        String s = (f.getCita() != null && f.getCita().getServicio() != null)
+                ? f.getCita().getServicio().getNombre().toLowerCase() : "";
+        if (s.contains("rápido") || s.contains("rapido")) return 2;
+        if ((s.contains("baño") || s.contains("bano")) && !s.contains("servicio")) return 3;
+        if (s.contains("corte") || s.contains("peinado")) return 2;
+        return 7;
+    }
+
     private int contarChecklist(FichaIngreso f) {
         int n = 0;
         if (Boolean.TRUE.equals(f.getChecklistUnas()))      n++;
@@ -254,6 +265,7 @@ public class FichaGroomingService {
         if (Boolean.TRUE.equals(f.getChecklistCorte()))     n++;
         if (Boolean.TRUE.equals(f.getChecklistBano()))      n++;
         if (Boolean.TRUE.equals(f.getChecklistPerfume()))   n++;
+        if (Boolean.TRUE.equals(f.getChecklistPeinado()))   n++;
         return n;
     }
 
@@ -284,6 +296,7 @@ public class FichaGroomingService {
                 .checklistCorte(f.getChecklistCorte())
                 .checklistBano(f.getChecklistBano())
                 .checklistPerfume(f.getChecklistPerfume())
+                .checklistPeinado(f.getChecklistPeinado())
                 .checklistCompletados(contarChecklist(f))
                 .estado(f.getEstado())
                 .creadoEn(f.getCreadoEn())
