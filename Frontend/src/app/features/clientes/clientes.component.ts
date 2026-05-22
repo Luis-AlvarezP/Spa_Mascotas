@@ -163,7 +163,7 @@ export class ClientesComponent implements OnInit {
 
   async toggleEstado(c: ClienteItem): Promise<void> {
     if (!this.isAdmin()) return;
-    const accion = c.estado === 'ACTIVO' ? 'inhabilitar' : 'habilitar';
+    const accion = c.estado === 'ACTIVO' ? 'desactivar' : 'activar';
     const ok = await this.confirm.confirm({ title: `${accion.charAt(0).toUpperCase() + accion.slice(1)} cliente`, message: `¿Seguro que deseas ${accion} la cuenta de ${c.nombre ?? c.correo}?`, confirmLabel: accion.charAt(0).toUpperCase() + accion.slice(1), danger: c.estado === 'ACTIVO' });
     if (!ok) return;
     this.toggleando.set(c.id);
@@ -172,7 +172,7 @@ export class ClientesComponent implements OnInit {
     this.http.patch<ClienteItem>(`${this.apiUrl}/${c.id}/toggle`, {}).subscribe({
       next: actualizado => {
         this.clientes.update(list => list.map(x => x.id === actualizado.id ? actualizado : x));
-        this.exito.set(`Cuenta ${actualizado.estado === 'ACTIVO' ? 'habilitada' : 'inhabilitada'} correctamente`);
+        this.exito.set(`Cuenta ${actualizado.estado === 'ACTIVO' ? 'activada' : 'desactivada'} correctamente`);
         this.toggleando.set(null);
       },
       error: () => { this.error.set('Error al cambiar el estado'); this.toggleando.set(null); },
@@ -386,14 +386,14 @@ export class ClientesComponent implements OnInit {
   }
 
   async toggleMascota(m: MascotaResponse): Promise<void> {
-    const accion = m.activa ? 'desactivar' : 'habilitar';
+    const accion = m.activa ? 'desactivar' : 'activar';
     const ok = await this.confirm.confirm({ title: `${accion.charAt(0).toUpperCase() + accion.slice(1)} mascota`, message: `¿Deseas ${accion} a ${m.nombre}?`, confirmLabel: accion.charAt(0).toUpperCase() + accion.slice(1), danger: m.activa });
     if (!ok) return;
     this.mascotasSvc.toggleActiva(m.id).subscribe({
       next: updated => {
         this.mascotas.update(list => list.map(x => x.id === updated.id ? updated : x));
         this.detailMascota.set(updated);
-        this.showSuccessM(updated.activa ? `${updated.nombre} habilitada` : `${updated.nombre} desactivada`);
+        this.showSuccessM(updated.activa ? `${updated.nombre} activada` : `${updated.nombre} desactivada`);
       },
       error: () => this.errorM.set('Error al cambiar el estado de la mascota'),
     });

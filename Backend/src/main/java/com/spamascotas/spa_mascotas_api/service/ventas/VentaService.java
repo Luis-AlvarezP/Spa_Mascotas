@@ -8,6 +8,7 @@ import com.spamascotas.spa_mascotas_api.model.*;
 import com.spamascotas.spa_mascotas_api.model.Promocion;
 import com.spamascotas.spa_mascotas_api.repository.*;
 import com.spamascotas.spa_mascotas_api.service.admin.AuditService;
+import com.spamascotas.spa_mascotas_api.service.sse.StockEventService;
 import com.spamascotas.spa_mascotas_api.model.enums.TipoAccion;
 import com.spamascotas.spa_mascotas_api.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class VentaService {
     private final MovimientoInventarioRepository movimientoRepository;
     private final PedidoRepository pedidoRepository;
     private final AuditService auditService;
+    private final StockEventService stockEventService;
 
     @Transactional
     public VentaResponse crearVenta(VentaRequest req, String correoUsuario, boolean esRecepcion) {
@@ -133,6 +135,7 @@ public class VentaService {
 
         
         List<VentaItem> ventaItems = new ArrayList<>();
+        StringBuilder itemsDetalle = new StringBuilder();
         for (int i = 0; i < req.getItems().size(); i++) {
             var itemReq = req.getItems().get(i);
             Producto p = productos.get(i);
@@ -150,8 +153,13 @@ public class VentaService {
                 .cantidad(-itemReq.getCantidad())
                 .notas("Venta #" + venta.getId())
                 .build());
+            if (i > 0) itemsDetalle.append(", ");
+            itemsDetalle.append(p.getNombre()).append(" x").append(itemReq.getCantidad());
         }
         venta.setItems(ventaItems);
+        auditService.registrar(TipoAccion.MOVIMIENTO_INVENTARIO, correoUsuario,
+            esRecepcion ? "RECEPCION" : "CLIENTE", true,
+            "Salida por venta #" + venta.getId() + " | Productos: " + itemsDetalle + " | Cliente: " + cliente.getNombre());
 
         if (cupon != null) {
             cupon.setUsosActuales(cupon.getUsosActuales() + 1);
@@ -173,6 +181,7 @@ public class VentaService {
             esRecepcion ? "RECEPCION" : "CLIENTE", true,
             "Venta #" + venta.getId() + " | Total: " + totalFinal + " | Cliente: " + cliente.getNombre());
 
+        stockEventService.notifyStockChange();
         return toResponse(venta, esFrecuente, descuentoCupon);
     }
 
@@ -214,7 +223,9 @@ public class VentaService {
             throw new RuntimeException("El pedido no está en espera");
         p.setEstado("ENTREGADO");
         p.setFechaEntregaPedido(LocalDateTime.now());
-        return toPedidoResponse(pedidoRepository.save(p));
+        PedidoResponse resp = toPedidoResponse(pedidoRepository.save(p));
+        stockEventService.notifyPedidoChange();
+        return resp;
     }
 
     @Transactional
@@ -234,7 +245,9 @@ public class VentaService {
             prod.setStockActual(prod.getStockActual() + item.getCantidad());
             productoRepository.save(prod);
         }
-        return toPedidoResponse(pedidoRepository.save(p));
+        PedidoResponse resp = toPedidoResponse(pedidoRepository.save(p));
+        stockEventService.notifyStockChange();
+        return resp;
     }
 
     private void validarCuponUso(Cupon c) {

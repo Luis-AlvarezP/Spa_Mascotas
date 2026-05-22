@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { NgClass, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -25,6 +26,7 @@ import { GroomingService, InsumoResponse } from '../../core/services/grooming.se
 import { InsumoNotificacionService } from '../../core/services/insumo-notificacion.service';
 import { PedidoNotificacionService } from '../../core/services/pedido-notificacion.service';
 import { StockNotificacionService } from '../../core/services/stock-notificacion.service';
+import { StockSseService } from '../../core/services/stock-sse.service';
 
 type AdminTab = 'productos' | 'categorias' | 'promociones' | 'cupones' | 'pedidos' | 'insumos';
 
@@ -49,12 +51,14 @@ export class InventarioComponent implements OnInit, OnDestroy {
   insumoNotif          = inject(InsumoNotificacionService);
   pedidoNotif          = inject(PedidoNotificacionService);
   stockNotif           = inject(StockNotificacionService);
+  private stockSse     = inject(StockSseService);
   private auth    = inject(AuthService);
   private confirm = inject(ConfirmService);
   private fb      = inject(FormBuilder);
   private http    = inject(HttpClient);
 
   private refreshInterval: ReturnType<typeof setInterval> | null = null;
+  private sseSub: Subscription | null = null;
 
   isAdmin     = computed(() => this.auth.rol() === 'ADMIN');
   isRecepcion = computed(() => this.auth.rol() === 'RECEPCION');
@@ -259,15 +263,18 @@ export class InventarioComponent implements OnInit, OnDestroy {
       this.loadCupones();
       this.loadPedidosAdmin();
       this.loadCitasGrooming();
-      this.refreshInterval = setInterval(() => this.silentRefreshProductos(), 60_000);
+      this.refreshInterval = setInterval(() => this.silentRefreshProductos(), 30_000);
+      this.sseSub = this.stockSse.stockChanged$.subscribe(() => this.silentRefreshProductos());
     } else if (this.isRecepcion()) {
       this.loadCatalogo();
       this.loadClientes();
       this.loadPedidosAdmin();
       this.loadCitasGrooming();
-      this.refreshInterval = setInterval(() => this.silentRefreshCatalogo(), 60_000);
+      this.refreshInterval = setInterval(() => this.silentRefreshCatalogo(), 30_000);
+      this.sseSub = this.stockSse.stockChanged$.subscribe(() => this.silentRefreshCatalogo());
     } else {
       this.loadCatalogo();
+      this.sseSub = this.stockSse.stockChanged$.subscribe(() => this.loadCatalogo());
       if (this.isCliente()) {
         this.loadPedidos();
         this.auth.getPerfil().subscribe({ next: p => this.miPerfil.set(p) });
@@ -277,6 +284,7 @@ export class InventarioComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.refreshInterval) clearInterval(this.refreshInterval);
+    this.sseSub?.unsubscribe();
   }
 
   private silentRefreshProductos(): void {
@@ -336,6 +344,8 @@ export class InventarioComponent implements OnInit, OnDestroy {
     this.groomingSvc.actualizarEstadoInsumo(id, 'ENTREGADO').subscribe({
       next: updated => {
         this.allInsumos.update(arr => arr.map(i => i.id === updated.id ? updated : i));
+        this.insumoNotif.refresh();
+        this.stockNotif.refresh();
         this.success.set('Insumo aprobado y entregado al groomer');
         setTimeout(() => this.success.set(null), 4000);
       },
@@ -350,6 +360,8 @@ export class InventarioComponent implements OnInit, OnDestroy {
     this.groomingSvc.actualizarEstadoInsumo(id, 'RECHAZADO').subscribe({
       next: updated => {
         this.allInsumos.update(arr => arr.map(i => i.id === updated.id ? updated : i));
+        this.insumoNotif.refresh();
+        this.stockNotif.refresh();
         this.success.set('Solicitud rechazada — stock restaurado');
         setTimeout(() => this.success.set(null), 4000);
       },
@@ -514,6 +526,8 @@ export class InventarioComponent implements OnInit, OnDestroy {
     this.svc.entregarPedido(p.id).subscribe({
       next: () => {
         this.loadPedidosAdmin();
+        this.pedidoNotif.refresh();
+        this.stockNotif.refresh();
         this.showSuccess('Pedido entregado correctamente');
         if (p.clienteTelefono) {
           this.svc.abrirWhatsApp(p.clienteTelefono, this.generarMensajePedido(p));
@@ -531,7 +545,12 @@ export class InventarioComponent implements OnInit, OnDestroy {
     });
     if (!ok) return;
     this.svc.cancelarPedido(p.id).subscribe({
-      next: () => { this.loadPedidosAdmin(); this.showSuccess('Pedido cancelado'); },
+      next: () => {
+        this.loadPedidosAdmin();
+        this.pedidoNotif.refresh();
+        this.stockNotif.refresh();
+        this.showSuccess('Pedido cancelado');
+      },
       error: e  => this.error.set(this.apiErr(e) ?? 'Error al cancelar pedido'),
     });
   }
@@ -892,6 +911,7 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
     this.saving.set(false);
     this.closeProductoModal();
     this.loadProductosAdmin();
+    this.stockNotif.refresh();
     this.showSuccess(editing ? 'Producto actualizado' : 'Producto creado');
   }
 
@@ -904,7 +924,11 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
     });
     if (!ok) return;
     this.svc.toggleProducto(p.id).subscribe({
-      next: () => { this.loadProductosAdmin(); this.showSuccess(`Producto ${p.activo ? 'desactivado' : 'activado'}`); },
+      next: () => {
+        this.loadProductosAdmin();
+        this.stockNotif.refresh();
+        this.showSuccess(`Producto ${p.activo ? 'desactivado' : 'activado'}`);
+      },
       error: () => this.error.set('Error al cambiar estado del producto'),
     });
   }

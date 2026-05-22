@@ -3,9 +3,13 @@ package com.spamascotas.spa_mascotas_api.service.inventario;
 import com.spamascotas.spa_mascotas_api.dto.request.*;
 import com.spamascotas.spa_mascotas_api.dto.response.*;
 import com.spamascotas.spa_mascotas_api.model.*;
+import com.spamascotas.spa_mascotas_api.model.enums.TipoAccion;
 import com.spamascotas.spa_mascotas_api.repository.*;
+import com.spamascotas.spa_mascotas_api.service.admin.AuditService;
+import com.spamascotas.spa_mascotas_api.service.sse.StockEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +29,8 @@ public class InventarioAdminService {
     private final PromocionRepository promocionRepository;
     private final CuponRepository cuponRepository;
     private final CatalogoService catalogoService;
+    private final StockEventService stockEventService;
+    private final AuditService auditService;
 
     @Value("${app.uploads.dir:uploads}")
     private String uploadsDir;
@@ -57,13 +63,30 @@ public class InventarioAdminService {
         if (req.getCategoriaId() != null) {
             categoriaRepository.findById(req.getCategoriaId()).ifPresent(p::setCategoria);
         }
-        return catalogoService.toProductoResponse(productoRepository.save(p));
+        ProductoResponse resp = catalogoService.toProductoResponse(productoRepository.save(p));
+        auditService.registrar(TipoAccion.CREAR_PRODUCTO, adminCorreo(), "ADMIN", true,
+            "Producto: " + req.getNombre() + " | SKU: " + nvl(req.getSku()) + " | Stock: " + (req.getStockActual() != null ? req.getStockActual() : 0));
+        stockEventService.notifyStockChange();
+        return resp;
     }
 
     @Transactional
     public ProductoResponse actualizarProducto(Long id, ProductoRequest req) {
         Producto p = productoRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        StringBuilder cambios = new StringBuilder("Producto: " + req.getNombre());
+        if (!java.util.Objects.equals(p.getNombre(), req.getNombre()))
+            cambios.append(" | Nombre: ").append(p.getNombre()).append(" → ").append(req.getNombre());
+        if (req.getStockActual() != null && !java.util.Objects.equals(p.getStockActual(), req.getStockActual()))
+            cambios.append(" | Stock: ").append(p.getStockActual()).append(" → ").append(req.getStockActual());
+        if (req.getStockMinimo() != null && !java.util.Objects.equals(p.getStockMinimo(), req.getStockMinimo()))
+            cambios.append(" | Stock mín.: ").append(p.getStockMinimo()).append(" → ").append(req.getStockMinimo());
+        if (req.getPrecioVenta() != null && req.getPrecioVenta().compareTo(p.getPrecioVenta() != null ? p.getPrecioVenta() : java.math.BigDecimal.ZERO) != 0)
+            cambios.append(" | Precio: ").append(p.getPrecioVenta()).append(" → ").append(req.getPrecioVenta());
+        if (!java.util.Objects.equals(p.getSku(), req.getSku()))
+            cambios.append(" | SKU: ").append(nvl(p.getSku())).append(" → ").append(nvl(req.getSku()));
+
         p.setNombre(req.getNombre());
         p.setDescripcion(req.getDescripcion());
         p.setSku(req.getSku());
@@ -77,15 +100,24 @@ public class InventarioAdminService {
         } else {
             p.setCategoria(null);
         }
-        return catalogoService.toProductoResponse(productoRepository.save(p));
+        ProductoResponse resp = catalogoService.toProductoResponse(productoRepository.save(p));
+        auditService.registrar(TipoAccion.MODIFICAR_PRODUCTO, adminCorreo(), "ADMIN", true, cambios.toString());
+        stockEventService.notifyStockChange();
+        return resp;
     }
 
     @Transactional
     public ProductoResponse toggleProducto(Long id) {
         Producto p = productoRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-        p.setActivo(!Boolean.TRUE.equals(p.getActivo()));
-        return catalogoService.toProductoResponse(productoRepository.save(p));
+        boolean nuevoEstado = !Boolean.TRUE.equals(p.getActivo());
+        p.setActivo(nuevoEstado);
+        ProductoResponse resp = catalogoService.toProductoResponse(productoRepository.save(p));
+        TipoAccion accion = nuevoEstado ? TipoAccion.MODIFICAR_PRODUCTO : TipoAccion.DESACTIVAR_PRODUCTO;
+        auditService.registrar(accion, adminCorreo(), "ADMIN", true,
+            "Producto: " + p.getNombre() + " | Estado: " + (nuevoEstado ? "Activado" : "Desactivado"));
+        stockEventService.notifyStockChange();
+        return resp;
     }
 
     @Transactional
@@ -253,6 +285,13 @@ public class InventarioAdminService {
             .productoIds(ids)
             .build();
     }
+
+    private String adminCorreo() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null ? auth.getName() : "desconocido";
+    }
+
+    private String nvl(String s) { return s != null ? s : ""; }
 
     private String saveFile(MultipartFile file, String subdir) {
         String original = file.getOriginalFilename();

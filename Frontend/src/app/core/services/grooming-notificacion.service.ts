@@ -1,25 +1,30 @@
 import { Injectable, OnDestroy, inject, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { AuthService } from './auth.service';
 import { CitaService } from './cita.service';
+import { StockSseService } from './stock-sse.service';
 
 @Injectable({ providedIn: 'root' })
 export class GroomingNotificacionService implements OnDestroy {
   private auth    = inject(AuthService);
   private citaSvc = inject(CitaService);
+  private sse     = inject(StockSseService);
 
   confirmadas = signal(0);
   visible     = signal(false);
 
   private interval: ReturnType<typeof setInterval> | null = null;
+  private sseSub: Subscription | null = null;
 
   init(): void {
-    this.check();
-    this.interval = setInterval(() => this.check(), 5 * 60 * 1000);
+    this.refresh();
+    this.interval = setInterval(() => this.refresh(), 30_000);
+    this.sseSub = this.sse.groomingChanged$.subscribe(() => this.refresh());
   }
 
   dismiss(): void { this.visible.set(false); }
 
-  private check(): void {
+  refresh(): void {
     if (this.auth.rol() !== 'GROOMER') {
       this.confirmadas.set(0);
       this.visible.set(false);
@@ -40,6 +45,8 @@ export class GroomingNotificacionService implements OnDestroy {
         if (count > 0) {
           this.visible.set(true);
           this.sendDesktopNotif(count);
+        } else {
+          this.visible.set(false);
         }
       },
     });
@@ -57,5 +64,6 @@ export class GroomingNotificacionService implements OnDestroy {
 
   ngOnDestroy(): void {
     if (this.interval) clearInterval(this.interval);
+    this.sseSub?.unsubscribe();
   }
 }

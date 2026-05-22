@@ -6,13 +6,13 @@
         <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
       </a>
       <div>
-        <h1 class="page-title">Auditoría del sistema</h1>
-        <p class="page-sub">{{ totalElements() }} registros · Actualización en tiempo real</p>
+        <h1 class="page-title">Registros de auditoría</h1>
+        <p class="page-sub">{{ totalElements() }} registros · {{ categoriaActiva().label }}</p>
       </div>
     </div>
     <div class="header-actions">
       <a routerLink="/admin/usuarios" class="btn-outline">
-        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07z"/></svg>
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/></svg>
         Gestión de personal
       </a>
       <button class="btn-export" (click)="exportarExcel()" [disabled]="exportando()">
@@ -26,54 +26,64 @@
     </div>
   </div>
 
+  <div class="cat-tabs">
 
-  <div class="filters-row">
-    <div class="filter-group">
-      <span class="filter-label">Rol</span>
-      <div class="filter-pills">
-        @for (r of roles; track r) {
-          <button class="pill" [class.active]="(rolFiltro() || 'Todos') === r" (click)="filtrarRol(r)">{{ r }}</button>
-        }
-      </div>
-    </div>
-    <div class="filter-group filter-group-select">
-      <span class="filter-label">Acción</span>
-      <select class="filter-select"
-              [value]="accionFiltro()"
-              (change)="filtrarAccion($any($event.target).value)">
-        @for (a of acciones; track a.value) {
-          <option [value]="a.value">{{ a.label }}</option>
-        }
-      </select>
-    </div>
-    <div class="filter-group filter-dates">
-      <span class="filter-label">Rango de fechas</span>
-      <div class="date-inputs">
-        <input type="date" class="date-input" [ngModel]="desde()" (ngModelChange)="desde.set($event)" placeholder="Desde">
-        <span class="date-sep">—</span>
-        <input type="date" class="date-input" [ngModel]="hasta()" (ngModelChange)="hasta.set($event)" placeholder="Hasta">
-        <button class="pill-apply" (click)="aplicarFechas()">Aplicar</button>
-        @if (desde() || hasta()) {
-          <button class="pill-clear" (click)="limpiarFechas()">✕</button>
-        }
-      </div>
-    </div>
+    <button class="cat-tab" [class.active]="categoriaActiva().id === 'personal'" (click)="cambiarCategoria(categorias[0])">
+      <span class="tab-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/></svg>
+      </span>
+      <span class="tab-label">Creación de personal</span>
+    </button>
+
+    <button class="cat-tab" [class.active]="categoriaActiva().id === 'modificacion'" (click)="cambiarCategoria(categorias[1])">
+      <span class="tab-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+      </span>
+      <span class="tab-label">Modificación de usuario</span>
+    </button>
+
+    <button class="cat-tab" [class.active]="categoriaActiva().id === 'inventario'" (click)="cambiarCategoria(categorias[2])">
+      <span class="tab-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+      </span>
+      <span class="tab-label">Movimientos de inventario</span>
+    </button>
+
+    <button class="cat-tab" [class.active]="categoriaActiva().id === 'ventas'" (click)="cambiarCategoria(categorias[3])">
+      <span class="tab-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/><path d="M16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+      </span>
+      <span class="tab-label">Ventas</span>
+    </button>
+
   </div>
 
+  <div class="filter-row">
+    <span class="filter-label">Rango de fechas</span>
+    <div class="date-inputs">
+      <input type="date" class="date-input" [ngModel]="desde()" (ngModelChange)="desde.set($event)">
+      <span class="date-sep">—</span>
+      <input type="date" class="date-input" [ngModel]="hasta()" (ngModelChange)="hasta.set($event)">
+      <button class="pill-apply" (click)="aplicarFechas()">Aplicar</button>
+      @if (desde() || hasta()) {
+        <button class="pill-clear" (click)="limpiarFechas()">✕</button>
+      }
+    </div>
+  </div>
 
   <div class="table-card">
 
     @if (cargando()) {
       <div class="loading-state">
         <div class="spinner"></div>
-        <span>Cargando logs...</span>
+        <span>Cargando registros...</span>
       </div>
     } @else if (error()) {
       <div class="error-state">{{ error() }}</div>
     } @else if (logs().length === 0) {
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        <p>No hay registros con los filtros aplicados</p>
+        <p>Sin registros en esta categoría</p>
       </div>
     } @else {
       <div class="table-wrap">
@@ -82,19 +92,17 @@
             <tr>
               <th>Fecha / Hora</th>
               <th>Acción</th>
-              <th>Usuario</th>
+              <th>Realizado por</th>
               <th>Rol</th>
-              <th>IP</th>
-              <th>Navegador</th>
               <th>Detalle</th>
             </tr>
           </thead>
           <tbody>
             @for (log of logs(); track log.id) {
-              <tr [class.row-error]="!log.exitoso">
-                <td class="td-time">{{ log.timestamp | date:'dd/MM/yy HH:mm:ss' }}</td>
+              <tr>
+                <td class="td-time">{{ log.timestamp | date:'dd/MM/yy HH:mm' }}</td>
                 <td>
-                  <span class="badge" [class]="badgeClass(log)">{{ log.accionLabel ?? log.accion }}</span>
+                  <span class="badge" [class]="badgeClass(log.accion)">{{ log.accionLabel ?? log.accion }}</span>
                 </td>
                 <td class="td-email">{{ log.correoUsuario ?? '—' }}</td>
                 <td>
@@ -104,10 +112,6 @@
                     <span class="text-dim">—</span>
                   }
                 </td>
-                <td class="td-ip">{{ log.ip ?? '—' }}</td>
-                <td class="td-browser">
-                <span class="browser-chip">{{ parseBrowser(log.userAgent ?? '') }}</span>
-                </td>
                 <td class="td-detail" [title]="log.detalles ?? ''">{{ log.detalles ?? '—' }}</td>
               </tr>
             }
@@ -115,7 +119,6 @@
         </table>
       </div>
 
-    
       <div class="pagination">
         <button class="page-btn" [disabled]="page() === 0" (click)="cambiarPagina(-1)">
           <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>

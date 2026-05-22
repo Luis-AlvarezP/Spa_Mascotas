@@ -24,7 +24,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/audit")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AuditController {
 
     private final AuditLogRepository auditLogRepository;
@@ -34,7 +34,7 @@ public class AuditController {
             @RequestParam(defaultValue = "0")  int page,
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(required = false) String rol,
-            @RequestParam(required = false) String accion,
+            @RequestParam(required = false) List<String> acciones,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta
     ) {
@@ -43,14 +43,14 @@ public class AuditController {
         LocalDateTime hastaTs = hasta != null ? hasta.atTime(LocalTime.MAX) : null;
 
         return auditLogRepository.findAll(
-                buildSpec(rol, parseAccion(accion), desdeTs, hastaTs),
+                buildSpec(rol, parseAcciones(acciones), desdeTs, hastaTs),
                 pageable);
     }
 
     @GetMapping("/export")
     public void exportExcel(
             @RequestParam(required = false) String rol,
-            @RequestParam(required = false) String accion,
+            @RequestParam(required = false) List<String> acciones,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
             HttpServletResponse response
@@ -62,7 +62,7 @@ public class AuditController {
         LocalDateTime hastaTs = hasta != null ? hasta.atTime(LocalTime.MAX) : null;
 
         List<AuditLog> logs = auditLogRepository.findAll(
-                buildSpec(rol, parseAccion(accion), desdeTs, hastaTs),
+                buildSpec(rol, parseAcciones(acciones), desdeTs, hastaTs),
                 Sort.by("timestamp").descending());
 
         try (Workbook wb = new XSSFWorkbook()) {
@@ -102,14 +102,14 @@ public class AuditController {
         }
     }
 
-    private Specification<AuditLog> buildSpec(String rol, TipoAccion accion,
+    private Specification<AuditLog> buildSpec(String rol, List<TipoAccion> acciones,
                                                LocalDateTime desde, LocalDateTime hasta) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (rol != null && !rol.isBlank())
                 predicates.add(cb.equal(cb.lower(root.get("rol")), rol.toLowerCase()));
-            if (accion != null)
-                predicates.add(cb.equal(root.get("accion"), accion));
+            if (acciones != null && !acciones.isEmpty())
+                predicates.add(root.get("accion").in(acciones));
             if (desde != null)
                 predicates.add(cb.greaterThanOrEqualTo(root.get("timestamp"), desde));
             if (hasta != null)
@@ -118,10 +118,12 @@ public class AuditController {
         };
     }
 
-    private TipoAccion parseAccion(String accion) {
-        if (accion == null || accion.isBlank()) return null;
-        try { return TipoAccion.valueOf(accion.toUpperCase()); }
-        catch (IllegalArgumentException e) { return null; }
+    private List<TipoAccion> parseAcciones(List<String> acciones) {
+        if (acciones == null || acciones.isEmpty()) return List.of();
+        return acciones.stream()
+                .map(a -> { try { return TipoAccion.valueOf(a.toUpperCase()); } catch (IllegalArgumentException e) { return null; } })
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private String nvl(String s) { return s != null ? s : ""; }

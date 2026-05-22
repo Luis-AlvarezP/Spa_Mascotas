@@ -5,9 +5,13 @@ import com.spamascotas.spa_mascotas_api.dto.request.InsumoGroomingRequest;
 import com.spamascotas.spa_mascotas_api.dto.response.FichaResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.InsumoGroomingResponse;
 import com.spamascotas.spa_mascotas_api.model.*;
+import com.spamascotas.spa_mascotas_api.model.enums.TipoAccion;
 import com.spamascotas.spa_mascotas_api.repository.*;
+import com.spamascotas.spa_mascotas_api.service.admin.AuditService;
 import com.spamascotas.spa_mascotas_api.service.auth.EmailService;
+import com.spamascotas.spa_mascotas_api.service.sse.StockEventService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +38,8 @@ public class FichaGroomingService {
     private final ProductoRepository productoRepo;
     private final MovimientoInventarioRepository movimientoRepo;
     private final EmailService emailService;
+    private final StockEventService stockEventService;
+    private final AuditService auditService;
 
     @Value("${app.uploads.dir:uploads}")
     private String uploadsDir;
@@ -105,6 +111,10 @@ public class FichaGroomingService {
             if ("ENTREGADO".equals(m.getEstado())) {
                 m.setEstado("USADO");
                 movimientoRepo.save(m);
+                auditService.registrar(TipoAccion.MOVIMIENTO_INVENTARIO, correoActual(), rolActual(), true,
+                    "Insumo usado en servicio | Producto: " + m.getProducto().getNombre()
+                    + " | Cantidad: " + m.getCantidad()
+                    + " | Cita: #" + ficha.getCita().getId());
             }
         }
 
@@ -130,6 +140,8 @@ public class FichaGroomingService {
             }
         } catch (Exception ignored) {}
 
+        stockEventService.notifyGroomingChange();
+        stockEventService.notifyCitaChange();
         return toResponse(ficha);
     }
 
@@ -181,6 +193,15 @@ public class FichaGroomingService {
                 .notas(req.getNotas())
                 .build();
         movimientoRepo.save(mov);
+        String groomerNombre = groomer != null ? groomer.getNombre() : "Groomer";
+        String groomerCorreo = (groomer != null && groomer.getUsuario() != null) ? groomer.getUsuario().getCorreo() : correoActual();
+        auditService.registrar(TipoAccion.MOVIMIENTO_INVENTARIO, groomerCorreo, "GROOMER", true,
+            "Insumo solicitado | Producto: " + producto.getNombre()
+            + " | Cantidad: " + req.getCantidad()
+            + " | Groomer: " + groomerNombre
+            + " | Cita: #" + cita.getId()
+            + (req.getNotas() != null && !req.getNotas().isBlank() ? " | Nota: " + req.getNotas() : ""));
+        stockEventService.notifyStockChange();
 
         return toInsumoResponse(mov);
     }
@@ -242,8 +263,22 @@ public class FichaGroomingService {
             productoRepo.save(p);
         }
 
+        String estadoAnterior = mov.getEstado();
         mov.setEstado(nuevoEstado);
-        return toInsumoResponse(movimientoRepo.save(mov));
+        InsumoGroomingResponse resp = toInsumoResponse(movimientoRepo.save(mov));
+
+        String detalle = "Insumo " + etiquetaEstado(nuevoEstado)
+            + " | Producto: " + mov.getProducto().getNombre()
+            + " | Cantidad: " + mov.getCantidad()
+            + " | Estado: " + estadoAnterior + " → " + nuevoEstado
+            + (mov.getCita() != null ? " | Cita: #" + mov.getCita().getId() : "");
+        auditService.registrar(TipoAccion.MOVIMIENTO_INVENTARIO, correoActual(), rolActual(), true, detalle);
+
+        if ("RECHAZADO".equals(nuevoEstado) || "DEVUELTO".equals(nuevoEstado) || "ENTREGADO".equals(nuevoEstado)) {
+            stockEventService.notifyStockChange();
+        }
+        stockEventService.notifyInsumoChange();
+        return resp;
     }
 
     // ── Helpers ──────────────────────────────────────────────
@@ -324,6 +359,30 @@ public class FichaGroomingService {
                 .notas(m.getNotas())
                 .fecha(m.getFecha())
                 .build();
+    }
+
+    private String correoActual() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null ? auth.getName() : "sistema";
+    }
+
+    private String rolActual() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return "SISTEMA";
+        return auth.getAuthorities().stream()
+            .map(a -> a.getAuthority().replace("ROLE_", ""))
+            .findFirst().orElse("SISTEMA");
+    }
+
+    private String etiquetaEstado(String estado) {
+        return switch (estado) {
+            case "ENTREGADO"  -> "entregado";
+            case "RECHAZADO"  -> "rechazado (stock devuelto)";
+            case "DEVUELTO"   -> "devuelto al stock";
+            case "USADO"      -> "usado en servicio";
+            case "SOLICITADO" -> "solicitado";
+            default           -> estado.toLowerCase();
+        };
     }
 
     private String saveFile(MultipartFile file, String subdir) {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { RouterOutlet, ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
@@ -15,6 +15,7 @@ import { StockNotificacionService } from '../../core/services/stock-notificacion
 import { CitaNotificacionService } from '../../core/services/cita-notificacion.service';
 import { GroomingNotificacionService } from '../../core/services/grooming-notificacion.service';
 import { InsumoNotificacionService } from '../../core/services/insumo-notificacion.service';
+import { StockSseService } from '../../core/services/stock-sse.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -23,7 +24,7 @@ import { InsumoNotificacionService } from '../../core/services/insumo-notificaci
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
 })
-export class MainLayoutComponent implements OnInit {
+export class MainLayoutComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route  = inject(ActivatedRoute);
   private pedidoNotif   = inject(PedidoNotificacionService);
@@ -31,8 +32,19 @@ export class MainLayoutComponent implements OnInit {
   private citaNotif     = inject(CitaNotificacionService);
   private groomingNotif = inject(GroomingNotificacionService);
   private insumoNotif   = inject(InsumoNotificacionService);
+  private stockSse      = inject(StockSseService);
 
   sidebarOpen = signal(false);
+
+  private onVisible = () => {
+    if (document.visibilityState === 'visible') {
+      this.pedidoNotif.refresh();
+      this.stockNotif.refresh();
+      this.citaNotif.refresh();
+      this.groomingNotif.refresh();
+      this.insumoNotif.refresh();
+    }
+  };
 
   ngOnInit(): void {
     this.pedidoNotif.init();
@@ -40,6 +52,13 @@ export class MainLayoutComponent implements OnInit {
     this.citaNotif.init();
     this.groomingNotif.init();
     this.insumoNotif.init();
+    this.stockSse.connect();
+    document.addEventListener('visibilitychange', this.onVisible);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('visibilitychange', this.onVisible);
+    this.stockSse.disconnect();
   }
 
   title = toSignal(

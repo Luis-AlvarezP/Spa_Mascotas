@@ -3,6 +3,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/services/auth.service';
 import { GroomingNotificacionService } from '../../core/services/grooming-notificacion.service';
+import { CitaNotificacionService } from '../../core/services/cita-notificacion.service';
+import { PedidoNotificacionService } from '../../core/services/pedido-notificacion.service';
+import { InsumoNotificacionService } from '../../core/services/insumo-notificacion.service';
 
 interface NavItem {
   label: string;
@@ -33,9 +36,12 @@ export class SidebarComponent {
   @Input()  open   = false;
   @Output() closed = new EventEmitter<void>();
 
-  auth         = inject(AuthService);
-  sanitizer    = inject(DomSanitizer);
+  auth          = inject(AuthService);
+  sanitizer     = inject(DomSanitizer);
   groomingNotif = inject(GroomingNotificacionService);
+  citaNotif     = inject(CitaNotificacionService);
+  pedidoNotif   = inject(PedidoNotificacionService);
+  insumoNotif   = inject(InsumoNotificacionService);
 
   navItems = computed(() => {
     const rol = this.auth.rol() ?? '';

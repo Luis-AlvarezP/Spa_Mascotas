@@ -448,7 +448,7 @@ export class AgendaComponent implements OnInit {
   aceptarCita(id: number) {
     this.savingCitaStaff.set(id);
     this.citaSvc.aceptar(id).subscribe({
-      next: () => { this.loadTodasCitas(); this.showSuccess('Cita aceptada'); this.savingCitaStaff.set(null); },
+      next: () => { this.loadTodasCitas(); this.citaNotif.refresh(); this.showSuccess('Cita aceptada'); this.savingCitaStaff.set(null); },
       error: e  => { this.error.set(e.error?.message ?? 'Error al aceptar'); this.savingCitaStaff.set(null); },
     });
   }
@@ -477,6 +477,7 @@ export class AgendaComponent implements OnInit {
       next: c => {
         this.closeCobrar();
         this.loadTodasCitas();
+        this.citaNotif.refresh();
         this.showSuccess('Pago confirmado, cita realizada');
         this.savingCobro.set(false);
         this.descargarReciboCita(c);
@@ -507,6 +508,7 @@ export class AgendaComponent implements OnInit {
       next: () => {
         this.closeRechazar();
         this.loadTodasCitas();
+        this.citaNotif.refresh();
         this.showSuccess('Cita rechazada');
         this.savingRechazo.set(false);
       },

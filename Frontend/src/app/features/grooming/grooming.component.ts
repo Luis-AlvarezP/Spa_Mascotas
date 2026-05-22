@@ -11,6 +11,8 @@ import {
   InsumoRequest
 } from '../../core/services/grooming.service';
 import { InventarioService, ProductoResponse } from '../../core/services/inventario.service';
+import { GroomingNotificacionService } from '../../core/services/grooming-notificacion.service';
+import { StockNotificacionService } from '../../core/services/stock-notificacion.service';
 
 @Component({
   selector: 'app-grooming',
@@ -20,10 +22,12 @@ import { InventarioService, ProductoResponse } from '../../core/services/inventa
   styleUrl: './grooming.component.scss',
 })
 export class GroomingComponent implements OnInit {
-  private auth       = inject(AuthService);
-  private svc        = inject(GroomingService);
-  private citaSvc    = inject(CitaService);
-  private invSvc     = inject(InventarioService);
+  private auth          = inject(AuthService);
+  private svc           = inject(GroomingService);
+  private citaSvc       = inject(CitaService);
+  private invSvc        = inject(InventarioService);
+  private groomingNotif = inject(GroomingNotificacionService);
+  private stockNotif    = inject(StockNotificacionService);
 
   rol     = computed(() => this.auth.rol());
   canEdit = computed(() => this.rol() === 'GROOMER' || this.rol() === 'ADMIN');
@@ -218,6 +222,8 @@ export class GroomingComponent implements OnInit {
     this.svc.cerrarFicha(f.id).subscribe({
       next: updated => {
         this.ficha.set(updated);
+        this.groomingNotif.refresh();
+        this.stockNotif.refresh();
         this.setSuccess('Servicio cerrado — pendiente de cobro');
         this.loading.set(false);
         this.citaSvc.misServicios().subscribe({

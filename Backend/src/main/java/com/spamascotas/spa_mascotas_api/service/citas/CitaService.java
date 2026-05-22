@@ -6,6 +6,7 @@ import com.spamascotas.spa_mascotas_api.dto.request.CobrarRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.RechazarRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.ReprogramarRequest;
 import com.spamascotas.spa_mascotas_api.service.auth.EmailService;
+import com.spamascotas.spa_mascotas_api.service.sse.StockEventService;
 import com.spamascotas.spa_mascotas_api.dto.response.CitaResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.GroomerResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.ServicioResponse;
@@ -52,6 +53,7 @@ public class CitaService {
     private final HorarioTrabajoRepository  horarioRepo;
     private final BloqueoAgendaRepository   bloqueoRepo;
     private final EmailService              emailService;
+    private final StockEventService         sseEventService;
 
     // ── Servicios disponibles ────────────────────────────────
 
@@ -294,6 +296,7 @@ public class CitaService {
             emailService.enviarCitaEnRevision(correo, cliente.getNombre(),
                     servicio.getNombre(), fmtDT(inicio));
         } catch (Exception e) { log.warn("Email solicitar: {}", e.getMessage()); }
+        sseEventService.notifyCitaChange();
         return resp;
     }
 
@@ -360,6 +363,8 @@ public class CitaService {
                     fmtDT(cita.getFechaHoraInicio()),
                     req.getMotivo());
         } catch (Exception e) { log.warn("Email cancelar: {}", e.getMessage()); }
+        sseEventService.notifyCitaChange();
+        sseEventService.notifyGroomingChange();
         return resp;
     }
 
@@ -439,6 +444,8 @@ public class CitaService {
                     fmtDT(cita.getFechaHoraInicio()),
                     groomer != null ? groomer.getNombre() : null);
         } catch (Exception e) { log.warn("Email aceptar: {}", e.getMessage()); }
+        sseEventService.notifyCitaChange();
+        sseEventService.notifyGroomingChange();
         return resp;
     }
 
@@ -459,6 +466,7 @@ public class CitaService {
                     cl.getNombre(), cita.getServicio().getNombre(),
                     fmtDT(cita.getFechaHoraInicio()), req.getMotivo());
         } catch (Exception e) { log.warn("Email rechazar: {}", e.getMessage()); }
+        sseEventService.notifyCitaChange();
         return resp;
     }
 
@@ -483,6 +491,8 @@ public class CitaService {
                         cita.getServicio().getNombre(), groomer);
             }
         } catch (Exception ignored) {}
+        sseEventService.notifyCitaChange();
+        sseEventService.notifyGroomingChange();
         return resp;
     }
 
@@ -522,6 +532,7 @@ public class CitaService {
                     total.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
                     cita.getId());
         } catch (Exception e) { log.warn("Email cobrar: {}", e.getMessage()); }
+        sseEventService.notifyCitaChange();
         return resp;
     }
 

@@ -107,7 +107,7 @@ public class PerfilService {
             cambios.append("Usuario: ").append(nu != null ? nu : "(borrado)").append(" | ");
         }
 
-        if (!cambios.isEmpty()) {
+        if (!cambios.isEmpty() && !RolEnum.CLIENTE.name().equals(rolNombre)) {
             String detalles = cambios.toString().replaceAll(" \\| $", "");
             auditService.registrar(TipoAccion.MODIFICAR_USUARIO, correo, rolNombre, true, detalles);
         }

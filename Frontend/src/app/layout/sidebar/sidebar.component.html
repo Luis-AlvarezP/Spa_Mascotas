@@ -39,6 +39,12 @@
         @if (item.route === '/grooming' && groomingNotif.confirmadas() > 0) {
           <span class="nav-badge">{{ groomingNotif.confirmadas() }}</span>
         }
+        @if (item.route === '/agenda' && (citaNotif.enRevision() + citaNotif.pendientePago()) > 0) {
+          <span class="nav-badge">{{ citaNotif.enRevision() + citaNotif.pendientePago() }}</span>
+        }
+        @if (item.route === '/inventario' && (pedidoNotif.pendientes() + insumoNotif.pendientes()) > 0) {
+          <span class="nav-badge">{{ pedidoNotif.pendientes() + insumoNotif.pendientes() }}</span>
+        }
         <span class="nav-indicator"></span>
       </a>
     }

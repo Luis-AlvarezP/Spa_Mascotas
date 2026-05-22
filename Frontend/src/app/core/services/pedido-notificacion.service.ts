@@ -1,28 +1,32 @@
-import { Injectable, OnDestroy, inject } from '@angular/core';
-import { signal } from '@angular/core';
+import { Injectable, OnDestroy, inject, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { AuthService } from './auth.service';
 import { InventarioService } from './inventario.service';
+import { StockSseService } from './stock-sse.service';
 
 @Injectable({ providedIn: 'root' })
 export class PedidoNotificacionService implements OnDestroy {
   private auth = inject(AuthService);
   private svc  = inject(InventarioService);
+  private sse  = inject(StockSseService);
 
   pendientes = signal(0);
   visible    = signal(false);
 
   private interval: ReturnType<typeof setInterval> | null = null;
+  private sseSub: Subscription | null = null;
 
   init(): void {
-    this.check();
-    this.interval = setInterval(() => this.check(), 5 * 60 * 1000);
+    this.refresh();
+    this.interval = setInterval(() => this.refresh(), 30_000);
+    this.sseSub = this.sse.pedidoChanged$.subscribe(() => this.refresh());
   }
 
   dismiss(): void {
     this.visible.set(false);
   }
 
-  private check(): void {
+  refresh(): void {
     if (this.auth.rol() !== 'RECEPCION') {
       this.pendientes.set(0);
       this.visible.set(false);
@@ -35,6 +39,8 @@ export class PedidoNotificacionService implements OnDestroy {
         if (n > 0) {
           this.visible.set(true);
           this.sendDesktopNotif(n);
+        } else {
+          this.visible.set(false);
         }
       },
     });
@@ -52,5 +58,6 @@ export class PedidoNotificacionService implements OnDestroy {
 
   ngOnDestroy(): void {
     if (this.interval) clearInterval(this.interval);
+    this.sseSub?.unsubscribe();
   }
 }
