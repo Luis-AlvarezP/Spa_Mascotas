@@ -37,6 +37,11 @@ public class FileController {
         return serveFile("productos", filename);
     }
 
+    @GetMapping("/galeria/{filename:.+}")
+    public ResponseEntity<Resource> serveGaleria(@PathVariable String filename) {
+        return serveFile("galeria", filename);
+    }
+
     private ResponseEntity<Resource> serveFile(String subdir, String filename) {
         Path filePath = Paths.get(uploadsDir, subdir, filename).toAbsolutePath();
         Resource resource = new FileSystemResource(filePath);

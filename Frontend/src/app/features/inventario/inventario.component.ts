@@ -1,7 +1,8 @@
 import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { NgClass } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NgClass, DatePipe } from '@angular/common';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { PerfilResponse } from '../../models/auth.model';
@@ -20,11 +21,15 @@ import {
 } from '../../core/services/inventario.service';
 import { environment } from '../../../environments/environment';
 import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
+import { GroomingService, InsumoResponse } from '../../core/services/grooming.service';
+import { InsumoNotificacionService } from '../../core/services/insumo-notificacion.service';
+import { PedidoNotificacionService } from '../../core/services/pedido-notificacion.service';
+import { StockNotificacionService } from '../../core/services/stock-notificacion.service';
 
-type AdminTab = 'productos' | 'categorias' | 'promociones' | 'cupones';
+type AdminTab = 'productos' | 'categorias' | 'promociones' | 'cupones' | 'pedidos' | 'insumos';
 
 const FILE_BASE = environment.apiUrl.replace(/\/api$/, '');
-type StaffTab  = 'tienda' | 'pedidos';
+type StaffTab  = 'tienda' | 'pedidos' | 'insumos';
 type ClienteTab = 'tienda' | 'carrito' | 'pedidos';
 
 interface ClienteItem { id: number; nombre: string; ci?: string; telefono?: string; correo?: string; canalPreferido?: string; }
@@ -34,12 +39,16 @@ const TIPOS_PROMO = ['TEMPORADA', 'CAMPANA', 'CLIENTE_FRECUENTE', 'OTRO'];
 @Component({
   selector: 'app-inventario',
   standalone: true,
-  imports: [ReactiveFormsModule, NgClass, SearchBarComponent],
+  imports: [ReactiveFormsModule, FormsModule, NgClass, DatePipe, SearchBarComponent],
   templateUrl: './inventario.component.html',
   styleUrl: './inventario.component.scss',
 })
 export class InventarioComponent implements OnInit, OnDestroy {
-  private svc     = inject(InventarioService);
+  private svc        = inject(InventarioService);
+  private groomingSvc  = inject(GroomingService);
+  insumoNotif          = inject(InsumoNotificacionService);
+  pedidoNotif          = inject(PedidoNotificacionService);
+  stockNotif           = inject(StockNotificacionService);
   private auth    = inject(AuthService);
   private confirm = inject(ConfirmService);
   private fb      = inject(FormBuilder);
@@ -87,6 +96,43 @@ export class InventarioComponent implements OnInit, OnDestroy {
   clienteSearch       = signal('');
   promoProductoSearch = signal('');
   cuponProductoSearch = signal('');
+
+  allInsumos = signal<InsumoResponse[]>([]);
+
+  searchPedidos      = signal('');
+  fechaDesdePedidos  = signal('');
+  fechaHastaPedidos  = signal('');
+
+  searchInsumos      = signal('');
+  fechaDesdeInsumos  = signal('');
+  fechaHastaInsumos  = signal('');
+
+  pedidosAdminFiltrados = computed(() => {
+    let lista = this.pedidosAdmin();
+    const q = this.searchPedidos().toLowerCase().trim();
+    if (q) lista = lista.filter(p =>
+      (p.clienteNombre ?? '').toLowerCase().includes(q) ||
+      (p.clienteCi    ?? '').toLowerCase().includes(q)
+    );
+    const desde = this.fechaDesdePedidos();
+    const hasta  = this.fechaHastaPedidos();
+    if (desde) lista = lista.filter(p => new Date(p.fechaVenta) >= new Date(desde));
+    if (hasta)  lista = lista.filter(p => new Date(p.fechaVenta) <= new Date(hasta + 'T23:59:59'));
+    return lista;
+  });
+
+  insumosFiltrados = computed(() => {
+    let lista = this.allInsumos();
+    const q = this.searchInsumos().toLowerCase().trim();
+    if (q) lista = lista.filter(i => (i.empleadoNombre ?? '').toLowerCase().includes(q));
+    const desde = this.fechaDesdeInsumos();
+    const hasta  = this.fechaHastaInsumos();
+    if (desde) lista = lista.filter(i => new Date(i.fecha) >= new Date(desde));
+    if (hasta)  lista = lista.filter(i => new Date(i.fecha) <= new Date(hasta + 'T23:59:59'));
+    return lista;
+  });
+
+  insumosSolicitadosCount = computed(() => this.allInsumos().filter(i => i.estado === 'SOLICITADO').length);
 
   clienteTab    = signal<ClienteTab>('tienda');
   pedidos       = signal<VentaResponse[]>([]);
@@ -160,6 +206,28 @@ export class InventarioComponent implements OnInit, OnDestroy {
     return pct > 0 ? Math.round(this.cartSubtotal() * pct) / 100 : 0;
   });
 
+  searchPromos  = signal('');
+  searchCupones = signal('');
+
+  promocionesFiltradas = computed(() => {
+    const q = this.searchPromos().toLowerCase().trim();
+    if (!q) return this.promociones();
+    return this.promociones().filter(p =>
+      p.nombre.toLowerCase().includes(q) ||
+      (p.descripcion ?? '').toLowerCase().includes(q) ||
+      this.tipoLabel(p.tipo).toLowerCase().includes(q)
+    );
+  });
+
+  cuponesFiltrados = computed(() => {
+    const q = this.searchCupones().toLowerCase().trim();
+    if (!q) return this.cupones();
+    return this.cupones().filter(c =>
+      c.codigo.toLowerCase().includes(q) ||
+      (c.descripcion ?? '').toLowerCase().includes(q)
+    );
+  });
+
   clientesFiltrados = computed(() => {
     const q = this.clienteSearch().toLowerCase().trim();
     if (!q) return this.clientes();
@@ -189,11 +257,14 @@ export class InventarioComponent implements OnInit, OnDestroy {
       this.loadProductosAdmin();
       this.loadPromociones();
       this.loadCupones();
+      this.loadPedidosAdmin();
+      this.loadCitasGrooming();
       this.refreshInterval = setInterval(() => this.silentRefreshProductos(), 60_000);
     } else if (this.isRecepcion()) {
       this.loadCatalogo();
       this.loadClientes();
       this.loadPedidosAdmin();
+      this.loadCitasGrooming();
       this.refreshInterval = setInterval(() => this.silentRefreshCatalogo(), 60_000);
     } else {
       this.loadCatalogo();
@@ -255,6 +326,46 @@ export class InventarioComponent implements OnInit, OnDestroy {
       next: p  => this.pedidosAdmin.set(p),
       error: e => console.error('[pedidos-admin]', e.status, e.error),
     });
+  }
+
+  loadCitasGrooming() {
+    this.groomingSvc.getTodasEntregas().subscribe({ next: ins => this.allInsumos.set(ins) });
+  }
+
+  aceptarInsumoGrooming(id: number) {
+    this.groomingSvc.actualizarEstadoInsumo(id, 'ENTREGADO').subscribe({
+      next: updated => {
+        this.allInsumos.update(arr => arr.map(i => i.id === updated.id ? updated : i));
+        this.success.set('Insumo aprobado y entregado al groomer');
+        setTimeout(() => this.success.set(null), 4000);
+      },
+      error: e => {
+        this.error.set(e.error?.message || 'Error al aprobar insumo');
+        setTimeout(() => this.error.set(null), 5000);
+      }
+    });
+  }
+
+  rechazarInsumoGrooming(id: number) {
+    this.groomingSvc.actualizarEstadoInsumo(id, 'RECHAZADO').subscribe({
+      next: updated => {
+        this.allInsumos.update(arr => arr.map(i => i.id === updated.id ? updated : i));
+        this.success.set('Solicitud rechazada — stock restaurado');
+        setTimeout(() => this.success.set(null), 4000);
+      },
+      error: e => {
+        this.error.set(e.error?.message || 'Error al rechazar');
+        setTimeout(() => this.error.set(null), 5000);
+      }
+    });
+  }
+
+  estadoInsumoLabel(e: string): string {
+    const map: Record<string, string> = {
+      SOLICITADO: 'Solicitado', ENTREGADO: 'Entregado', USADO: 'Usado',
+      DEVUELTO: 'Devuelto', DESPERDICIADO: 'Desperdiciado', RECHAZADO: 'Rechazado'
+    };
+    return map[e] ?? e;
   }
 
   loadClientes() {
@@ -1025,5 +1136,32 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
 
   itemImagen(urlImagen?: string): string {
     return urlImagen ? FILE_BASE + urlImagen : '';
+  }
+
+  private descargarExcel(filas: (string | number)[][], nombre: string): void {
+    const ws = XLSX.utils.aoa_to_sheet(filas);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Datos');
+    XLSX.writeFile(wb, nombre);
+  }
+
+  exportarProductosCSV(): void {
+    const cabecera = ['Nombre', 'Categoría', 'SKU', 'Precio Venta (Bs.)', 'Stock Actual', 'Stock Mínimo', 'Lote', 'Vencimiento', 'Estado'];
+    const filas = this.productos().map(p => [
+      p.nombre, p.categoriaNombre ?? '', p.sku ?? '',
+      p.precioVenta, p.stockActual, p.stockMinimo,
+      p.lote ?? '', p.fechaVencimiento ?? '', p.activo ? 'Activo' : 'Inactivo',
+    ]);
+    this.descargarExcel([cabecera, ...filas], `inventario-productos-${this.today}.xlsx`);
+  }
+
+  exportarPedidosCSV(): void {
+    const cabecera = ['#Venta', 'Cliente', 'CI', 'Teléfono', 'Entrega', 'Dirección', 'Productos', 'Total (Bs.)', 'Fecha', 'Estado'];
+    const filas = this.pedidosAdmin().map(p => [
+      p.ventaId, p.clienteNombre ?? '', p.clienteCi ?? '', p.clienteTelefono ?? '',
+      p.tipoEntrega, p.direccionEntrega ?? '', p.itemsResumen,
+      p.totalFinal, new Date(p.fechaVenta as any).toLocaleString('es-BO'), p.estado,
+    ]);
+    this.descargarExcel([cabecera, ...filas], `inventario-pedidos-${this.today}.xlsx`);
   }
 }

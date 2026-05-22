@@ -1,30 +1,447 @@
-<div class="module-page">
-  <div class="module-header">
-    <div class="module-icon-wrap">
+<div class="grooming-page">
+
+  <div class="page-header">
+    <div class="header-icon">
       <svg viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M5.5 2a3.5 3.5 0 101.665 6.58L8.585 10l-1.42 1.42a3.5 3.5 0 101.414 1.414L10 11.415l1.42 1.42a3.5 3.5 0 101.415-1.415L11.414 10l1.42-1.42A3.5 3.5 0 105 5.5a3.5 3.5 0 00.5 1.58zm1.5 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm7 7a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-7 0a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" clip-rule="evenodd"/>
       </svg>
     </div>
     <div>
-      <h1 class="module-title">Grooming</h1>
-      <p class="module-sub">
-        @if (isCliente()) { Servicios y resultados de grooming de tus mascotas }
-        @else { Gestión de fichas de servicio y grooming }
-      </p>
+      <h1>Grooming</h1>
+      <p>Fichas de atención y control de servicio</p>
     </div>
   </div>
 
-  <div class="coming-soon">
-    <div class="cs-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-      </svg>
+    <div class="workspace">
+
+      <!-- ── Lista de citas ──────────────────────── -->
+      <aside class="citas-panel">
+        <div class="panel-title">Mis servicios</div>
+        @if (citas().length === 0) {
+          <div class="empty-list">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <span>No tienes servicios activos</span>
+          </div>
+        }
+        @for (c of citas(); track c.id) {
+          <div class="cita-card" [class.selected]="citaSeleccionada()?.id === c.id" (click)="seleccionarCita(c)">
+
+            <div class="cita-card-top">
+              <span class="estado-chip estado-{{ estadoClass(c.estado) }}">{{ estadoLabel(c.estado) }}</span>
+              <span class="cita-fecha">{{ formatDT(c.fechaHoraInicio) }}</span>
+            </div>
+
+            <div class="scc-mascota-block">
+              <div class="scc-avatar">
+                @if (c.mascotaFotoUrl) {
+                  <img [src]="c.mascotaFotoUrl" [alt]="c.mascotaNombre">
+                } @else {
+                  {{ c.mascotaNombre.charAt(0) }}
+                }
+              </div>
+              <div class="scc-mascota-info">
+                <span class="scc-mascota-nombre">{{ c.mascotaNombre }}</span>
+                @if (c.mascotaEspecie) {
+                  <span class="scc-especie">{{ c.mascotaEspecie }}</span>
+                }
+                <div class="scc-badges">
+                  @if (c.mascotaTamano) {
+                    <span class="badge-size" [class]="tamanoClass(c.mascotaTamano)">{{ c.mascotaTamano }}</span>
+                  }
+                  @if (c.mascotaTemperamento) {
+                    <span class="badge-temp"
+                      [style.background]="(c.mascotaTemperamentoColor || temperamentoColor(c.mascotaTemperamento)) + '22'"
+                      [style.color]="c.mascotaTemperamentoColor || temperamentoColor(c.mascotaTemperamento)"
+                      [style.border-color]="(c.mascotaTemperamentoColor || temperamentoColor(c.mascotaTemperamento)) + '55'">
+                      {{ c.mascotaTemperamento }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="scc-details">
+              <div class="scc-detail-row">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13">
+                  <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span class="scc-label">Servicio:</span>
+                <span class="scc-val">{{ c.servicioNombre }}</span>
+                @if (c.duracionMinutos) {
+                  <span class="cita-badge">{{ c.duracionMinutos }} min</span>
+                }
+              </div>
+              <div class="scc-detail-row">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                </svg>
+                <span class="scc-label">Cliente:</span>
+                <span class="scc-val">{{ c.clienteNombre ?? '—' }}</span>
+              </div>
+              @if (c.precioFinal) {
+                <div class="scc-precio-block">
+                  <span class="scc-precio-final">Bs. {{ c.precioFinal | number:'1.2-2' }}</span>
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+      </aside>
+
+      <!-- ── Detalle de ficha ──────────────────────── -->
+      <main class="ficha-panel">
+        @if (!citaSeleccionada()) {
+          <div class="select-prompt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h4"/>
+            </svg>
+            <p>Selecciona un servicio para ver o editar su ficha</p>
+          </div>
+        } @else {
+
+          <div class="ficha-header">
+            <div class="ficha-meta">
+              <div class="ficha-meta-item">
+                <span class="ficha-meta-label">Mascota</span>
+                <span class="ficha-meta-val">{{ citaSeleccionada()!.mascotaNombre }}</span>
+              </div>
+              <span class="ficha-sep">·</span>
+              <div class="ficha-meta-item">
+                <span class="ficha-meta-label">Cliente</span>
+                <span class="ficha-meta-val">{{ citaSeleccionada()!.clienteNombre }}</span>
+              </div>
+              <span class="ficha-sep">·</span>
+              <div class="ficha-meta-item">
+                <span class="ficha-meta-label">Servicio</span>
+                <span class="ficha-meta-val">{{ citaSeleccionada()!.servicioNombre }}</span>
+              </div>
+            </div>
+            @if (ficha()?.estado === 'CERRADA') {
+              <span class="badge-cerrada">Cerrada</span>
+            } @else if (ficha()) {
+              <span class="badge-abierta">En curso</span>
+            } @else {
+              <span class="badge-nueva">Nueva</span>
+            }
+          </div>
+
+          @if (errorMsg()) { <div class="alert-error">{{ errorMsg() }}</div> }
+          @if (successMsg()) { <div class="alert-success">{{ successMsg() }}</div> }
+
+          <div class="ficha-tabs">
+            <button class="tab" [class.active]="activeTab() === 'ficha'"         (click)="activeTab.set('ficha')">Ficha</button>
+            <button class="tab" [class.active]="activeTab() === 'fotos'"         (click)="activeTab.set('fotos')">Fotos</button>
+            <button class="tab" [class.active]="activeTab() === 'insumos'"       (click)="activeTab.set('insumos')">Insumos</button>
+            <button class="tab" [class.active]="activeTab() === 'recomendacion'" (click)="activeTab.set('recomendacion')">Recomendación</button>
+          </div>
+
+          @if (activeTab() === 'ficha') {
+            <div class="tab-body">
+
+              <div class="form-row">
+                <label class="form-label">Estado de ingreso</label>
+                <select class="form-select" [disabled]="fichaCerrada() || !canEdit()"
+                  [ngModel]="estadoIngreso()" (ngModelChange)="estadoIngreso.set($event)">
+                  @for (e of estadosIngreso; track e) {
+                    <option [value]="e">{{ formatEstado(e) }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">Observaciones generales</label>
+                <textarea class="form-textarea" rows="3" [disabled]="fichaCerrada() || !canEdit()"
+                  [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)"
+                  placeholder="Condición general del animal, comportamiento, novedades..."></textarea>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">Estado detallado</label>
+                @if (!fichaCerrada() && canEdit()) {
+                  <div class="detalle-input-row">
+                    <input class="form-input" placeholder="Ej: Nudo en zona dorsal"
+                      [ngModel]="nuevoDetalle()" (ngModelChange)="nuevoDetalle.set($event)"
+                      (keydown.enter)="agregarDetalle()">
+                    <button class="btn-add" (click)="agregarDetalle()">+ Agregar</button>
+                  </div>
+                }
+                @if (detalles().length > 0) {
+                  <div class="detalles-list">
+                    @for (d of detalles(); track $index; let i = $index) {
+                      <div class="detalle-chip">
+                        <span>{{ d }}</span>
+                        @if (!fichaCerrada() && canEdit()) {
+                          <button class="chip-remove" (click)="eliminarDetalle(i)">×</button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="checklist-section">
+                <div class="checklist-header">
+                  <span class="form-label">Checklist del servicio</span>
+                  <span class="checklist-count" [class.ready]="checklistCount() === 6">{{ checklistCount() }}/6</span>
+                </div>
+                <div class="checklist-grid">
+                  <label class="check-item" [class.checked]="checklistUnas()">
+                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
+                      [ngModel]="checklistUnas()" (ngModelChange)="checklistUnas.set($event)">
+                    <span class="check-icon">✂</span><span>Uñas</span>
+                  </label>
+                  <label class="check-item" [class.checked]="checklistOidos()">
+                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
+                      [ngModel]="checklistOidos()" (ngModelChange)="checklistOidos.set($event)">
+                    <span class="check-icon">👂</span><span>Oídos</span>
+                  </label>
+                  <label class="check-item" [class.checked]="checklistGlandulas()">
+                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
+                      [ngModel]="checklistGlandulas()" (ngModelChange)="checklistGlandulas.set($event)">
+                    <span class="check-icon">💧</span><span>Glándulas</span>
+                  </label>
+                  <label class="check-item" [class.checked]="checklistCorte()">
+                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
+                      [ngModel]="checklistCorte()" (ngModelChange)="checklistCorte.set($event)">
+                    <span class="check-icon">✂</span><span>Corte</span>
+                  </label>
+                  <label class="check-item" [class.checked]="checklistBano()">
+                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
+                      [ngModel]="checklistBano()" (ngModelChange)="checklistBano.set($event)">
+                    <span class="check-icon">🛁</span><span>Baño</span>
+                  </label>
+                  <label class="check-item" [class.checked]="checklistPerfume()">
+                    <input type="checkbox" [disabled]="fichaCerrada() || !canEdit()"
+                      [ngModel]="checklistPerfume()" (ngModelChange)="checklistPerfume.set($event)">
+                    <span class="check-icon">✨</span><span>Perfume</span>
+                  </label>
+                </div>
+              </div>
+
+              @if (!fichaCerrada() && canEdit()) {
+                <div class="ficha-actions">
+                  <button class="btn-guardar" [disabled]="loading()" (click)="guardarFicha()">
+                    @if (loading()) { Guardando... } @else { Guardar ficha }
+                  </button>
+                  @if (ficha()) {
+                    <button class="btn-cerrar" [disabled]="loading() || !puedesCerrar()" (click)="cerrarFicha()">
+                      Cerrar servicio
+                    </button>
+                  }
+                </div>
+                @if (ficha() && !puedesCerrar()) {
+                  <div class="cierre-hints">
+                    <div class="cierre-hint" [class.ok]="checklistCount() === 6">
+                      <span class="hint-dot"></span>Checklist {{ checklistCount() }}/6
+                    </div>
+                    <div class="cierre-hint" [class.ok]="tieneFotos()">
+                      <span class="hint-dot"></span>
+                      @if (tieneFotos()) {
+                        Fotos completas (Antes, Durante, Después)
+                      } @else {
+                        Fotos faltantes:
+                        @if (!(ficha()?.fotos ?? []).some(f => f.momento === 'ANTES'))    { "Antes" }
+                        @if (!(ficha()?.fotos ?? []).some(f => f.momento === 'DURANTE'))  { "Durante" }
+                        @if (!(ficha()?.fotos ?? []).some(f => f.momento === 'DESPUES'))  { "Después" }
+                      }
+                    </div>
+                    <div class="cierre-hint" [class.ok]="insumosResueltos()">
+                      <span class="hint-dot"></span>{{ insumosResueltos() ? 'Insumos resueltos' : 'Hay insumos pendientes de resolver' }}
+                    </div>
+                    <div class="cierre-hint" [class.ok]="tieneRecomendacion()">
+                      <span class="hint-dot"></span>{{ tieneRecomendacion() ? 'Recomendación completa' : 'Falta la recomendación al cliente' }}
+                    </div>
+                  </div>
+                }
+              }
+
+            </div>
+          }
+
+          @if (activeTab() === 'fotos') {
+            <div class="tab-body fotos-tab">
+              @for (momento of ['ANTES', 'DURANTE', 'DESPUES']; track momento) {
+                <div class="foto-grupo">
+                  <div class="foto-grupo-title">
+                    {{ momento === 'ANTES' ? 'Antes' : momento === 'DURANTE' ? 'Durante' : 'Después' }}
+                  </div>
+                  <div class="fotos-grid">
+                    @for (foto of fotosPorMomento(momento); track foto.id) {
+                      <div class="foto-thumb">
+                        <img [src]="foto.url" [alt]="momento">
+                        @if (!fichaCerrada() && canEdit()) {
+                          <button class="foto-del" (click)="eliminarFoto(foto.id)">×</button>
+                        }
+                      </div>
+                    }
+                    @if (!fichaCerrada() && canEdit()) {
+                      <label class="foto-add">
+                        @if (uploadingFoto()) {
+                          <span class="uploading-spinner"></span>
+                        } @else {
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                            <path d="M12 5v14M5 12h14"/>
+                          </svg>
+                        }
+                        <input type="file" accept="image/*" class="hidden-input"
+                          (change)="onFotoChange($event, momento)" [disabled]="uploadingFoto()">
+                      </label>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (activeTab() === 'insumos') {
+            <div class="tab-body">
+              <div class="insumos-header">
+                <span class="form-label" style="margin:0">Materiales del servicio</span>
+                @if (!fichaCerrada() && canEdit()) {
+                  <button class="btn-add" (click)="abrirModalInsumo()">+ Pedir insumo</button>
+                }
+              </div>
+              @if (insumos().length === 0) {
+                <div class="empty-info">No hay insumos registrados para este servicio.</div>
+              } @else {
+                <table class="insumos-table">
+                  <thead>
+                    <tr>
+                      <th>Producto</th><th>Cant.</th><th>Estado</th><th>Notas</th>
+                      @if (!fichaCerrada() && canEdit()) { <th>Acción</th> }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (ins of insumos(); track ins.id) {
+                      <tr>
+                        <td>{{ ins.productoNombre }}</td>
+                        <td>{{ ins.cantidad }}</td>
+                        <td>
+                          <span class="insumo-estado" [attr.data-estado]="ins.estado">
+                            {{ estadoInsumoLabel(ins.estado) }}
+                          </span>
+                        </td>
+                        <td>{{ ins.notas ?? '—' }}</td>
+                        @if (!fichaCerrada() && canEdit()) {
+                          <td>
+                            @if (ins.estado === 'SOLICITADO') {
+                              <span class="insumo-pendiente">Pendiente aprobación</span>
+                            } @else if (ins.estado === 'ENTREGADO') {
+                              <div class="insumo-actions">
+                                <button class="btn-xs btn-usado"    (click)="actualizarEstadoInsumo(ins, 'USADO')">Usado</button>
+                                <button class="btn-xs btn-devuelto" (click)="actualizarEstadoInsumo(ins, 'DEVUELTO')">Devolver</button>
+                                <button class="btn-xs btn-desp"     (click)="actualizarEstadoInsumo(ins, 'DESPERDICIADO')">Mermado</button>
+                              </div>
+                            }
+                          </td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+          }
+
+          @if (activeTab() === 'recomendacion') {
+            <div class="tab-body">
+              <div class="form-row">
+                <label class="form-label">Recomendaciones para el cliente</label>
+                <textarea class="form-textarea" rows="4" [disabled]="fichaCerrada() || !canEdit()"
+                  [ngModel]="recomendacion()" (ngModelChange)="recomendacion.set($event)"
+                  placeholder="Cuidados en casa, productos recomendados, frecuencia de visitas..."></textarea>
+              </div>
+              <div class="form-row">
+                <label class="form-label">Próxima cita sugerida</label>
+                <input type="date" class="form-input" [disabled]="fichaCerrada() || !canEdit()"
+                  [ngModel]="proximaCita()" (ngModelChange)="proximaCita.set($event)">
+              </div>
+              @if (!fichaCerrada() && canEdit()) {
+                <div class="ficha-actions">
+                  <button class="btn-guardar" [disabled]="loading()" (click)="guardarFicha()">
+                    @if (loading()) { Guardando... } @else { Guardar recomendación }
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+        }
+      </main>
+
     </div>
-    <h2>Próximamente</h2>
-    <p>
-      @if (isCliente()) { Aquí podrás ver el historial de servicios y fichas de grooming de tus mascotas. }
-      @else { La gestión de fichas de ingreso, checklist y galería de resultados estará disponible pronto. }
-    </p>
-    <a routerLink="/dashboard" class="btn-back">Volver al inicio</a>
-  </div>
 </div>
+
+@if (showInsumoModal()) {
+  <div class="modal-overlay" (click)="showInsumoModal.set(false)">
+    <div class="modal-box modal-insumos" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">Pedir insumos</h3>
+      <p class="modal-sub">{{ citaSeleccionada()?.mascotaNombre }} · {{ citaSeleccionada()?.servicioNombre }}</p>
+      <p class="modal-hint">Recepción revisará tu solicitud y la aprobará.</p>
+
+      <div class="insumo-items-list">
+        @for (item of insumoItems(); track $index; let i = $index) {
+          <div class="insumo-item-row">
+            <div class="insumo-item-top">
+              <span class="insumo-item-num">Producto {{ i + 1 }}</span>
+              @if (insumoItems().length > 1) {
+                <button class="btn-item-remove" (click)="quitarItemInsumo(i)">×</button>
+              }
+            </div>
+            <div class="insumo-item-fields">
+              <div class="insumo-select-wrap">
+                <div class="producto-search-wrap">
+                  <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                  </svg>
+                  <input class="producto-search-input" type="text" placeholder="Buscar por nombre del producto..."
+                    [ngModel]="item.busqueda"
+                    (ngModelChange)="setItemBusqueda(i, $event)"
+                    (focus)="openItemDropdown(i)"
+                    (blur)="closeItemDropdown(i)">
+                  @if (item.open) {
+                    <div class="producto-dropdown">
+                      @for (p of filtrarProductos(item.busqueda); track p.id) {
+                        <div class="producto-option" [class.sin-stock]="p.stockActual === 0"
+                          (mousedown)="selectProductoItem(i, p)">
+                          <span class="prod-nombre">{{ p.nombre }}</span>
+                          <span class="stock-badge">{{ p.stockActual }} en stock</span>
+                        </div>
+                      } @empty {
+                        <div class="producto-option-empty">Sin resultados</div>
+                      }
+                    </div>
+                  }
+                </div>
+                @if (item.productoId) {
+                  <span class="stock-badge">Stock disponible: {{ stockDeProducto(item.productoId) }}</span>
+                }
+              </div>
+              <input type="number" class="form-input insumo-cant" min="1" placeholder="Cant."
+                [ngModel]="item.cantidad"
+                (ngModelChange)="setItemCantidad(i, +$event)">
+            </div>
+            <input type="text" class="form-input insumo-notas" placeholder="Notas (opcional)"
+              [ngModel]="item.notas"
+              (ngModelChange)="setItemNotas(i, $event)">
+          </div>
+        }
+      </div>
+
+      <button class="btn-agregar-item" (click)="agregarItemInsumo()">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+        Agregar otro producto
+      </button>
+
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" [disabled]="insumoEnviando()" (click)="showInsumoModal.set(false)">Cancelar</button>
+        <button class="btn-modal-ok" [disabled]="!insumoItemsValidos() || insumoEnviando()" (click)="registrarInsumo()">
+          @if (insumoEnviando()) { Enviando... } @else { Enviar solicitud }
+        </button>
+      </div>
+    </div>
+  </div>
+}

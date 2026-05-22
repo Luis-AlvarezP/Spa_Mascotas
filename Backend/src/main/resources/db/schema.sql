@@ -205,10 +205,19 @@ CREATE TABLE IF NOT EXISTS citas (
 -- ── GROOMING ─────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS fichas_ingreso (
-    id                      BIGINT PRIMARY KEY DEFAULT nextval('fichas_id_seq'),
-    cita_id                 BIGINT REFERENCES citas(id),
-    temperamento_id         BIGINT REFERENCES cat_temperamentos(id),
-    observaciones_generales TEXT
+    id                      BIGINT    PRIMARY KEY DEFAULT nextval('fichas_id_seq'),
+    cita_id                 BIGINT    REFERENCES citas(id),
+    temperamento_id         BIGINT    REFERENCES cat_temperamentos(id),
+    observaciones_generales TEXT,
+    estado_ingreso          TEXT,
+    checklist_unas          BOOLEAN   NOT NULL DEFAULT FALSE,
+    checklist_oidos         BOOLEAN   NOT NULL DEFAULT FALSE,
+    checklist_glandulas     BOOLEAN   NOT NULL DEFAULT FALSE,
+    checklist_corte         BOOLEAN   NOT NULL DEFAULT FALSE,
+    checklist_bano          BOOLEAN   NOT NULL DEFAULT FALSE,
+    checklist_perfume       BOOLEAN   NOT NULL DEFAULT FALSE,
+    estado                  TEXT      NOT NULL DEFAULT 'ABIERTA',
+    creado_en               TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS ficha_detalles (
@@ -305,6 +314,8 @@ CREATE TABLE IF NOT EXISTS movimientos_inventario (
     tipo_movimiento_id TEXT,
     cantidad           INTEGER   NOT NULL,
     producto_id        BIGINT    NOT NULL REFERENCES productos(id),
+    cita_id            BIGINT    REFERENCES citas(id),
+    estado             TEXT      NOT NULL DEFAULT 'ENTREGADO',
     notas              TEXT,
     fecha              TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -374,6 +385,21 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     exitoso        BOOLEAN      NOT NULL DEFAULT TRUE,
     timestamp      TIMESTAMP    NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE fichas_ingreso
+    ADD COLUMN IF NOT EXISTS estado_ingreso      TEXT,
+    ADD COLUMN IF NOT EXISTS checklist_unas      BOOLEAN   NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS checklist_oidos     BOOLEAN   NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS checklist_glandulas BOOLEAN   NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS checklist_corte     BOOLEAN   NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS checklist_bano      BOOLEAN   NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS checklist_perfume   BOOLEAN   NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS estado              TEXT      NOT NULL DEFAULT 'ABIERTA',
+    ADD COLUMN IF NOT EXISTS creado_en           TIMESTAMP NOT NULL DEFAULT NOW();
+
+ALTER TABLE movimientos_inventario
+    ADD COLUMN IF NOT EXISTS cita_id BIGINT REFERENCES citas(id),
+    ADD COLUMN IF NOT EXISTS estado  TEXT   NOT NULL DEFAULT 'ENTREGADO';
 
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs (timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_correo    ON audit_logs (correo_usuario);

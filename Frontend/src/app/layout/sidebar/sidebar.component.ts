@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, computed, inject } from '@angul
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../core/services/auth.service';
+import { GroomingNotificacionService } from '../../core/services/grooming-notificacion.service';
 
 interface NavItem {
   label: string;
@@ -14,7 +15,7 @@ const ALL_NAV: NavItem[] = [
   { label: 'Inicio',              icon: 'home',     route: '/dashboard', roles: ['ADMIN','RECEPCION','GROOMER','CLIENTE'] },
   { label: 'Agenda',              icon: 'calendar', route: '/agenda',    roles: ['ADMIN','RECEPCION','GROOMER'] },
   { label: 'Mis Citas',           icon: 'calendar', route: '/agenda',    roles: ['CLIENTE'] },
-  { label: 'Grooming',            icon: 'scissors', route: '/grooming',  roles: ['GROOMER','CLIENTE'] },
+  { label: 'Grooming',            icon: 'scissors', route: '/grooming',  roles: ['GROOMER'] },
   { label: 'Clientes y Mascotas', icon: 'pets',     route: '/mascotas',  roles: ['ADMIN','RECEPCION','GROOMER'] },
   { label: 'Mis Mascotas',        icon: 'paw',      route: '/mascotas',  roles: ['CLIENTE'] },
   { label: 'Inventario',          icon: 'box',      route: '/inventario',roles: ['ADMIN','RECEPCION','GROOMER','CLIENTE'] },
@@ -32,8 +33,9 @@ export class SidebarComponent {
   @Input()  open   = false;
   @Output() closed = new EventEmitter<void>();
 
-  auth      = inject(AuthService);
-  sanitizer = inject(DomSanitizer);
+  auth         = inject(AuthService);
+  sanitizer    = inject(DomSanitizer);
+  groomingNotif = inject(GroomingNotificacionService);
 
   navItems = computed(() => {
     const rol = this.auth.rol() ?? '';

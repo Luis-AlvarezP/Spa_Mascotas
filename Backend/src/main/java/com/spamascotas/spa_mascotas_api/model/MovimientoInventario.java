@@ -32,6 +32,14 @@ public class MovimientoInventario {
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cita_id")
+    private Cita cita;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private String estado = "ENTREGADO";
+
     private String notas;
 
     @Builder.Default

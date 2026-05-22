@@ -33,7 +33,7 @@ export const groomerGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (!auth.isAuthenticated()) return router.createUrlTree(['/auth/login']);
-  return ['ADMIN', 'GROOMER'].includes(auth.rol() ?? '')
+  return auth.rol() === 'GROOMER'
     ? true : router.createUrlTree(['/dashboard']);
 };
 

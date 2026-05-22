@@ -20,6 +20,15 @@
 }
 .inv-title   { font-size: 1.55rem; font-weight: 800; color: var(--text); margin: 0; }
 .inv-subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 0.15rem 0 0; }
+.inv-header-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.btn-export-csv {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.45rem 1rem; border-radius: var(--r-md);
+  background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.35);
+  color: #a78bfa; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  transition: all var(--t-normal); white-space: nowrap;
+  &:hover { background: rgba(124,58,237,0.25); border-color: rgba(124,58,237,0.6); }
+}
 
 // ── Alerts ─────────────────────────────────────────────────────────
 .inv-alert {
@@ -52,6 +61,10 @@
 
 // ── Tab actions bar ────────────────────────────────────────────────
 .tab-actions { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.tab-actions-row {
+  display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap;
+  app-search-bar { flex: 1; min-width: 220px; max-width: 420px; }
+}
 
 // ── Buttons ────────────────────────────────────────────────────────
 .btn-primary {
@@ -82,6 +95,21 @@
   background: transparent; cursor: pointer; font-size: 0.85rem;
   &:hover { background: rgba(255,255,255,0.05); }
 }
+
+// ── Tab filters (buscador + rango fechas) ───────────────────────────
+.tab-filters {
+  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+  padding: 0.75rem 0 1rem;
+  app-search-bar { flex: 1; min-width: 220px; }
+}
+.date-range { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+.date-input {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--r-md); padding: 0.45rem 0.65rem; color: var(--text);
+  font-size: 0.82rem; transition: border-color var(--t-normal); color-scheme: dark;
+  &:focus { outline: none; border-color: rgba(124,58,237,0.5); }
+}
+.date-sep { color: var(--text-muted); font-size: 0.85rem; }
 
 // ── Filters ────────────────────────────────────────────────────────
 .inv-filters { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;
@@ -651,3 +679,57 @@
 .pedido-dir { font-size: 0.8rem; color: var(--text-muted); }
 .venta-ok-entrega { font-size: 0.875rem; color: var(--text-muted); margin: 0.25rem 0 0.75rem; }
 .td-items-resumen { max-width: 220px; font-size: 0.78rem; color: var(--text-muted); white-space: normal; word-break: break-word; }
+
+// ── Insumos Grooming ──────────────────────────────────────────────
+.insumos-grooming-wrap { display: flex; flex-direction: column; gap: 1rem; }
+.ig-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.ig-header-left { display: flex; align-items: center; gap: 0.75rem; }
+.ig-panel-title {
+  font-size: 0.875rem; font-weight: 700; color: var(--text);
+}
+.ig-count {
+  font-size: 0.72rem; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px; padding: 0.1rem 0.55rem; color: var(--text-muted);
+}
+.btn-refresh {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.85rem; border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-muted); font-size: 0.8rem; cursor: pointer;
+  transition: background var(--t-fast);
+  &:hover { background: rgba(255,255,255,0.09); }
+}
+.ig-empty-full {
+  color: var(--text-muted); font-size: 0.875rem; padding: 2rem; text-align: center;
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--r-lg);
+}
+.row-solicitud td { background: rgba(251,191,36,0.04); }
+.td-fecha { white-space: nowrap; font-size: 0.8rem; color: var(--text-muted); }
+.insumo-rev-actions { display: flex; gap: 0.4rem; }
+.btn-aceptar-insumo {
+  padding: 0.25rem 0.7rem; border-radius: var(--r-sm);
+  background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.35);
+  color: #86efac; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: all var(--t-fast);
+  &:hover { background: rgba(34,197,94,0.28); }
+}
+.btn-rechazar-insumo {
+  padding: 0.25rem 0.7rem; border-radius: var(--r-sm);
+  background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
+  color: #fca5a5; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: all var(--t-fast);
+  &:hover { background: rgba(239,68,68,0.25); }
+}
+.insumo-badge {
+  padding: 0.18rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600;
+  &[data-estado="SOLICITADO"]   { background: rgba(251,191,36,0.15); color: #fcd34d; }
+  &[data-estado="ENTREGADO"]    { background: rgba(59,130,246,0.15); color: #93c5fd; }
+  &[data-estado="USADO"]        { background: rgba(34,197,94,0.15);  color: #86efac; }
+  &[data-estado="DEVUELTO"]     { background: rgba(245,158,11,0.15); color: #fcd34d; }
+  &[data-estado="DESPERDICIADO"]{ background: rgba(239,68,68,0.12);  color: #fca5a5; }
+  &[data-estado="RECHAZADO"]    { background: rgba(239,68,68,0.15);  color: #fca5a5; }
+}
+

@@ -403,6 +403,14 @@
 }
 .page-title { font-size: 1.5rem; font-weight: 800; color: var(--text); margin: 0; }
 .page-sub   { font-size: 0.85rem; color: var(--text-muted); margin: 0.2rem 0 0; }
+.btn-export-csv {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.45rem 1rem; border-radius: var(--r-md);
+  background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.35);
+  color: #a78bfa; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  transition: all var(--t-normal); white-space: nowrap;
+  &:hover { background: rgba(124,58,237,0.25); border-color: rgba(124,58,237,0.6); }
+}
 .btn-refresh {
   display: flex; align-items: center; gap: 0.4rem;
   padding: 0.55rem 1rem; border-radius: var(--r-md);

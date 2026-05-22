@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, guestGuard } from './core/guards/auth.guard';
+import { authGuard, adminGuard, guestGuard, groomerGuard } from './core/guards/auth.guard';
 
 
 export const routes: Routes = [
@@ -64,6 +64,7 @@ export const routes: Routes = [
       },
       {
         path: 'grooming',
+        canActivate: [groomerGuard],
         data: { title: 'Grooming' },
         loadComponent: () => import('./features/grooming/grooming.component').then(m => m.GroomingComponent),
       },

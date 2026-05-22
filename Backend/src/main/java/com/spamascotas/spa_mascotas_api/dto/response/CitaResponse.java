@@ -19,6 +19,7 @@ public class CitaResponse {
 
     private Long mascotaId;
     private String mascotaNombre;
+    private String mascotaFotoUrl;
     private String mascotaEspecie;
     private String mascotaTamano;
     private String mascotaTemperamento;

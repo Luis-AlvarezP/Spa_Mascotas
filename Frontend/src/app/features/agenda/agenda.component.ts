@@ -1,7 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import jsPDF from 'jspdf';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfirmService } from '../../core/services/confirm.service';
@@ -13,6 +12,7 @@ import { CitaService, CitaResponse, ServicioResponse, SlotResponse, GroomerBasic
 import { CitaNotificacionService } from '../../core/services/cita-notificacion.service';
 import { GroomingNotificacionService } from '../../core/services/grooming-notificacion.service';
 import { MascotasService, MascotaResponse } from '../../core/services/mascotas.service';
+import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
 
 const DIAS = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
 const DIAS_LABELS: Record<string, string> = {
@@ -28,7 +28,7 @@ const TIPOS_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, RouterLink],
+  imports: [ReactiveFormsModule, DecimalPipe, SearchBarComponent],
   templateUrl: './agenda.component.html',
   styleUrl: './agenda.component.scss',
 })
@@ -44,6 +44,7 @@ export class AgendaComponent implements OnInit {
 
   citasBadge = computed(() => this.citaNotif.enRevision() + this.citaNotif.pendientePago());
 
+  isAdmin   = computed(() => this.auth.rol() === 'ADMIN');
   isCliente = computed(() => this.auth.rol() === 'CLIENTE');
   isGroomer = computed(() => this.auth.rol() === 'GROOMER');
   isStaff   = computed(() => ['ADMIN', 'RECEPCION'].includes(this.auth.rol() ?? ''));
@@ -90,16 +91,27 @@ export class AgendaComponent implements OnInit {
   groomersCliente     = signal<GroomerBasicResponse[]>([]);
   slots               = signal<SlotResponse[]>([]);
   todasCitas          = signal<CitaResponse[]>([]);
-  misServciosGroomer  = signal<CitaResponse[]>([]);
   misHorariosGroomer  = signal<HorarioTrabajo[]>([]);
-  groomerTab          = signal<'horarios' | 'servicios'>('horarios');
   loadingTodasCitas   = signal(false);
-  loadingMisServicios = signal(false);
-  loadingMisHorarios  = signal(false);
 
-  groomerBadge = computed(() =>
-    this.misServciosGroomer().filter(c => c.estado === 'ACEPTADO').length
-  );
+  searchCitas     = signal('');
+  fechaDesdeCitas = signal('');
+  fechaHastaCitas = signal('');
+
+  citasFiltradas = computed(() => {
+    let lista = this.todasCitas();
+    const q = this.searchCitas().toLowerCase().trim();
+    if (q) lista = lista.filter(c =>
+      (c.clienteNombre ?? '').toLowerCase().includes(q) ||
+      (c.clienteCi    ?? '').toLowerCase().includes(q)
+    );
+    const desde = this.fechaDesdeCitas();
+    const hasta  = this.fechaHastaCitas();
+    if (desde) lista = lista.filter(c => new Date(c.fechaHoraInicio) >= new Date(desde));
+    if (hasta)  lista = lista.filter(c => new Date(c.fechaHoraInicio) <= new Date(hasta + 'T23:59:59'));
+    return lista;
+  });
+  loadingMisHorarios  = signal(false);
   savingCitaStaff     = signal<number | null>(null);
 
   showCobrarModal  = signal(false);
@@ -160,7 +172,6 @@ export class AgendaComponent implements OnInit {
       this.loadBloqueos();
       this.loadTodasCitas();
     } else if (this.isGroomer()) {
-      this.loadMisServicios();
       this.loadMisHorarios();
     } else if (this.isCliente()) {
       this.loadMisCitas();
@@ -343,14 +354,6 @@ export class AgendaComponent implements OnInit {
     });
   }
 
-  loadMisServicios() {
-    this.loadingMisServicios.set(true);
-    this.citaSvc.misServicios().subscribe({
-      next: c  => { this.misServciosGroomer.set(c); this.loadingMisServicios.set(false); },
-      error: () => this.loadingMisServicios.set(false),
-    });
-  }
-
   loadMisHorarios() {
     this.loadingMisHorarios.set(true);
     this.agendaSvc.misHorarios().subscribe({
@@ -379,7 +382,7 @@ export class AgendaComponent implements OnInit {
   finalizarCita(id: number) {
     this.savingCitaStaff.set(id);
     this.citaSvc.finalizarServicio(id).subscribe({
-      next: () => { this.loadMisServicios(); this.showSuccess('Servicio marcado como terminado'); this.savingCitaStaff.set(null); },
+      next: () => { this.showSuccess('Servicio marcado como terminado'); this.savingCitaStaff.set(null); },
       error: e  => { this.error.set(e.error?.message ?? 'Error'); this.savingCitaStaff.set(null); },
     });
   }

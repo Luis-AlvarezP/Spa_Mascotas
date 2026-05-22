@@ -94,7 +94,7 @@
                   <span class="pet-emoji">{{ especieIcon(m.especie) }}</span>
                 </div>
               }
-              <div class="pet-card-arrow">
+              <div class="pet-card-arrow" title="Más detalles">
                 <svg viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                 </svg>
@@ -413,10 +413,20 @@
           {{ clientesFiltrados().length }} cliente{{ clientesFiltrados().length !== 1 ? 's' : '' }} registrado{{ clientesFiltrados().length !== 1 ? 's' : '' }}
         </p>
       </div>
-      <button class="btn-refresh" (click)="cargar()" [disabled]="cargando()">
-        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
-        Actualizar
-      </button>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        @if (isAdmin()) {
+          <button class="btn-export-csv" (click)="exportarClientesCSV()" title="Exportar clientes y mascotas a CSV">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+            Exportar Clientes y Mascotas
+          </button>
+        }
+        <button class="btn-refresh" (click)="cargar()" [disabled]="cargando()">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+          Actualizar
+        </button>
+      </div>
     </div>
 
     @if (exito()) {

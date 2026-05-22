@@ -64,4 +64,14 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
            "ORDER BY c.fechaHoraInicio ASC")
     List<Cita> findProximaActivaByCliente(@Param("clienteId") Long clienteId,
                                           @Param("excluirId") Long excluirId);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado = :estado " +
+           "AND (c.empleadoAsignado IS NOT NULL AND c.empleadoAsignado.id = :empleadoId " +
+           "  OR c.empleadoPreferido IS NOT NULL AND c.empleadoPreferido.id = :empleadoId) " +
+           "ORDER BY c.fechaHoraInicio")
+    List<Cita> findByEmpleadoIdAndEstado(@Param("empleadoId") Long empleadoId,
+                                         @Param("estado") String estado);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado = 'ACEPTADO' ORDER BY c.fechaHoraInicio")
+    List<Cita> findAllAceptadas();
 }

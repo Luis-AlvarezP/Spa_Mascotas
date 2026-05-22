@@ -34,6 +34,7 @@ export interface CitaResponse {
   clienteCi: string | null;
   mascotaId: number;
   mascotaNombre: string;
+  mascotaFotoUrl: string | null;
   mascotaEspecie: string | null;
   mascotaTamano: string;
   mascotaTemperamento: string | null;

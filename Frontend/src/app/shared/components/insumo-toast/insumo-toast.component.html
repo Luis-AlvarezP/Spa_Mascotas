@@ -1,0 +1,11 @@
+@if (notif.visible()) {
+  <div class="insumo-toast">
+    <div class="it-dot"></div>
+    <div class="it-body">
+      <span class="it-title">Solicitudes de insumos</span>
+      <span class="it-msg">{{ notif.pendientes() }} solicitud{{ notif.pendientes() !== 1 ? 'es' : '' }} por revisar</span>
+    </div>
+    <button class="it-ver" (click)="irAInventario()">Ver</button>
+    <button class="it-close" (click)="notif.dismiss()">✕</button>
+  </div>
+}

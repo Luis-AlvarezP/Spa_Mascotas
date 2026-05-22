@@ -22,7 +22,7 @@ export class CitaNotificacionService implements OnDestroy {
 
   private check(): void {
     const rol = this.auth.rol();
-    if (rol !== 'RECEPCION') {
+    if (rol !== 'RECEPCION' && rol !== 'ADMIN') {
       this.enRevision.set(0); this.pendientePago.set(0); this.visible.set(false);
       return;
     }
@@ -32,7 +32,7 @@ export class CitaNotificacionService implements OnDestroy {
         const pago = lista.filter(c => c.estado === 'PENDIENTE_PAGO').length;
         this.enRevision.set(rev);
         this.pendientePago.set(pago);
-        if (rev + pago > 0) {
+        if (rev + pago > 0 && rol === 'RECEPCION') {
           this.visible.set(true);
           this.sendDesktopNotif(rev, pago);
         }
@@ -41,6 +41,7 @@ export class CitaNotificacionService implements OnDestroy {
   }
 
   private sendDesktopNotif(rev: number, pago: number): void {
+    if (this.auth.rol() === 'ADMIN') return;
     if (typeof Notification === 'undefined') return;
     if (Notification.permission === 'default') Notification.requestPermission();
     if (Notification.permission !== 'granted') return;

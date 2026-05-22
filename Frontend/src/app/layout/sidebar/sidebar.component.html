@@ -36,6 +36,9 @@
          (click)="close()">
         <span class="nav-icon" [innerHTML]="icon(item.icon)"></span>
         <span class="nav-label">{{ item.label }}</span>
+        @if (item.route === '/grooming' && groomingNotif.confirmadas() > 0) {
+          <span class="nav-badge">{{ groomingNotif.confirmadas() }}</span>
+        }
         <span class="nav-indicator"></span>
       </a>
     }

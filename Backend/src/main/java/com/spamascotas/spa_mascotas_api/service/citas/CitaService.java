@@ -653,6 +653,7 @@ public class CitaService {
                 .clienteCi(c.getCliente() != null ? c.getCliente().getCi() : null)
                 .mascotaId(c.getMascota() != null ? c.getMascota().getId() : null)
                 .mascotaNombre(c.getMascota() != null ? c.getMascota().getNombre() : null)
+                .mascotaFotoUrl(c.getMascota() != null ? c.getMascota().getUrlFotoMascota() : null)
                 .mascotaEspecie(c.getMascota() != null ? c.getMascota().getEspecie() : null)
                 .mascotaTamano(c.getTamanoMascota() != null ? c.getTamanoMascota()
                         : (c.getMascota() != null ? c.getMascota().getTamano() : null))

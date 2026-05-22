@@ -1,4 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import * as XLSX from 'xlsx';
+import { forkJoin, of } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
@@ -456,5 +458,42 @@ export class ClientesComponent implements OnInit {
   private showSuccessM(msg: string) {
     this.successM.set(msg);
     setTimeout(() => this.successM.set(null), 3000);
+  }
+
+  exportarClientesCSV(): void {
+    const hoy = new Date().toISOString().split('T')[0];
+    const clientes = this.clientes();
+    if (clientes.length === 0) return;
+
+    const calls = clientes.map(c => this.mascotasSvc.mascotasByCliente(c.id));
+    forkJoin(calls).subscribe({
+      next: resultados => {
+        const filasClientes: (string | number)[][] = [
+          ['Nombre', 'CI', 'Correo', 'Teléfono', 'Dirección', 'Estado'],
+        ];
+        for (const c of clientes) {
+          filasClientes.push([c.nombre ?? '', c.ci ?? '', c.correo, c.telefono ?? '', c.direccion ?? '', c.estado]);
+        }
+
+        const filasMascotas: (string | number)[][] = [
+          ['Cliente', 'CI Cliente', 'Mascota', 'Especie', 'Raza', 'Tamaño', 'Temperamento', 'Alergias', 'Estado'],
+        ];
+        resultados.forEach((mascotas, i) => {
+          const c = clientes[i];
+          for (const m of mascotas) {
+            filasMascotas.push([
+              c.nombre ?? '', c.ci ?? '', m.nombre, m.especie, m.raza ?? '',
+              m.tamano, m.temperamentoNombre ?? '', m.alergias ?? '',
+              m.activa === false ? 'Inactiva' : 'Activa',
+            ]);
+          }
+        });
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(filasClientes), 'Clientes');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(filasMascotas), 'Mascotas');
+        XLSX.writeFile(wb, `clientes-mascotas-${hoy}.xlsx`);
+      },
+    });
   }
 }

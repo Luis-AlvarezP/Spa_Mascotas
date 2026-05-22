@@ -16,12 +16,33 @@
       <h2 class="inv-title">Inventario &amp; Tienda</h2>
       <p class="inv-subtitle">Gestión de productos, categorías, promociones, cupones y ventas</p>
     </div>
+    <div class="inv-header-actions">
+      @if (adminTab() === 'productos') {
+        <button class="btn-export-csv" (click)="exportarProductosCSV()" title="Exportar productos a Excel/CSV">
+          <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+          Exportar Productos
+        </button>
+      }
+    </div>
   </div>
 
   <nav class="inv-tabs">
-    @for (t of [['productos','Productos'],['categorias','Categorías'],['promociones','Promociones'],['cupones','Cupones']]; track t[0]) {
+    <button class="inv-tab" [class.active]="adminTab() === 'productos'" (click)="adminTab.set('productos')">
+      Productos
+      @if (stockNotif.productos().length > 0) { <span class="tab-badge">{{ stockNotif.productos().length }}</span> }
+    </button>
+    @for (t of [['categorias','Categorías'],['promociones','Promociones'],['cupones','Cupones']]; track t[0]) {
       <button class="inv-tab" [class.active]="adminTab() === t[0]" (click)="adminTab.set($any(t[0]))">{{ t[1] }}</button>
     }
+    <button class="inv-tab" [class.active]="adminTab() === 'pedidos'" (click)="adminTab.set('pedidos'); loadPedidosAdmin()">
+      Pedidos
+      @if (pedidoNotif.pendientes() > 0) { <span class="tab-badge">{{ pedidoNotif.pendientes() }}</span> }
+    </button>
+    <button class="inv-tab" [class.active]="adminTab() === 'insumos'" (click)="adminTab.set('insumos'); loadCitasGrooming()">
+      Grooming
+    </button>
   </nav>
 
 
@@ -149,6 +170,109 @@
     </div>
   }
 
+  @if (adminTab() === 'pedidos') {
+    <div class="tab-filters">
+      <app-search-bar placeholder="Búsqueda por nombre y CI..." [value]="searchPedidos()" (valueChange)="searchPedidos.set($event)"></app-search-bar>
+      <div class="date-range">
+        <input type="date" class="date-input" [value]="fechaDesdePedidos()" (input)="fechaDesdePedidos.set($any($event.target).value)" title="Desde">
+        <span class="date-sep">—</span>
+        <input type="date" class="date-input" [value]="fechaHastaPedidos()" (input)="fechaHastaPedidos.set($any($event.target).value)" title="Hasta">
+      </div>
+    </div>
+    @if (pedidosAdminFiltrados().length === 0) {
+      <div class="empty-state"><p class="empty-icon">📦</p><p>No hay pedidos registrados</p></div>
+    } @else {
+      <div class="table-wrap">
+        <table class="inv-table">
+          <thead>
+            <tr><th>#Venta</th><th>Cliente</th><th>Entrega</th><th>Dirección</th><th>Productos</th><th>Total</th><th>Fecha</th><th>Estado</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (p of pedidosAdminFiltrados(); track p.id) {
+              <tr>
+                <td>#{{ p.ventaId }}</td>
+                <td>{{ p.clienteNombre ?? '—' }}<br><small>{{ p.clienteCi ? 'CI: ' + p.clienteCi : '' }}{{ p.clienteCi && p.clienteTelefono ? ' · ' : '' }}{{ p.clienteTelefono ? 'Telf: ' + p.clienteTelefono : '' }}</small></td>
+                <td>
+                  <span [class]="p.tipoEntrega === 'DOMICILIO' ? 'badge-domicilio' : 'badge-recoger'">
+                    {{ p.tipoEntrega === 'DOMICILIO' ? '🚚 Domicilio' : '🏪 Recoger' }}
+                  </span>
+                </td>
+                <td>{{ p.direccionEntrega ?? '—' }}</td>
+                <td class="td-items-resumen">{{ p.itemsResumen }}</td>
+                <td><strong>Bs. {{ p.totalFinal.toFixed(2) }}</strong></td>
+                <td class="td-fecha">{{ p.fechaVenta | date:'dd/MM/yy HH:mm' }}</td>
+                <td><span [class]="estadoPedidoClass(p.estado)">{{ p.estado }}</span></td>
+                <td class="td-actions">
+                  @if (p.estado === 'ENTREGADO') {
+                    <button class="btn-pdf" (click)="descargarReciboPedido(p)">
+                      <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13">
+                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"/>
+                      </svg>
+                      Recibo PDF
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  @if (adminTab() === 'insumos') {
+    <div class="insumos-grooming-wrap">
+      <div class="ig-header">
+        <div class="ig-header-left">
+          <span class="ig-panel-title" style="margin:0">Solicitudes de insumos</span>
+          <span class="ig-count">{{ insumosFiltrados().length }} registros</span>
+        </div>
+        <button class="btn-refresh" (click)="loadCitasGrooming()">
+          <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+          </svg>
+          Actualizar
+        </button>
+      </div>
+      <div class="tab-filters">
+        <app-search-bar placeholder="Búsqueda por nombre de groomer..." [value]="searchInsumos()" (valueChange)="searchInsumos.set($event)"></app-search-bar>
+        <div class="date-range">
+          <input type="date" class="date-input" [value]="fechaDesdeInsumos()" (input)="fechaDesdeInsumos.set($any($event.target).value)" title="Desde">
+          <span class="date-sep">—</span>
+          <input type="date" class="date-input" [value]="fechaHastaInsumos()" (input)="fechaHastaInsumos.set($any($event.target).value)" title="Hasta">
+        </div>
+      </div>
+      @if (insumosFiltrados().length === 0) {
+        <div class="ig-empty-full">No hay solicitudes de insumos registradas.</div>
+      } @else {
+        <div class="table-wrap">
+          <table class="inv-table">
+            <thead>
+              <tr>
+                <th>Groomer</th><th>Mascota</th><th>Servicio</th><th>Producto</th>
+                <th>Cant.</th><th>Estado</th><th>Notas</th><th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ins of insumosFiltrados(); track ins.id) {
+                <tr [class.row-solicitud]="ins.estado === 'SOLICITADO'">
+                  <td>{{ ins.empleadoNombre ?? '—' }}</td>
+                  <td>{{ ins.mascotaNombre ?? '—' }}</td>
+                  <td>{{ ins.servicioNombre ?? '—' }}</td>
+                  <td><strong>{{ ins.productoNombre }}</strong></td>
+                  <td>{{ ins.cantidad }}</td>
+                  <td><span class="insumo-badge" [attr.data-estado]="ins.estado">{{ estadoInsumoLabel(ins.estado) }}</span></td>
+                  <td>{{ ins.notas ?? '—' }}</td>
+                  <td class="td-fecha">{{ ins.fecha | date:'dd/MM/yy HH:mm' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
 }
 
 
@@ -167,11 +291,22 @@
 
   <nav class="inv-tabs">
     <button class="inv-tab" [class.active]="staffTab() === 'tienda'" (click)="staffTab.set('tienda')">
-      Tienda @if (cart().length > 0) { <span class="tab-badge">{{ cartCount() }}</span> }
+      Tienda
+      @if (stockNotif.productos().length > 0) {
+        <span class="tab-badge">{{ stockNotif.productos().length }}</span>
+      } @else if (cart().length > 0) {
+        <span class="tab-badge">{{ cartCount() }}</span>
+      }
     </button>
     <button class="inv-tab" [class.active]="staffTab() === 'pedidos'" (click)="staffTab.set('pedidos'); loadPedidosAdmin()">
-      Pedidos @if (pedidosAdmin().filter(p => p.estado === 'EN_ESPERA').length > 0) {
-        <span class="tab-badge">{{ pedidosAdmin().filter(p => p.estado === 'EN_ESPERA').length }}</span>
+      Pedidos @if (pedidoNotif.pendientes() > 0) {
+        <span class="tab-badge">{{ pedidoNotif.pendientes() }}</span>
+      }
+    </button>
+    <button class="inv-tab" [class.active]="staffTab() === 'insumos'" (click)="staffTab.set('insumos'); loadCitasGrooming()">
+      Grooming
+      @if (insumoNotif.pendientes() > 0) {
+        <span class="tab-badge">{{ insumoNotif.pendientes() }}</span>
       }
     </button>
   </nav>
@@ -266,16 +401,24 @@
     }
   }
   @if (staffTab() === 'pedidos') {
-    @if (pedidosAdmin().length === 0) {
+    <div class="tab-filters">
+      <app-search-bar placeholder="Búsqueda por nombre y CI..." [value]="searchPedidos()" (valueChange)="searchPedidos.set($event)"></app-search-bar>
+      <div class="date-range">
+        <input type="date" class="date-input" [value]="fechaDesdePedidos()" (input)="fechaDesdePedidos.set($any($event.target).value)" title="Desde">
+        <span class="date-sep">—</span>
+        <input type="date" class="date-input" [value]="fechaHastaPedidos()" (input)="fechaHastaPedidos.set($any($event.target).value)" title="Hasta">
+      </div>
+    </div>
+    @if (pedidosAdminFiltrados().length === 0) {
       <div class="empty-state"><p class="empty-icon">📦</p><p>No hay pedidos aún</p></div>
     } @else {
       <div class="table-wrap">
         <table class="inv-table">
           <thead>
-            <tr><th>#Venta</th><th>Cliente</th><th>Entrega</th><th>Dirección</th><th>Productos</th><th>Total</th><th>Estado</th><th></th></tr>
+            <tr><th>#Venta</th><th>Cliente</th><th>Entrega</th><th>Dirección</th><th>Productos</th><th>Total</th><th>Fecha</th><th>Estado</th><th></th></tr>
           </thead>
           <tbody>
-            @for (p of pedidosAdmin(); track p.id) {
+            @for (p of pedidosAdminFiltrados(); track p.id) {
               <tr>
                 <td>#{{ p.ventaId }}</td>
                 <td>{{ p.clienteNombre ?? '—' }}<br><small>{{ p.clienteCi ? 'CI: ' + p.clienteCi : '' }}{{ p.clienteCi && p.clienteTelefono ? ' · ' : '' }}{{ p.clienteTelefono ? 'Telf: ' + p.clienteTelefono : '' }}</small></td>
@@ -287,6 +430,7 @@
                 <td>{{ p.direccionEntrega ?? '—' }}</td>
                 <td class="td-items-resumen">{{ p.itemsResumen }}</td>
                 <td><strong>Bs. {{ p.totalFinal.toFixed(2) }}</strong></td>
+                <td class="td-fecha">{{ p.fechaVenta | date:'dd/MM/yy HH:mm' }}</td>
                 <td><span [class]="estadoPedidoClass(p.estado)">{{ p.estado }}</span></td>
                 <td class="td-actions">
                   @if (p.estado === 'EN_ESPERA') {
@@ -308,6 +452,76 @@
         </table>
       </div>
     }
+  }
+
+  @if (staffTab() === 'insumos') {
+    <div class="insumos-grooming-wrap">
+      <div class="ig-header">
+        <div class="ig-header-left">
+          <span class="ig-panel-title" style="margin:0">Solicitudes de insumos</span>
+          <span class="ig-count">{{ insumosFiltrados().length }} registros</span>
+        </div>
+        <button class="btn-refresh" (click)="loadCitasGrooming()">
+          <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+          </svg>
+          Actualizar
+        </button>
+      </div>
+
+      <div class="tab-filters">
+        <app-search-bar placeholder="Búsqueda por nombre de groomer..." [value]="searchInsumos()" (valueChange)="searchInsumos.set($event)"></app-search-bar>
+        <div class="date-range">
+          <input type="date" class="date-input" [value]="fechaDesdeInsumos()" (input)="fechaDesdeInsumos.set($any($event.target).value)" title="Desde">
+          <span class="date-sep">—</span>
+          <input type="date" class="date-input" [value]="fechaHastaInsumos()" (input)="fechaHastaInsumos.set($any($event.target).value)" title="Hasta">
+        </div>
+      </div>
+
+      @if (insumosFiltrados().length === 0) {
+        <div class="ig-empty-full">No hay solicitudes de insumos registradas.</div>
+      } @else {
+        <div class="table-wrap">
+          <table class="inv-table">
+            <thead>
+              <tr>
+                <th>Groomer</th>
+                <th>Mascota</th>
+                <th>Servicio</th>
+                <th>Producto</th>
+                <th>Cant.</th>
+                <th>Estado</th>
+                <th>Notas</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ins of insumosFiltrados(); track ins.id) {
+                <tr [class.row-solicitud]="ins.estado === 'SOLICITADO'">
+                  <td>{{ ins.empleadoNombre ?? '—' }}</td>
+                  <td>{{ ins.mascotaNombre ?? '—' }}</td>
+                  <td>{{ ins.servicioNombre ?? '—' }}</td>
+                  <td><strong>{{ ins.productoNombre }}</strong></td>
+                  <td>{{ ins.cantidad }}</td>
+                  <td><span class="insumo-badge" [attr.data-estado]="ins.estado">{{ estadoInsumoLabel(ins.estado) }}</span></td>
+                  <td>{{ ins.notas ?? '—' }}</td>
+                  <td class="td-fecha">{{ ins.fecha | date:'dd/MM/yy HH:mm' }}</td>
+                  <td>
+                    @if (ins.estado === 'SOLICITADO') {
+                      <div class="insumo-rev-actions">
+                        <button class="btn-aceptar-insumo" (click)="aceptarInsumoGrooming(ins.id)">Aceptar</button>
+                        <button class="btn-rechazar-insumo" (click)="rechazarInsumoGrooming(ins.id)">Rechazar</button>
+                      </div>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
   }
 }
 
@@ -577,6 +791,7 @@
     }
   }
 }
+
 
 
 @if (showCheckoutModal()) {
@@ -881,8 +1096,7 @@
             Productos aplicables
             <span class="field-optional">(ninguno = todos los productos)</span>
           </label>
-          <input class="inv-search" type="text" placeholder="Buscar por nombre del producto…" style="max-width:100%;margin-bottom:0.4rem"
-            [value]="promoProductoSearch()" (input)="promoProductoSearch.set($any($event.target).value)">
+          <app-search-bar placeholder="Buscar producto por nombre…" [value]="promoProductoSearch()" (valueChange)="promoProductoSearch.set($event)" style="display:block;margin-bottom:0.5rem"></app-search-bar>
           <div class="product-check-list">
             @for (p of productosParaPromo(); track p.id) {
               <label class="product-check-item">
@@ -976,8 +1190,7 @@
             Productos aplicables
             <span class="field-optional">(ninguno = todos los productos)</span>
           </label>
-          <input class="inv-search" type="text" placeholder="Buscar por nombre del producto…" style="max-width:100%;margin-bottom:0.4rem"
-            [value]="cuponProductoSearch()" (input)="cuponProductoSearch.set($any($event.target).value)">
+          <app-search-bar placeholder="Buscar producto por nombre…" [value]="cuponProductoSearch()" (valueChange)="cuponProductoSearch.set($event)" style="display:block;margin-bottom:0.5rem"></app-search-bar>
           <div class="product-check-list">
             @for (p of productosParaCupon(); track p.id) {
               <label class="product-check-item">

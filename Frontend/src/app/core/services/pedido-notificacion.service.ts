@@ -41,6 +41,7 @@ export class PedidoNotificacionService implements OnDestroy {
   }
 
   private sendDesktopNotif(n: number): void {
+    if (this.auth.rol() === 'ADMIN') return;
     if (typeof Notification === 'undefined') return;
     if (Notification.permission === 'default') Notification.requestPermission();
     if (Notification.permission === 'granted') {
