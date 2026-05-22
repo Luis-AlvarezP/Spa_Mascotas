@@ -29,8 +29,18 @@ export class InsumoNotificacionService implements OnDestroy {
       next: lista => {
         const n = lista.filter(i => i.estado === 'SOLICITADO').length;
         this.pendientes.set(n);
-        if (n > 0) this.visible.set(true);
+        if (n > 0) { this.visible.set(true); this.sendDesktopNotif(n); }
       },
+    });
+  }
+
+  private async sendDesktopNotif(n: number): Promise<void> {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission === 'default') await Notification.requestPermission();
+    if (Notification.permission !== 'granted') return;
+    new Notification('SpaMascotas — Insumos solicitados', {
+      body: `${n} insumo${n > 1 ? 's' : ''} esperando aprobación`,
+      icon: '/favicon.ico',
     });
   }
 

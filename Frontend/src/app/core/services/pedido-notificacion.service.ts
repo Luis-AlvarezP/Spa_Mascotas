@@ -40,16 +40,14 @@ export class PedidoNotificacionService implements OnDestroy {
     });
   }
 
-  private sendDesktopNotif(n: number): void {
-    if (this.auth.rol() === 'ADMIN') return;
+  private async sendDesktopNotif(n: number): Promise<void> {
     if (typeof Notification === 'undefined') return;
-    if (Notification.permission === 'default') Notification.requestPermission();
-    if (Notification.permission === 'granted') {
-      new Notification('SpaMascotas — Pedidos pendientes', {
-        body: `${n} pedido${n > 1 ? 's' : ''} en espera de entrega`,
-        icon: '/favicon.ico',
-      });
-    }
+    if (Notification.permission === 'default') await Notification.requestPermission();
+    if (Notification.permission !== 'granted') return;
+    new Notification('SpaMascotas — Pedidos pendientes', {
+      body: `${n} pedido${n > 1 ? 's' : ''} en espera de entrega`,
+      icon: '/favicon.ico',
+    });
   }
 
   ngOnDestroy(): void {

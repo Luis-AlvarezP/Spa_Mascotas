@@ -27,7 +27,8 @@ export class GroomingNotificacionService implements OnDestroy {
     }
     this.citaSvc.misServicios().subscribe({
       next: lista => {
-        const count = lista.filter(c => c.estado === 'ACEPTADO').length;
+        const hoy = new Date().toISOString().slice(0, 10);
+        const count = lista.filter(c => c.estado === 'ACEPTADO' && c.fechaHoraInicio?.slice(0, 10) === hoy).length;
         this.confirmadas.set(count);
         if (count > 0) {
           this.visible.set(true);
@@ -37,10 +38,9 @@ export class GroomingNotificacionService implements OnDestroy {
     });
   }
 
-  private sendDesktopNotif(count: number): void {
-    if (this.auth.rol() === 'ADMIN') return;
+  private async sendDesktopNotif(count: number): Promise<void> {
     if (typeof Notification === 'undefined') return;
-    if (Notification.permission === 'default') Notification.requestPermission();
+    if (Notification.permission === 'default') await Notification.requestPermission();
     if (Notification.permission !== 'granted') return;
     new Notification('SpaMascotas — Servicios pendientes', {
       body: `Tienes ${count} servicio${count > 1 ? 's' : ''} por atender`,
