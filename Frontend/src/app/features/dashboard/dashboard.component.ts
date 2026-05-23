@@ -21,6 +21,97 @@ interface GroomerProductividad {
   insumos: InsumoHoy[];
 }
 
+interface CitaHoy {
+  citaId: number;
+  clienteNombre: string;
+  clienteCi: string | null;
+  mascotaNombre: string;
+  mascotaEspecie: string | null;
+  mascotaTamano: string | null;
+  mascotaTemperamento: string | null;
+  servicio: string;
+  groomer: string;
+  horaInicio: string;
+  horaFin: string;
+  estado: string;
+  motivoCancelacion: string | null;
+}
+
+interface MovimientoCaja {
+  tipo: string;
+  descripcion: string;
+  clienteNombre: string;
+  clienteCi: string | null;
+  metodoPago: string;
+  monto: number;
+  hora: string;
+}
+
+interface AdminMovimiento {
+  fecha: string;
+  tipo: string;
+  descripcion: string;
+  clienteNombre: string;
+  clienteCi: string | null;
+  metodoPago: string;
+  monto: number;
+}
+
+interface RankingItem {
+  nombre: string;
+  cantidad: number;
+  totalIngresos: number;
+}
+
+interface AdminVentas {
+  totalServicios: number;
+  totalProductos: number;
+  totalGeneral: number;
+  porMetodoPago: Record<string, number>;
+  movimientos: AdminMovimiento[];
+  rankingServicios: RankingItem[];
+  rankingProductos: RankingItem[];
+}
+
+interface GroomerStats {
+  id: number;
+  nombre: string;
+  promedio: number;
+  total: number;
+}
+
+interface CalificacionItem {
+  id: number;
+  groomer: string;
+  puntuacion: number;
+  comentario: string | null;
+  fecha: string;
+  mascota: string;
+  servicio: string;
+  cliente: string;
+}
+
+interface AdminCalificaciones {
+  groomers: GroomerStats[];
+  calificaciones: CalificacionItem[];
+  promedioGeneral: number;
+  totalCalificaciones: number;
+}
+
+interface CajaDiaria {
+  totalServicios: number;
+  totalProductos: number;
+  totalGeneral: number;
+  porMetodoPago: Record<string, number>;
+  movimientos: MovimientoCaja[];
+}
+
+interface RecepcionDashboard {
+  cronograma: CitaHoy[];
+  canceladas: CitaHoy[];
+  caja: CajaDiaria;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -29,13 +120,17 @@ interface GroomerProductividad {
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
+  protected readonly Math   = Math;
+  protected readonly Object = Object;
+
   auth     = inject(AuthService);
   http     = inject(HttpClient);
   citaSvc  = inject(CitaService);
 
-  isAdmin   = computed(() => this.auth.rol() === 'ADMIN');
-  isCliente = computed(() => this.auth.rol() === 'CLIENTE');
-  isGroomer = computed(() => this.auth.rol() === 'GROOMER');
+  isAdmin      = computed(() => this.auth.rol() === 'ADMIN');
+  isCliente    = computed(() => this.auth.rol() === 'CLIENTE');
+  isGroomer    = computed(() => this.auth.rol() === 'GROOMER');
+  isRecepcion  = computed(() => this.auth.rol() === 'RECEPCION');
 
   nombre = computed(() => {
     const u = this.auth.usuario();
@@ -46,11 +141,24 @@ export class DashboardComponent implements OnInit {
   clienteInfo        = signal<ClienteInfo | null>(null);
   proximaCita        = signal<CitaResponse | null>(null);
   groomerProduc      = signal<GroomerProductividad | null>(null);
+  recepcionDash      = signal<RecepcionDashboard | null>(null);
+  adminVentas        = signal<AdminVentas | null>(null);
+  adminCalifs        = signal<AdminCalificaciones | null>(null);
+  adminFiltroDesde   = signal('');
+  adminFiltroHasta   = signal('');
+  adminGroomerId     = signal<number | null>(null);
+  mostrarMovimientos = signal(false);
 
   fechaBolivia = (() => {
     const f = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
     return f.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   })();
+
+  metodosOrdenados = computed(() => {
+    const caja = this.recepcionDash()?.caja;
+    if (!caja) return [];
+    return Object.entries(caja.porMetodoPago).sort((a, b) => b[1] - a[1]);
+  });
 
   ngOnInit(): void {
     if (this.isCliente()) {
@@ -72,6 +180,102 @@ export class DashboardComponent implements OnInit {
         next: p => this.groomerProduc.set(p),
       });
     }
+    if (this.isRecepcion()) {
+      this.http.get<RecepcionDashboard>('/api/recepcion/dashboard').subscribe({
+        next: d => this.recepcionDash.set(d),
+      });
+    }
+    if (this.isAdmin()) {
+      this.loadAdminVentas();
+      this.loadAdminCalificaciones();
+    }
+  }
+
+  loadAdminVentas(): void {
+    const desde = this.adminFiltroDesde();
+    const hasta = this.adminFiltroHasta();
+    const params: string[] = [];
+    if (desde) params.push(`desde=${desde}`);
+    if (hasta) params.push(`hasta=${hasta}`);
+    const url = '/api/admin/reportes/ventas' + (params.length ? '?' + params.join('&') : '');
+    this.http.get<AdminVentas>(url).subscribe({ next: v => this.adminVentas.set(v) });
+  }
+
+  loadAdminCalificaciones(): void {
+    const id = this.adminGroomerId();
+    const url = id ? `/api/admin/reportes/calificaciones?empleadoId=${id}` : '/api/admin/reportes/calificaciones';
+    this.http.get<AdminCalificaciones>(url).subscribe({ next: c => this.adminCalifs.set(c) });
+  }
+
+  aplicarFiltroAdmin(desde: string, hasta: string): void {
+    this.adminFiltroDesde.set(desde);
+    this.adminFiltroHasta.set(hasta);
+    this.loadAdminVentas();
+  }
+
+  limpiarFiltroAdmin(inputDesde: HTMLInputElement, inputHasta: HTMLInputElement): void {
+    inputDesde.value = '';
+    inputHasta.value = '';
+    this.adminFiltroDesde.set('');
+    this.adminFiltroHasta.set('');
+    this.loadAdminVentas();
+  }
+
+  seleccionarGroomer(val: string): void {
+    this.adminGroomerId.set(val ? +val : null);
+    this.loadAdminCalificaciones();
+  }
+
+  estrellas(n: number): string {
+    return '★'.repeat(n) + '☆'.repeat(5 - n);
+  }
+
+  fmtFiltroFecha(iso: string): string {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  exportarVentasAdmin(): void {
+    const v = this.adminVentas();
+    if (!v) return;
+    const hoyFmt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' }))
+      .toLocaleDateString('es-ES');
+    const desde = this.adminFiltroDesde();
+    const hasta = this.adminFiltroHasta();
+    const periodo = desde && hasta ? `${desde} al ${hasta}` : 'Todo el tiempo';
+
+    const aoa: (string | number | null)[][] = [
+      ['REPORTE DE VENTAS — SpaMascotas'],
+      ['Generado:', hoyFmt],
+      ['Período:', periodo],
+      [],
+      ['RESUMEN'],
+      ['Total servicios grooming:', v.totalServicios],
+      ['Total productos tienda:', v.totalProductos],
+      ['TOTAL GENERAL:', v.totalGeneral],
+      [],
+      ['POR MÉTODO DE PAGO'],
+      ['Método', 'Total (Bs.)'],
+      ...Object.entries(v.porMetodoPago).map(([k, val]) => [k, val]),
+      [],
+      ['RANKING — TOP SERVICIOS'],
+      ['Servicio', 'Cantidad', 'Total Bs.'],
+      ...v.rankingServicios.map(r => [r.nombre, r.cantidad, r.totalIngresos]),
+      [],
+      ['RANKING — TOP PRODUCTOS'],
+      ['Producto', 'Unidades', 'Total Bs.'],
+      ...v.rankingProductos.map(r => [r.nombre, r.cantidad, r.totalIngresos]),
+      [],
+      ['DETALLE DE MOVIMIENTOS'],
+      ['Fecha', 'Tipo', 'Descripción', 'Cliente', 'CI', 'Método de pago', 'Monto (Bs.)'],
+      ...v.movimientos.map(m => [m.fecha, m.tipo, m.descripcion, m.clienteNombre, m.clienteCi ?? '—', m.metodoPago, m.monto]),
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
+    XLSX.writeFile(wb, `reporte-ventas-${hoyFmt.replace(/\//g, '-')}.xlsx`);
   }
 
   progresoDescuento(): number {
@@ -94,6 +298,27 @@ export class DashboardComponent implements OnInit {
 
   estadoLabel(estado: string): string {
     return estado === 'ACEPTADO' ? 'Confirmada' : 'En revisión';
+  }
+
+  estadoCronogramaLabel(estado: string): string {
+    const m: Record<string, string> = {
+      EN_REVISION: 'En revisión', ACEPTADO: 'Confirmada', PENDIENTE_PAGO: 'Por cobrar',
+    };
+    return m[estado] ?? estado;
+  }
+
+  estadoCronogramaClass(estado: string): string {
+    const m: Record<string, string> = {
+      EN_REVISION: 'cr-rev', ACEPTADO: 'cr-ok', PENDIENTE_PAGO: 'cr-pay',
+    };
+    return m[estado] ?? '';
+  }
+
+  metodoPagoIcon(metodo: string): string {
+    const m: Record<string, string> = {
+      QR: '▦', EFECTIVO: '💵', TRANSFERENCIA: '⇄', TARJETA: '▭', 'SIN ESPECIFICAR': '?',
+    };
+    return m[metodo] ?? '·';
   }
 
   exportarExcel(tipo: 'servicios' | 'insumos'): void {
@@ -143,5 +368,53 @@ export class DashboardComponent implements OnInit {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
     XLSX.writeFile(wb, nombreArchivo);
+  }
+
+  exportarCancelaciones(): void {
+    const d = this.recepcionDash();
+    if (!d) return;
+    const hoyFmt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' }))
+      .toLocaleDateString('es-ES');
+    const aoa: (string | number | null)[][] = [
+      ['CANCELACIONES DEL DÍA'],
+      ['Fecha:', hoyFmt],
+      [`${d.canceladas.length} cancelación${d.canceladas.length !== 1 ? 'es' : ''}`],
+      [],
+      ['Hora', 'Cliente', 'CI', 'Mascota', 'Servicio', 'Motivo'],
+      ...d.canceladas.map(c => [c.horaInicio, c.clienteNombre, c.clienteCi ?? '—', c.mascotaNombre, c.servicio, c.motivoCancelacion ?? '—']),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Cancelaciones');
+    XLSX.writeFile(wb, `cancelaciones-${hoyFmt.replace(/\//g, '-')}.xlsx`);
+  }
+
+  exportarCaja(): void {
+    const d = this.recepcionDash();
+    if (!d) return;
+    const hoyFmt = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' }))
+      .toLocaleDateString('es-ES');
+
+    const resumen: (string | number)[][] = [
+      ['CIERRE DE CAJA DIARIO'],
+      ['Fecha:', hoyFmt],
+      [],
+      ['TOTALES POR MÉTODO DE PAGO'],
+      ['Método', 'Total (Bs.)'],
+      ...Object.entries(d.caja.porMetodoPago).map(([k, v]) => [k, v]),
+      [],
+      ['Total servicios:', d.caja.totalServicios],
+      ['Total productos:', d.caja.totalProductos],
+      ['TOTAL GENERAL:', d.caja.totalGeneral],
+      [],
+      ['DETALLE DE MOVIMIENTOS'],
+      ['Hora', 'Tipo', 'Descripción', 'Cliente', 'CI', 'Método de pago', 'Monto (Bs.)'],
+      ...d.caja.movimientos.map(m => [m.hora, m.tipo, m.descripcion, m.clienteNombre, m.clienteCi ?? '—', m.metodoPago, m.monto]),
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(resumen);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Caja');
+    XLSX.writeFile(wb, `caja-${hoyFmt.replace(/\//g, '-')}.xlsx`);
   }
 }

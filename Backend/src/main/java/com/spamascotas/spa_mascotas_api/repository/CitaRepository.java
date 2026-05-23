@@ -87,4 +87,37 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     List<Cita> findRealizadasByGroomerEntre(@Param("empleadoId") Long empleadoId,
                                              @Param("inicio") LocalDateTime inicio,
                                              @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado = 'ACEPTADO' " +
+           "AND c.fechaHoraInicio >= :inicio AND c.fechaHoraInicio < :fin " +
+           "ORDER BY c.fechaHoraInicio")
+    List<Cita> findCronogramaHoy(@Param("inicio") LocalDateTime inicio,
+                                  @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado = 'CANCELADO' " +
+           "AND c.fechaHoraInicio >= :inicio AND c.fechaHoraInicio < :fin " +
+           "ORDER BY c.fechaHoraInicio")
+    List<Cita> findCanceladasHoy(@Param("inicio") LocalDateTime inicio,
+                                  @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado = 'REALIZADO' " +
+           "AND c.fechaHoraInicio >= :inicio AND c.fechaHoraInicio < :fin " +
+           "ORDER BY c.fechaHoraInicio")
+    List<Cita> findRealizadasHoy(@Param("inicio") LocalDateTime inicio,
+                                  @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT c FROM Cita c WHERE c.estado = 'REALIZADO' ORDER BY c.fechaHoraInicio")
+    List<Cita> findTodasRealizadas();
+
+    @Query("SELECT c.servicio.nombre, COUNT(c), SUM(c.precioFinal) FROM Cita c " +
+           "WHERE c.estado = 'REALIZADO' AND c.servicio IS NOT NULL " +
+           "GROUP BY c.servicio.nombre ORDER BY SUM(c.precioFinal) DESC")
+    List<Object[]> rankingServiciosTodo();
+
+    @Query("SELECT c.servicio.nombre, COUNT(c), SUM(c.precioFinal) FROM Cita c " +
+           "WHERE c.estado = 'REALIZADO' AND c.servicio IS NOT NULL " +
+           "AND c.fechaHoraInicio >= :desde AND c.fechaHoraInicio < :hasta " +
+           "GROUP BY c.servicio.nombre ORDER BY SUM(c.precioFinal) DESC")
+    List<Object[]> rankingServiciosEntre(@Param("desde") LocalDateTime desde,
+                                          @Param("hasta") LocalDateTime hasta);
 }
