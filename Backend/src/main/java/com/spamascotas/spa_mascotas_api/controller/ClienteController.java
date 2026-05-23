@@ -1,6 +1,7 @@
 package com.spamascotas.spa_mascotas_api.controller;
 
 import com.spamascotas.spa_mascotas_api.dto.response.ClienteAdminResponse;
+import com.spamascotas.spa_mascotas_api.dto.response.ClienteInfoResponse;
 import com.spamascotas.spa_mascotas_api.service.admin.AdminClienteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,12 @@ import java.util.List;
 public class ClienteController {
 
     private final AdminClienteService adminClienteService;
+
+    @GetMapping("/mi-info")
+    @PreAuthorize("hasAuthority('ROLE_CLIENTE')")
+    public ResponseEntity<ClienteInfoResponse> miInfo(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(adminClienteService.getMiInfo(user.getUsername()));
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','RECEPCION','GROOMER')")

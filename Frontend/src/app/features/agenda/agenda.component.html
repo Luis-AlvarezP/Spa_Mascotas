@@ -287,6 +287,11 @@
                           {{ savingCitaStaff() === c.id ? '...' : 'Cobrar' }}
                         </button>
                       }
+                      @if (c.estado === 'ACEPTADO') {
+                        <button class="btn-rechazar btn-sm" (click)="openCancelarStaff(c)">
+                          Cancelar cita
+                        </button>
+                      }
                     }
                     @if (c.estado === 'REALIZADO') {
                       <button class="btn-pdf btn-sm" (click)="descargarReciboCita(c)">
@@ -1200,6 +1205,57 @@
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
               </svg>
               {{ savingCobro() ? 'Procesando...' : 'Confirmar cobro y descargar recibo' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  @if (showCancelarStaffModal()) {
+    <div class="modal-overlay" (click)="closeCancelarStaff()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <h3>Cancelar cita</h3>
+          <button class="modal-close" (click)="closeCancelarStaff()">✕</button>
+        </div>
+        <div class="modal-form">
+          @if (citaEnAccion(); as c) {
+            <p class="rechazar-info">
+              Cita de <strong>{{ c.clienteNombre ?? '—' }}</strong> —
+              {{ c.mascotaNombre }} · {{ formatDT(c.fechaHoraInicio) }}
+            </p>
+          }
+          <div class="form-group">
+            <label class="form-label">Motivo de cancelación *</label>
+            <select class="form-select"
+                    [value]="motivoStaffTipo()"
+                    (change)="motivoStaffTipo.set($any($event.target).value)">
+              <option value="inasistencia">No asistió</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          @if (motivoStaffTipo() === 'otro') {
+            <div class="form-group">
+              <label class="form-label">Descripción del motivo *</label>
+              <textarea class="form-input form-textarea" rows="3"
+                        [value]="motivoStaffTexto()"
+                        (input)="motivoStaffTexto.set($any($event.target).value)"
+                        placeholder="Explica brevemente el motivo..."></textarea>
+            </div>
+          }
+          @if (motivoStaffTipo() === 'inasistencia') {
+            <p class="cancel-staff-warn">
+              Se aplicará un recargo del <strong>10%</strong> sobre el siguiente servicio del cliente y se le notificará por correo.
+            </p>
+          }
+          <div class="modal-footer">
+            <button type="button" class="btn-ghost" (click)="closeCancelarStaff()">Volver</button>
+            <button type="button" class="btn-rechazar-confirm"
+                    [disabled]="(motivoStaffTipo() === 'otro' && !motivoStaffTexto().trim()) || savingCancelarStaff()"
+                    (click)="submitCancelarStaff()">
+              {{ savingCancelarStaff() ? 'Procesando...' : 'Confirmar cancelación' }}
             </button>
           </div>
         </div>

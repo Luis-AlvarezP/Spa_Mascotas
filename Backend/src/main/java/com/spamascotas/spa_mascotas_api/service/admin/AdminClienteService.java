@@ -1,16 +1,19 @@
 package com.spamascotas.spa_mascotas_api.service.admin;
 
 import com.spamascotas.spa_mascotas_api.dto.response.ClienteAdminResponse;
+import com.spamascotas.spa_mascotas_api.dto.response.ClienteInfoResponse;
 import com.spamascotas.spa_mascotas_api.model.Cliente;
 import com.spamascotas.spa_mascotas_api.model.enums.EstadoUsuario;
 import com.spamascotas.spa_mascotas_api.model.enums.TipoAccion;
 import com.spamascotas.spa_mascotas_api.repository.ClientePreferenciaRepository;
 import com.spamascotas.spa_mascotas_api.repository.ClienteRepository;
+import com.spamascotas.spa_mascotas_api.repository.PedidoRepository;
 import com.spamascotas.spa_mascotas_api.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,7 +25,25 @@ public class AdminClienteService {
     private final ClienteRepository clienteRepository;
     private final UsuarioRepository usuarioRepository;
     private final ClientePreferenciaRepository preferenciaRepository;
+    private final PedidoRepository pedidoRepository;
     private final AuditService auditService;
+
+    @Transactional(readOnly = true)
+    public ClienteInfoResponse getMiInfo(String correo) {
+        Cliente cliente = clienteRepository.findByUsuarioCorreo(correo)
+            .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+        long entregados = pedidoRepository.countByVentaClienteIdAndEstado(cliente.getId(), "ENTREGADO");
+        int descPct = (int) Math.min(5, entregados / 10);
+        int faltantes = descPct < 5 ? (int)(10 - (entregados % 10)) : 0;
+        BigDecimal pen = cliente.getPenalizacionPorcentaje() != null
+            ? cliente.getPenalizacionPorcentaje() : BigDecimal.ZERO;
+        return ClienteInfoResponse.builder()
+            .descuentoPct(descPct)
+            .pedidosEntregados(entregados)
+            .pedidosParaSiguienteNivel(faltantes)
+            .penalizacionPct(pen)
+            .build();
+    }
 
     @Transactional(readOnly = true)
     public List<ClienteAdminResponse> listarClientes() {

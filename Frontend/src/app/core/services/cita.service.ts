@@ -121,6 +121,11 @@ export interface CancelacionRequest {
   motivo: string;
 }
 
+export interface CancelacionStaffRequest {
+  esInasistencia: boolean;
+  motivo?: string;
+}
+
 export interface ReprogramarRequest {
   fechaHoraInicio: string;
   notas?: string;
@@ -185,6 +190,10 @@ export class CitaService {
 
   rechazar(id: number, motivo: string): Observable<CitaResponse> {
     return this.http.patch<CitaResponse>(`${this.base}/${id}/rechazar`, { motivo });
+  }
+
+  cancelarStaff(id: number, req: CancelacionStaffRequest): Observable<CitaResponse> {
+    return this.http.patch<CitaResponse>(`${this.base}/${id}/cancelar-staff`, req);
   }
 
   historialMascota(mascotaId: number): Observable<HistorialCitaResponse[]> {

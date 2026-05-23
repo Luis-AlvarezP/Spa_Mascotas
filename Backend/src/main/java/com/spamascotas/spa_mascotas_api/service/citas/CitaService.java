@@ -1,6 +1,7 @@
 package com.spamascotas.spa_mascotas_api.service.citas;
 
 import com.spamascotas.spa_mascotas_api.dto.request.CancelacionRequest;
+import com.spamascotas.spa_mascotas_api.dto.request.CancelacionStaffRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.CitaRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.CobrarRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.RechazarRequest;
@@ -471,6 +472,64 @@ public class CitaService {
                     fmtDT(cita.getFechaHoraInicio()), req.getMotivo());
         } catch (Exception e) { log.warn("Email rechazar: {}", e.getMessage()); }
         sseEventService.notifyCitaChange();
+        return resp;
+    }
+
+    // ── Cancelar por staff (Recepcion/Admin) ─────────────────
+
+    @Transactional
+    public CitaResponse cancelarPorStaff(Long id, CancelacionStaffRequest req) {
+        Cita cita = getCita(id);
+        if (!"ACEPTADO".equals(cita.getEstado())) {
+            throw new RuntimeException("Solo se pueden cancelar citas en estado ACEPTADO");
+        }
+        Cliente cliente = cita.getCliente();
+        boolean clienteModificado = false;
+
+        // Transferir el recargo que ya tenía esta cita a la próxima o acumularlo en la penalización
+        BigDecimal recargoCita = cita.getRecargoPorcentaje() != null ? cita.getRecargoPorcentaje() : BigDecimal.ZERO;
+        if (recargoCita.compareTo(BigDecimal.ZERO) > 0) {
+            List<Cita> proximas = citaRepo.findProximaActivaByCliente(cliente.getId(), id);
+            if (!proximas.isEmpty()) {
+                Cita proxima = proximas.get(0);
+                proxima.setRecargoPorcentaje(recargoCita);
+                citaRepo.save(proxima);
+            } else {
+                BigDecimal pen = cliente.getPenalizacionPorcentaje() == null
+                        ? BigDecimal.ZERO : cliente.getPenalizacionPorcentaje();
+                cliente.setPenalizacionPorcentaje(pen.add(recargoCita));
+                clienteModificado = true;
+            }
+        }
+
+        // Si es inasistencia, sumar +10% adicional sobre lo que ya tenga acumulado
+        if (req.isEsInasistencia()) {
+            BigDecimal pen = cliente.getPenalizacionPorcentaje() == null
+                    ? BigDecimal.ZERO : cliente.getPenalizacionPorcentaje();
+            cliente.setPenalizacionPorcentaje(pen.add(new BigDecimal("10")));
+            clienteModificado = true;
+        }
+
+        if (clienteModificado) {
+            clienteRepo.save(cliente);
+        }
+
+        String motivoFinal = req.isEsInasistencia()
+                ? "No asistió al servicio"
+                : (req.getMotivo() != null && !req.getMotivo().isBlank() ? req.getMotivo() : "Sin motivo especificado");
+        cita.setEstado("CANCELADO");
+        cita.setMotivoCancelacion(motivoFinal);
+        CitaResponse resp = toResponse(citaRepo.save(cita));
+        try {
+            String emailMotivo = req.isEsInasistencia()
+                    ? "No asistió al servicio. Se ha aplicado un recargo del 10% sobre tu siguiente cita de grooming."
+                    : "Motivo: " + motivoFinal;
+            emailService.enviarCitaCancelada(
+                    cliente.getUsuario().getCorreo(), cliente.getNombre(),
+                    cita.getServicio().getNombre(), fmtDT(cita.getFechaHoraInicio()), emailMotivo);
+        } catch (Exception e) { log.warn("Email cancelar staff: {}", e.getMessage()); }
+        sseEventService.notifyCitaChange();
+        sseEventService.notifyGroomingChange();
         return resp;
     }
 

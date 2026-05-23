@@ -1,6 +1,7 @@
 package com.spamascotas.spa_mascotas_api.controller.citas;
 
 import com.spamascotas.spa_mascotas_api.dto.request.CancelacionRequest;
+import com.spamascotas.spa_mascotas_api.dto.request.CancelacionStaffRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.CitaRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.CobrarRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.RechazarRequest;
@@ -109,5 +110,11 @@ public class CitaController {
     @PreAuthorize("hasAuthority('ROLE_RECEPCION') or hasAuthority('ROLE_ADMIN')")
     public CitaResponse rechazar(@PathVariable Long id, @Valid @RequestBody RechazarRequest req) {
         return service.rechazar(id, req);
+    }
+
+    @PatchMapping("/{id}/cancelar-staff")
+    @PreAuthorize("hasAuthority('ROLE_RECEPCION') or hasAuthority('ROLE_ADMIN')")
+    public CitaResponse cancelarStaff(@PathVariable Long id, @RequestBody CancelacionStaffRequest req) {
+        return service.cancelarPorStaff(id, req);
     }
 }

@@ -6,6 +6,7 @@ import { GroomingNotificacionService } from '../../core/services/grooming-notifi
 import { CitaNotificacionService } from '../../core/services/cita-notificacion.service';
 import { PedidoNotificacionService } from '../../core/services/pedido-notificacion.service';
 import { InsumoNotificacionService } from '../../core/services/insumo-notificacion.service';
+import { StockNotificacionService } from '../../core/services/stock-notificacion.service';
 
 interface NavItem {
   label: string;
@@ -42,6 +43,11 @@ export class SidebarComponent {
   citaNotif     = inject(CitaNotificacionService);
   pedidoNotif   = inject(PedidoNotificacionService);
   insumoNotif   = inject(InsumoNotificacionService);
+  stockNotif    = inject(StockNotificacionService);
+
+  inventarioBadge = computed(() =>
+    this.pedidoNotif.pendientes() + this.insumoNotif.pendientes() + this.stockNotif.productos().length
+  );
 
   navItems = computed(() => {
     const rol = this.auth.rol() ?? '';

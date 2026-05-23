@@ -8,7 +8,7 @@ import {
   AgendaService, Bloqueo, BloqueoRequest,
   GroomerResponse, HorarioRequest, HorarioTrabajo,
 } from '../../core/services/agenda.service';
-import { CitaService, CitaResponse, ServicioResponse, SlotResponse, GroomerBasicResponse, HistorialCitaResponse } from '../../core/services/cita.service';
+import { CitaService, CitaResponse, ServicioResponse, SlotResponse, GroomerBasicResponse, HistorialCitaResponse, CancelacionStaffRequest } from '../../core/services/cita.service';
 import { CitaNotificacionService } from '../../core/services/cita-notificacion.service';
 import { GroomingNotificacionService } from '../../core/services/grooming-notificacion.service';
 import { MascotasService, MascotaResponse } from '../../core/services/mascotas.service';
@@ -145,13 +145,17 @@ export class AgendaComponent implements OnInit {
   estrellas              = [1, 2, 3, 4, 5];
   lightboxUrl            = signal<string | null>(null);
 
-  showCobrarModal  = signal(false);
-  showRechazarModal = signal(false);
-  citaEnAccion     = signal<CitaResponse | null>(null);
-  metodoPago       = signal<string>('EFECTIVO');
-  motivoRechazo    = signal<string>('');
-  savingCobro      = signal(false);
-  savingRechazo    = signal(false);
+  showCobrarModal        = signal(false);
+  showRechazarModal      = signal(false);
+  showCancelarStaffModal = signal(false);
+  citaEnAccion           = signal<CitaResponse | null>(null);
+  metodoPago             = signal<string>('EFECTIVO');
+  motivoRechazo          = signal<string>('');
+  motivoStaffTipo        = signal<'inasistencia' | 'otro'>('inasistencia');
+  motivoStaffTexto       = signal<string>('');
+  savingCobro            = signal(false);
+  savingRechazo          = signal(false);
+  savingCancelarStaff    = signal(false);
 
   loadingCitas        = signal(false);
   loadingSlots        = signal(false);
@@ -516,6 +520,37 @@ export class AgendaComponent implements OnInit {
     });
   }
 
+  openCancelarStaff(c: CitaResponse) {
+    this.citaEnAccion.set(c);
+    this.motivoStaffTipo.set('inasistencia');
+    this.motivoStaffTexto.set('');
+    this.showCancelarStaffModal.set(true);
+  }
+
+  closeCancelarStaff() { this.showCancelarStaffModal.set(false); this.citaEnAccion.set(null); }
+
+  submitCancelarStaff() {
+    const cita = this.citaEnAccion();
+    if (!cita || this.savingCancelarStaff()) return;
+    const esInasistencia = this.motivoStaffTipo() === 'inasistencia';
+    if (!esInasistencia && !this.motivoStaffTexto().trim()) return;
+    const req: CancelacionStaffRequest = {
+      esInasistencia,
+      motivo: esInasistencia ? undefined : this.motivoStaffTexto().trim(),
+    };
+    this.savingCancelarStaff.set(true);
+    this.citaSvc.cancelarStaff(cita.id, req).subscribe({
+      next: () => {
+        this.closeCancelarStaff();
+        this.loadTodasCitas();
+        this.citaNotif.refresh();
+        this.showSuccess('Cita cancelada');
+        this.savingCancelarStaff.set(false);
+      },
+      error: e => { this.error.set(e.error?.message ?? 'Error al cancelar'); this.savingCancelarStaff.set(false); },
+    });
+  }
+
   descargarReciboCita(c: CitaResponse) {
     const doc = new jsPDF({ format: 'a5', unit: 'mm' });
     const W = doc.internal.pageSize.getWidth();
@@ -803,20 +838,21 @@ export class AgendaComponent implements OnInit {
   }
 
   policyMsg(cita: CitaResponse, accion: 'cancelar' | 'reprogramar'): string {
+    const AVISO_COMUN = 'Recuerda: cancelar con menos de 24 h de anticipación genera un recargo del 5% en tu siguiente servicio. Si no asistes a la cita confirmada, se aplicará un recargo adicional del 10%.';
     if (cita.estado === 'EN_REVISION') {
       return accion === 'cancelar'
-        ? 'Tu cita está en revisión. Una vez confirmada, podrás cancelarla sin cargo si lo haces con más de 24 horas de anticipación.'
-        : 'Tu cita está en revisión. Una vez confirmada, podrás reprogramarla sin cargo si lo haces con más de 24 horas de anticipación.';
+        ? `Tu cita está en revisión y aún puedes cancelarla sin cargo. ${AVISO_COMUN}`
+        : `Tu cita está en revisión y aún puedes reprogramarla sin cargo. ${AVISO_COMUN}`;
     }
     const horas = this.horasHastaCita(cita.fechaHoraInicio as unknown as string);
     if (horas < 24) {
       return accion === 'cancelar'
-        ? 'Estás cancelando con menos de 24 horas de anticipación. Se aplicará un cargo adicional del 5% sobre tu siguiente servicio.'
-        : 'Estás reprogramando con menos de 24 horas de anticipación. Se aplicará un cargo adicional del 5% sobre tu siguiente servicio.';
+        ? `Estás cancelando con menos de 24 horas de anticipación. Se aplicará un recargo del 5% en tu siguiente servicio. Si además no asistes, se sumará un 10% adicional.`
+        : `Estás reprogramando con menos de 24 horas de anticipación. Se aplicará un recargo del 5% en tu siguiente servicio. Si además no asistes a la nueva cita, se sumará un 10% adicional.`;
     }
     return accion === 'cancelar'
-      ? `Tienes ${Math.floor(horas)}h para cancelar sin cargos. Cancelaciones con menos de 24h generan un recargo del 5%.`
-      : `Tienes ${Math.floor(horas)}h para reprogramar sin cargos. Cambios con menos de 24h generan un recargo del 5%.`;
+      ? `Tienes ${Math.floor(horas)}h para cancelar sin cargos. ${AVISO_COMUN}`
+      : `Tienes ${Math.floor(horas)}h para reprogramar sin cargos. ${AVISO_COMUN}`;
   }
 
   duracionBreakdown(): { label: string; valor: string }[] {

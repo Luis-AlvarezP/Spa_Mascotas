@@ -3,7 +3,7 @@
   min-height: 100vh;
   background: var(--bg-base);
   padding: 2rem;
-  animation: fadeUp 0.4s var(--t-slow) both;
+  animation: fadeUp 0.4s var(--t-slow) backwards;
   @media (max-width: 768px) { padding: 1rem; }
 }
 
@@ -947,6 +947,13 @@
   padding: 0.65rem 0.9rem; border-radius: var(--r-md);
   background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
   strong { color: var(--text); }
+}
+
+.cancel-staff-warn {
+  font-size: 0.82rem; color: #fbbf24; margin: 0.25rem 0 0;
+  padding: 0.6rem 0.9rem; border-radius: var(--r-md);
+  background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.25);
+  strong { color: #fcd34d; }
 }
 
 // ── Historial groomer ─────────────────────────────────────

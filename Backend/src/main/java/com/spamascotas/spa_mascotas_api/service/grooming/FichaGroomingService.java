@@ -3,6 +3,7 @@ package com.spamascotas.spa_mascotas_api.service.grooming;
 import com.spamascotas.spa_mascotas_api.dto.request.FichaRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.InsumoGroomingRequest;
 import com.spamascotas.spa_mascotas_api.dto.response.FichaResponse;
+import com.spamascotas.spa_mascotas_api.dto.response.GroomerProductividadResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.InsumoGroomingResponse;
 import com.spamascotas.spa_mascotas_api.model.*;
 import com.spamascotas.spa_mascotas_api.model.enums.TipoAccion;
@@ -21,6 +22,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -397,5 +400,56 @@ public class FichaGroomingService {
             throw new RuntimeException("Error al guardar imagen: " + e.getMessage());
         }
         return "/api/files/" + subdir + "/" + filename;
+    }
+
+    // ── Productividad del día ────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public GroomerProductividadResponse miProductividad(String correoGroomer) {
+        Empleado groomer = empleadoRepo.findByUsuarioCorreo(correoGroomer)
+                .orElseThrow(() -> new RuntimeException("Groomer no encontrado"));
+
+        ZoneId bolivia = ZoneId.of("America/La_Paz");
+        LocalDate hoy  = LocalDate.now(bolivia);
+        LocalDateTime inicio = hoy.atStartOfDay();
+        LocalDateTime fin    = hoy.plusDays(1).atStartOfDay();
+
+        DateTimeFormatter fmtHora = DateTimeFormatter.ofPattern("HH:mm");
+
+        List<GroomerProductividadResponse.ServicioHoyDto> servicios =
+            citaRepo.findRealizadasByGroomerEntre(groomer.getId(), inicio, fin).stream()
+                .map(c -> GroomerProductividadResponse.ServicioHoyDto.builder()
+                        .citaId(c.getId())
+                        .mascota(c.getMascota() != null ? c.getMascota().getNombre() : "—")
+                        .servicio(c.getServicio() != null ? c.getServicio().getNombre() : "—")
+                        .horaInicio(c.getFechaHoraInicio() != null ? c.getFechaHoraInicio().format(fmtHora) : "—")
+                        .horaFin(c.getFechaHoraFin() != null ? c.getFechaHoraFin().format(fmtHora) : "—")
+                        .precio(c.getPrecioFinal())
+                        .build())
+                .toList();
+
+        List<MovimientoInventario> movimientos =
+            movimientoRepo.findInsumosUsadosByGroomerEntre(groomer.getId(), inicio, fin);
+
+        List<GroomerProductividadResponse.InsumoHoyDto> insumos = movimientos.stream()
+                .map(m -> GroomerProductividadResponse.InsumoHoyDto.builder()
+                        .producto(m.getProducto() != null ? m.getProducto().getNombre() : "—")
+                        .cantidad(m.getCantidad() != null ? Math.abs(m.getCantidad()) : 0)
+                        .estado(m.getEstado())
+                        .mascota(m.getCita() != null && m.getCita().getMascota() != null
+                                ? m.getCita().getMascota().getNombre() : "—")
+                        .hora(m.getFecha() != null ? m.getFecha().format(fmtHora) : "—")
+                        .build())
+                .toList();
+
+        int totalUnidades = movimientos.stream()
+                .mapToInt(m -> m.getCantidad() != null ? Math.abs(m.getCantidad()) : 0).sum();
+
+        return GroomerProductividadResponse.builder()
+                .totalServicios(servicios.size())
+                .servicios(servicios)
+                .totalInsumosUnidades(totalUnidades)
+                .insumos(insumos)
+                .build();
     }
 }

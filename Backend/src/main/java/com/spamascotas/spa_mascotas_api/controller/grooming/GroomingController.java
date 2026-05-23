@@ -4,6 +4,7 @@ import com.spamascotas.spa_mascotas_api.dto.request.FichaRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.InsumoGroomingRequest;
 import com.spamascotas.spa_mascotas_api.dto.response.CitaResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.FichaResponse;
+import com.spamascotas.spa_mascotas_api.dto.response.GroomerProductividadResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.HorarioTrabajoResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.InsumoGroomingResponse;
 import com.spamascotas.spa_mascotas_api.model.Cita;
@@ -33,6 +34,12 @@ public class GroomingController {
     private final HorarioTrabajoRepository horarioRepo;
     private final CitaRepository citaRepo;
     private final FichaGroomingService fichaService;
+
+    @GetMapping("/mi-productividad")
+    @PreAuthorize("hasAuthority('ROLE_GROOMER')")
+    public GroomerProductividadResponse miProductividad(@AuthenticationPrincipal UserDetails user) {
+        return fichaService.miProductividad(user.getUsername());
+    }
 
     @GetMapping("/mis-horarios")
     @PreAuthorize("hasAuthority('ROLE_GROOMER')")
