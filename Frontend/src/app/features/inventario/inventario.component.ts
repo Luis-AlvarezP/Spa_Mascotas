@@ -36,7 +36,7 @@ type ClienteTab = 'tienda' | 'carrito' | 'pedidos';
 
 interface ClienteItem { id: number; nombre: string; ci?: string; telefono?: string; correo?: string; canalPreferido?: string; }
 
-const TIPOS_PROMO = ['TEMPORADA', 'CAMPANA', 'CLIENTE_FRECUENTE', 'OTRO'];
+const TIPOS_PROMO = ['TEMPORADA', 'CAMPANA', 'OTRO'];
 
 @Component({
   selector: 'app-inventario',
@@ -1133,8 +1133,7 @@ ${p.clienteTelefono ? 'Tel: ' + p.clienteTelefono + '<br>' : ''}</p>
 
   tipoLabel(t: string): string {
     const map: Record<string, string> = {
-      TEMPORADA: 'Temporada', CAMPANA: 'Campaña',
-      CLIENTE_FRECUENTE: 'Cliente frecuente', OTRO: 'Otro',
+      TEMPORADA: 'Temporada', CAMPANA: 'Campaña', OTRO: 'Otro',
     };
     return map[t] ?? t;
   }

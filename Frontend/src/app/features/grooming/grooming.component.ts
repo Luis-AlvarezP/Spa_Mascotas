@@ -58,6 +58,11 @@ export class GroomingComponent implements OnInit {
   errorMsg      = signal('');
   successMsg    = signal('');
 
+  minProximaCita = (() => {
+    const d = new Date(); d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  })();
+
   showInsumoModal = signal(false);
   insumoItems     = signal<{ productoId: number | null; cantidad: number; notas: string; busqueda: string; open: boolean }[]>([]);
   insumoEnviando  = signal(false);
@@ -103,10 +108,16 @@ export class GroomingComponent implements OnInit {
     const fotos = this.ficha()?.fotos ?? [];
     return ['ANTES','DURANTE','DESPUES'].every(m => fotos.some(f => f.momento === m));
   });
-  insumosResueltos  = computed(() => this.insumos().every(i => i.estado !== 'SOLICITADO' && i.estado !== 'ENTREGADO'));
-  tieneRecomendacion = computed(() => this.recomendacion().trim().length > 0);
-  puedesCerrar      = computed(() =>
-    this.checklistCount() === this.checklistTotal() &&
+  insumosResueltos   = computed(() => this.insumos().every(i => i.estado !== 'SOLICITADO' && i.estado !== 'ENTREGADO'));
+  tieneRecomendacion = computed(() => this.recomendacion().trim().length > 0 && this.proximaCita().trim().length > 0);
+  fichaCompleta      = computed(() =>
+    this.estadoIngreso().trim().length > 0 &&
+    this.observaciones().trim().length > 0 &&
+    this.detalles().length >= 1 &&
+    this.checklistCount() === this.checklistTotal()
+  );
+  puedesCerrar       = computed(() =>
+    this.fichaCompleta() &&
     this.tieneFotos() &&
     this.insumosResueltos() &&
     this.tieneRecomendacion()
@@ -170,45 +181,19 @@ export class GroomingComponent implements OnInit {
     this.proximaCita.set('');
   }
 
-  guardarFicha() {
-    const cita = this.citaSeleccionada();
-    if (!cita) return;
-    this.loading.set(true);
-    this.errorMsg.set('');
-    this.svc.guardarFicha({
-      citaId: cita.id,
-      estadoIngreso: this.estadoIngreso(),
-      observacionesGenerales: this.observaciones(),
-      detalles: this.detalles(),
-      checklistUnas: this.checklistUnas(),
-      checklistOidos: this.checklistOidos(),
-      checklistGlandulas: this.checklistGlandulas(),
-      checklistCorte: this.checklistCorte(),
-      checklistBano: this.checklistBano(),
-      checklistPerfume: this.checklistPerfume(),
-      checklistPeinado: this.checklistPeinado(),
-      recomendacion: this.recomendacion(),
-      proximaCitaSugerida: this.proximaCita() || undefined
-    }).subscribe({
-      next: f => { this.ficha.set(f); this.setSuccess('Ficha guardada'); this.loading.set(false); },
-      error: e => { this.setError(e.error?.message || 'Error al guardar'); this.loading.set(false); }
-    });
-  }
-
   cerrarFicha() {
-    const f     = this.ficha();
-    const fotos = f?.fotos ?? [];
-    const ins   = this.insumos();
+    const f    = this.ficha();
+    const cita = this.citaSeleccionada();
+    const ins  = this.insumos();
 
-    if (fotos.length === 0) {
+    if ((f?.fotos ?? []).length === 0) {
       this.activeTab.set('fotos');
       this.setError('Debes subir al menos una foto del servicio');
       return;
     }
-    const insumosPendientes = ins.filter(i => i.estado === 'SOLICITADO' || i.estado === 'ENTREGADO');
-    if (insumosPendientes.length > 0) {
+    if (ins.some(i => i.estado === 'SOLICITADO' || i.estado === 'ENTREGADO')) {
       this.activeTab.set('insumos');
-      this.setError('Hay insumos pendientes. Márcalos como Usado, Devuelto o Mermado antes de cerrar');
+      this.setError('Hay insumos pendientes. Márcalos como Usado, Devuelto o Desperdiciado antes de cerrar');
       return;
     }
     if (!this.recomendacion().trim()) {
@@ -216,28 +201,51 @@ export class GroomingComponent implements OnInit {
       this.setError('La recomendación para el cliente es obligatoria');
       return;
     }
+    if (!f || !cita) return;
 
-    if (!f) return;
     this.loading.set(true);
-    this.svc.cerrarFicha(f.id).subscribe({
-      next: updated => {
-        this.ficha.set(updated);
-        this.groomingNotif.refresh();
-        this.stockNotif.refresh();
-        this.setSuccess('Servicio cerrado — pendiente de cobro');
-        this.loading.set(false);
-        this.citaSvc.misServicios().subscribe({
-          next: data => {
-            this.citas.set(data.filter(c => c.estado === 'ACEPTADO'));
-            this.citaSeleccionada.set(null);
-            this.ficha.set(null);
-            this.insumos.set([]);
-            this.resetForm();
+    this.errorMsg.set('');
+
+    const req = {
+      citaId:                 cita.id,
+      estadoIngreso:          this.estadoIngreso(),
+      observacionesGenerales: this.observaciones(),
+      detalles:               this.detalles(),
+      checklistUnas:          this.checklistUnas(),
+      checklistOidos:         this.checklistOidos(),
+      checklistGlandulas:     this.checklistGlandulas(),
+      checklistCorte:         this.checklistCorte(),
+      checklistBano:          this.checklistBano(),
+      checklistPerfume:       this.checklistPerfume(),
+      checklistPeinado:       this.checklistPeinado(),
+      recomendacion:          this.recomendacion(),
+      proximaCitaSugerida:    this.proximaCita() || undefined
+    };
+
+    this.svc.guardarFicha(req).subscribe({
+      next: saved => {
+        this.svc.cerrarFicha(saved.id).subscribe({
+          next: updated => {
+            this.ficha.set(updated);
+            this.groomingNotif.refresh();
+            this.stockNotif.refresh();
+            this.setSuccess('Servicio cerrado — pendiente de cobro');
+            this.loading.set(false);
+            this.citaSvc.misServicios().subscribe({
+              next: data => {
+                this.citas.set(data.filter(c => c.estado === 'ACEPTADO'));
+                this.citaSeleccionada.set(null);
+                this.ficha.set(null);
+                this.insumos.set([]);
+                this.resetForm();
+              },
+              error: () => {}
+            });
           },
-          error: () => {}
+          error: e => { this.setError(e.error?.message || 'Error al cerrar'); this.loading.set(false); }
         });
       },
-      error: e => { this.setError(e.error?.message || 'Error al cerrar'); this.loading.set(false); }
+      error: e => { this.setError(e.error?.message || 'Error al guardar la ficha'); this.loading.set(false); }
     });
   }
 
@@ -348,6 +356,9 @@ export class GroomingComponent implements OnInit {
       this.svc.solicitarInsumo(req).subscribe({
         next: ins => {
           this.insumos.update(arr => [ins, ...arr]);
+          this.productos.update(ps => ps.map(p =>
+            p.id === ins.productoId ? { ...p, stockActual: p.stockActual - ins.cantidad } : p
+          ));
           completados++;
           if (completados + errores === items.length) {
             this.insumoEnviando.set(false);
@@ -370,7 +381,17 @@ export class GroomingComponent implements OnInit {
 
   actualizarEstadoInsumo(insumo: InsumoResponse, estado: string) {
     this.svc.actualizarEstadoInsumo(insumo.id, estado).subscribe({
-      next: updated => this.insumos.update(arr => arr.map(i => i.id === updated.id ? updated : i))
+      next: updated => {
+        this.insumos.update(arr => arr.map(i => i.id === updated.id ? updated : i));
+        const devuelveStock =
+          (estado === 'RECHAZADO' && insumo.estado === 'SOLICITADO') ||
+          (estado === 'DEVUELTO'  && insumo.estado === 'ENTREGADO');
+        if (devuelveStock) {
+          this.productos.update(ps => ps.map(p =>
+            p.id === updated.productoId ? { ...p, stockActual: p.stockActual + updated.cantidad } : p
+          ));
+        }
+      }
     });
   }
 

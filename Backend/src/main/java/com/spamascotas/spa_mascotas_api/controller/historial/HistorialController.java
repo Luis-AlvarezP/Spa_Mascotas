@@ -28,6 +28,12 @@ public class HistorialController {
         return service.historialPorMascota(mascotaId, user.getUsername());
     }
 
+    @GetMapping("/mascota/{mascotaId}/staff")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_RECEPCION') or hasAuthority('ROLE_GROOMER')")
+    public List<HistorialCitaResponse> porMascotaStaff(@PathVariable Long mascotaId) {
+        return service.historialPorMascotaStaff(mascotaId);
+    }
+
     @GetMapping("/mis-servicios")
     @PreAuthorize("hasAuthority('ROLE_GROOMER')")
     public List<HistorialCitaResponse> misServicios(@AuthenticationPrincipal UserDetails user) {

@@ -38,21 +38,10 @@ export class PedidoNotificacionService implements OnDestroy {
         this.pendientes.set(n);
         if (n > 0) {
           this.visible.set(true);
-          this.sendDesktopNotif(n);
         } else {
           this.visible.set(false);
         }
       },
-    });
-  }
-
-  private async sendDesktopNotif(n: number): Promise<void> {
-    if (typeof Notification === 'undefined') return;
-    if (Notification.permission === 'default') await Notification.requestPermission();
-    if (Notification.permission !== 'granted') return;
-    new Notification('SpaMascotas — Pedidos pendientes', {
-      body: `${n} pedido${n > 1 ? 's' : ''} en espera de entrega`,
-      icon: '/favicon.ico',
     });
   }
 

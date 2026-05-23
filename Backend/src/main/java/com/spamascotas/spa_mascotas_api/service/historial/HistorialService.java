@@ -41,6 +41,12 @@ public class HistorialService {
     }
 
     @Transactional(readOnly = true)
+    public List<HistorialCitaResponse> historialPorMascotaStaff(Long mascotaId) {
+        return citaRepo.findByMascotaIdAndEstadoOrderByFechaHoraInicioDesc(mascotaId, "REALIZADO")
+                .stream().map(this::toHistorial).toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<HistorialCitaResponse> historialGroomer(String correoGroomer) {
         Empleado groomer = empleadoRepo.findByUsuarioCorreo(correoGroomer)
                 .orElseThrow(() -> new RuntimeException("Groomer no encontrado"));

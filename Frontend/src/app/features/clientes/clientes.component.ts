@@ -121,7 +121,10 @@ export class ClientesComponent implements OnInit {
   showModal       = signal(false);
   editingMascota  = signal<MascotaResponse | null>(null);
   detailMascota   = signal<MascotaResponse | null>(null);
-  staffDetailMascota = signal<MascotaResponse | null>(null);
+  staffDetailMascota       = signal<MascotaResponse | null>(null);
+  staffDetailHistorial     = signal<HistorialCitaResponse[]>([]);
+  loadingStaffHistorial    = signal(false);
+  staffHistorialExpandido  = signal<number | null>(null);
 
 
   selectedFile     = signal<File | null>(null);
@@ -204,10 +207,22 @@ export class ClientesComponent implements OnInit {
 
   openStaffDetail(m: MascotaResponse): void {
     this.staffDetailMascota.set(m);
+    this.staffDetailHistorial.set([]);
+    this.loadingStaffHistorial.set(true);
+    this.citaSvc.historialMascotaStaff(m.id).subscribe({
+      next: h  => { this.staffDetailHistorial.set(h); this.loadingStaffHistorial.set(false); },
+      error: () => this.loadingStaffHistorial.set(false),
+    });
   }
 
   closeStaffDetail(): void {
     this.staffDetailMascota.set(null);
+    this.staffDetailHistorial.set([]);
+    this.staffHistorialExpandido.set(null);
+  }
+
+  toggleStaffHistorial(citaId: number): void {
+    this.staffHistorialExpandido.update(v => v === citaId ? null : citaId);
   }
 
   
@@ -423,7 +438,10 @@ export class ClientesComponent implements OnInit {
     this.historialExpandido.set(null);
     this.showHistorial.set(true);
     this.loadingHistorial.set(true);
-    this.citaSvc.historialMascota(m.id).subscribe({
+    const obs = this.isStaff()
+      ? this.citaSvc.historialMascotaStaff(m.id)
+      : this.citaSvc.historialMascota(m.id);
+    obs.subscribe({
       next: h  => { this.historialList.set(h); this.loadingHistorial.set(false); },
       error: () => this.loadingHistorial.set(false),
     });

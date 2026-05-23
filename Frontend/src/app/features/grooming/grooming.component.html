@@ -137,8 +137,8 @@
             </div>
             @if (ficha()?.estado === 'CERRADA') {
               <span class="badge-cerrada">Cerrada</span>
-            } @else if (ficha()) {
-              <span class="badge-abierta">En curso</span>
+            } @else if (esHoy()) {
+              <span class="badge-abierta">En proceso</span>
             } @else {
               <span class="badge-nueva">Nueva</span>
             }
@@ -258,43 +258,35 @@
 
               @if (!fichaCerrada() && canEdit()) {
                 <div class="ficha-actions">
-                  <button class="btn-guardar"
-                    [disabled]="loading() || !esHoy()"
-                    [title]="!esHoy() ? 'Disponible para el día de la cita' : ''"
-                    (click)="guardarFicha()">
-                    @if (loading()) { Guardando... } @else { Guardar ficha }
-                  </button>
                   <button class="btn-cerrar"
-                    [disabled]="loading() || !ficha() || !puedesCerrar() || !esHoy()"
+                    [disabled]="loading() || !puedesCerrar() || !esHoy()"
                     [title]="!esHoy() ? 'Disponible para el día de la cita' : ''"
                     (click)="cerrarFicha()">
-                    Cerrar servicio
+                    @if (loading()) { Cerrando... } @else { Cerrar servicio }
                   </button>
                 </div>
-                @if (ficha() && !puedesCerrar()) {
-                  <div class="cierre-hints">
-                    <div class="cierre-hint" [class.ok]="checklistCount() === checklistTotal()">
-                      <span class="hint-dot"></span>Checklist {{ checklistCount() }}/{{ checklistTotal() }}
-                    </div>
-                    <div class="cierre-hint" [class.ok]="tieneFotos()">
-                      <span class="hint-dot"></span>
-                      @if (tieneFotos()) {
-                        Fotos completas (Antes, Durante, Después)
-                      } @else {
-                        Fotos faltantes:
-                        @if (!(ficha()?.fotos ?? []).some(f => f.momento === 'ANTES'))    { "Antes" }
-                        @if (!(ficha()?.fotos ?? []).some(f => f.momento === 'DURANTE'))  { "Durante" }
-                        @if (!(ficha()?.fotos ?? []).some(f => f.momento === 'DESPUES'))  { "Después" }
-                      }
-                    </div>
-                    <div class="cierre-hint" [class.ok]="insumosResueltos()">
-                      <span class="hint-dot"></span>{{ insumosResueltos() ? 'Insumos resueltos' : 'Hay insumos pendientes de resolver' }}
-                    </div>
-                    <div class="cierre-hint" [class.ok]="tieneRecomendacion()">
-                      <span class="hint-dot"></span>{{ tieneRecomendacion() ? 'Recomendación completa' : 'Falta la recomendación al cliente' }}
-                    </div>
+                <div class="cierre-hints">
+                  <div class="cierre-hint" [class.ok]="fichaCompleta()">
+                    <span class="hint-dot"></span>Ficha completa
                   </div>
-                }
+                  <div class="cierre-hint" [class.ok]="tieneFotos()">
+                    <span class="hint-dot"></span>
+                    @if (tieneFotos()) {
+                      Fotos completas (Antes, Durante, Después)
+                    } @else {
+                      Fotos faltantes:
+                      @if (!(ficha()?.fotos ?? []).some(f => f.momento === 'ANTES'))   { "Antes" }
+                      @if (!(ficha()?.fotos ?? []).some(f => f.momento === 'DURANTE')) { "Durante" }
+                      @if (!(ficha()?.fotos ?? []).some(f => f.momento === 'DESPUES')) { "Después" }
+                    }
+                  </div>
+                  <div class="cierre-hint" [class.ok]="insumosResueltos()">
+                    <span class="hint-dot"></span>{{ insumosResueltos() ? 'Insumos resueltos' : 'Hay insumos pendientes de resolver' }}
+                  </div>
+                  <div class="cierre-hint" [class.ok]="tieneRecomendacion()">
+                    <span class="hint-dot"></span>{{ tieneRecomendacion() ? 'Recomendación completa' : 'Falta la recomendación al cliente' }}
+                  </div>
+                </div>
               }
 
             </div>
@@ -372,7 +364,7 @@
                               <div class="insumo-actions">
                                 <button class="btn-xs btn-usado"    (click)="actualizarEstadoInsumo(ins, 'USADO')">Usado</button>
                                 <button class="btn-xs btn-devuelto" (click)="actualizarEstadoInsumo(ins, 'DEVUELTO')">Devolver</button>
-                                <button class="btn-xs btn-desp"     (click)="actualizarEstadoInsumo(ins, 'DESPERDICIADO')">Mermado</button>
+                                <button class="btn-xs btn-desp"     (click)="actualizarEstadoInsumo(ins, 'DESPERDICIADO')">Desperdiciado</button>
                               </div>
                             }
                           </td>
@@ -396,18 +388,9 @@
               <div class="form-row">
                 <label class="form-label">Próxima cita sugerida</label>
                 <input type="date" class="form-input" [disabled]="fichaCerrada() || !canEdit() || !esHoy()"
+                  [min]="minProximaCita"
                   [ngModel]="proximaCita()" (ngModelChange)="proximaCita.set($event)">
               </div>
-              @if (!fichaCerrada() && canEdit()) {
-                <div class="ficha-actions">
-                  <button class="btn-guardar"
-                    [disabled]="loading() || !esHoy()"
-                    [title]="!esHoy() ? 'Disponible para el día de la cita' : ''"
-                    (click)="guardarFicha()">
-                    @if (loading()) { Guardando... } @else { Guardar recomendación }
-                  </button>
-                </div>
-              }
             </div>
           }
 

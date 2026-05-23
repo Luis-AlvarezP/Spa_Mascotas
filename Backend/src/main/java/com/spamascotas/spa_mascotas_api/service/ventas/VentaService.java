@@ -154,7 +154,8 @@ public class VentaService {
                 .notas("Venta #" + venta.getId())
                 .build());
             if (i > 0) itemsDetalle.append(", ");
-            itemsDetalle.append(p.getNombre()).append(" x").append(itemReq.getCantidad());
+            itemsDetalle.append(p.getNombre()).append(" x").append(itemReq.getCantidad())
+                .append(" ($").append(preciosUnitarios.get(i).setScale(2, RoundingMode.HALF_UP)).append("/u)");
         }
         venta.setItems(ventaItems);
         auditService.registrar(TipoAccion.MOVIMIENTO_INVENTARIO, correoUsuario,
@@ -177,9 +178,27 @@ public class VentaService {
             .build());
         venta.setPedido(pedido);
 
+        StringBuilder ventaAudit = new StringBuilder();
+        ventaAudit.append("Venta de productos #").append(venta.getId());
+        ventaAudit.append(" | Cliente: ").append(cliente.getNombre());
+        if (vendedor != null) ventaAudit.append(" | Vendedor: ").append(vendedor.getNombre());
+        ventaAudit.append(" | Pago: ").append(metodoPago.getNombre());
+        ventaAudit.append(" | Entrega: ").append(tipoEntrega);
+        ventaAudit.append(" | Productos: [").append(itemsDetalle).append("]");
+        ventaAudit.append(" | Subtotal: $").append(subtotal.setScale(2, RoundingMode.HALF_UP));
+        if (totalDescuento.compareTo(BigDecimal.ZERO) > 0) {
+            ventaAudit.append(" | Descuentos: $").append(totalDescuento.setScale(2, RoundingMode.HALF_UP));
+            if (descuentoCupon.compareTo(BigDecimal.ZERO) > 0)
+                ventaAudit.append(" (cupón: $").append(descuentoCupon.setScale(2, RoundingMode.HALF_UP)).append(")");
+            if (descuentoFrecuente.compareTo(BigDecimal.ZERO) > 0)
+                ventaAudit.append(" (fidelidad ").append(descuentoPct).append("%)");
+            if (descuentoManual.compareTo(BigDecimal.ZERO) > 0)
+                ventaAudit.append(" (manual: $").append(descuentoManual.setScale(2, RoundingMode.HALF_UP)).append(")");
+        }
+        ventaAudit.append(" | Total: $").append(totalFinal.setScale(2, RoundingMode.HALF_UP));
         auditService.registrar(TipoAccion.VENTA_REALIZADA, correoUsuario,
             esRecepcion ? "RECEPCION" : "CLIENTE", true,
-            "Venta #" + venta.getId() + " | Total: " + totalFinal + " | Cliente: " + cliente.getNombre());
+            ventaAudit.toString());
 
         stockEventService.notifyStockChange();
         return toResponse(venta, esFrecuente, descuentoCupon);

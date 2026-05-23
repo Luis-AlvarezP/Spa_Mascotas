@@ -191,6 +191,10 @@ export class CitaService {
     return this.http.get<HistorialCitaResponse[]>(`/api/historial/mascota/${mascotaId}`);
   }
 
+  historialMascotaStaff(mascotaId: number): Observable<HistorialCitaResponse[]> {
+    return this.http.get<HistorialCitaResponse[]>(`/api/historial/mascota/${mascotaId}/staff`);
+  }
+
   historialGroomer(): Observable<HistorialCitaResponse[]> {
     return this.http.get<HistorialCitaResponse[]>('/api/historial/mis-servicios');
   }

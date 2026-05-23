@@ -748,14 +748,14 @@
 
                   @if (h.observaciones) {
                     <div class="hg-section">
-                      <span class="hg-label">Observaciones</span>
+                      <span class="hg-label">Observaciones generales</span>
                       <p class="hg-text">{{ h.observaciones }}</p>
                     </div>
                   }
 
                   @if (h.detalles && h.detalles.length > 0) {
                     <div class="hg-section">
-                      <span class="hg-label">Notas</span>
+                      <span class="hg-label">Notas detalladas del ingreso</span>
                       <ul class="hg-list">
                         @for (d of h.detalles; track d) { <li>{{ d }}</li> }
                       </ul>

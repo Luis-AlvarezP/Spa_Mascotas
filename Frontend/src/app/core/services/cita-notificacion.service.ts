@@ -39,24 +39,10 @@ export class CitaNotificacionService implements OnDestroy {
         this.pendientePago.set(pago);
         if (rev + pago > 0) {
           this.visible.set(true);
-          this.sendDesktopNotif(rev, pago);
         } else {
           this.visible.set(false);
         }
       },
-    });
-  }
-
-  private async sendDesktopNotif(rev: number, pago: number): Promise<void> {
-    if (typeof Notification === 'undefined') return;
-    if (Notification.permission === 'default') await Notification.requestPermission();
-    if (Notification.permission !== 'granted') return;
-    const partes: string[] = [];
-    if (rev  > 0) partes.push(`${rev} cita${rev > 1 ? 's' : ''} por revisar`);
-    if (pago > 0) partes.push(`${pago} cita${pago > 1 ? 's' : ''} por cobrar`);
-    new Notification('SpaMascotas — Citas pendientes', {
-      body: partes.join(' · '),
-      icon: '/favicon.ico',
     });
   }
 

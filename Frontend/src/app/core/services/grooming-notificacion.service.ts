@@ -44,21 +44,10 @@ export class GroomingNotificacionService implements OnDestroy {
         this.confirmadas.set(count);
         if (count > 0) {
           this.visible.set(true);
-          this.sendDesktopNotif(count);
         } else {
           this.visible.set(false);
         }
       },
-    });
-  }
-
-  private async sendDesktopNotif(count: number): Promise<void> {
-    if (typeof Notification === 'undefined') return;
-    if (Notification.permission === 'default') await Notification.requestPermission();
-    if (Notification.permission !== 'granted') return;
-    new Notification('SpaMascotas — Servicios pendientes', {
-      body: `Tienes ${count} servicio${count > 1 ? 's' : ''} por atender`,
-      icon: '/favicon.ico',
     });
   }
 

@@ -5,8 +5,11 @@ import com.spamascotas.spa_mascotas_api.dto.request.CitaRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.CobrarRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.RechazarRequest;
 import com.spamascotas.spa_mascotas_api.dto.request.ReprogramarRequest;
+import com.spamascotas.spa_mascotas_api.model.enums.TipoAccion;
+import com.spamascotas.spa_mascotas_api.service.admin.AuditService;
 import com.spamascotas.spa_mascotas_api.service.auth.EmailService;
 import com.spamascotas.spa_mascotas_api.service.sse.StockEventService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.spamascotas.spa_mascotas_api.dto.response.CitaResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.GroomerResponse;
 import com.spamascotas.spa_mascotas_api.dto.response.ServicioResponse;
@@ -54,6 +57,7 @@ public class CitaService {
     private final BloqueoAgendaRepository   bloqueoRepo;
     private final EmailService              emailService;
     private final StockEventService         sseEventService;
+    private final AuditService              auditService;
 
     // ── Servicios disponibles ────────────────────────────────
 
@@ -532,6 +536,32 @@ public class CitaService {
                     total.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
                     cita.getId());
         } catch (Exception e) { log.warn("Email cobrar: {}", e.getMessage()); }
+
+        try {
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            String correoActor = auth != null ? auth.getName() : "sistema";
+            String rolActor = auth != null ? auth.getAuthorities().stream()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .findFirst().orElse("RECEPCION") : "RECEPCION";
+            BigDecimal recargoAudit = cita.getRecargoPorcentaje() != null ? cita.getRecargoPorcentaje() : BigDecimal.ZERO;
+            BigDecimal baseAudit    = cita.getPrecioFinal();
+            BigDecimal totalAudit   = recargoAudit.compareTo(BigDecimal.ZERO) > 0
+                    ? baseAudit.add(baseAudit.multiply(recargoAudit).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP))
+                    : baseAudit;
+            StringBuilder sa = new StringBuilder();
+            sa.append("Venta de servicio | Cita #").append(cita.getId());
+            sa.append(" | Servicio: ").append(cita.getServicio().getNombre());
+            sa.append(" | Mascota: ").append(cita.getMascota() != null ? cita.getMascota().getNombre() : "—");
+            sa.append(" | Cliente: ").append(cita.getCliente() != null ? cita.getCliente().getNombre() : "—");
+            sa.append(" | Groomer: ").append(cita.getEmpleadoAsignado() != null ? cita.getEmpleadoAsignado().getNombre() : "Por asignar");
+            sa.append(" | Pago: ").append(req.getMetodoPago());
+            sa.append(" | Base: $").append(baseAudit.setScale(2, java.math.RoundingMode.HALF_UP));
+            if (recargoAudit.compareTo(BigDecimal.ZERO) > 0)
+                sa.append(" | Recargo: ").append(recargoAudit.stripTrailingZeros().toPlainString()).append("%");
+            sa.append(" | Total: $").append(totalAudit.setScale(2, java.math.RoundingMode.HALF_UP));
+            auditService.registrar(TipoAccion.VENTA_SERVICIO, correoActor, rolActor, true, sa.toString());
+        } catch (Exception e) { log.warn("Audit cobrar: {}", e.getMessage()); }
+
         sseEventService.notifyCitaChange();
         return resp;
     }
