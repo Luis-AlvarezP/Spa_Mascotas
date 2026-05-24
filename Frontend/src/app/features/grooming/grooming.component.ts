@@ -265,14 +265,26 @@ export class GroomingComponent implements OnInit {
     const cita = this.citaSeleccionada();
     if (!file || !cita) return;
     this.uploadingFoto.set(true);
-    this.svc.subirFoto(cita.id, file, momento).subscribe({
-      next: foto => {
-        this.ficha.update(f => f ? { ...f, fotos: [...(f.fotos ?? []), foto] } : f);
-        this.uploadingFoto.set(false);
-      },
-      error: () => { this.setError('Error al subir foto'); this.uploadingFoto.set(false); }
-    });
     (event.target as HTMLInputElement).value = '';
+
+    const doUpload = () => {
+      this.svc.subirFoto(cita.id, file, momento).subscribe({
+        next: foto => {
+          this.ficha.update(f => f ? { ...f, fotos: [...(f.fotos ?? []), foto] } : f);
+          this.uploadingFoto.set(false);
+        },
+        error: () => { this.setError('Error al subir foto'); this.uploadingFoto.set(false); }
+      });
+    };
+
+    if (!this.ficha()) {
+      this.svc.guardarFicha({ citaId: cita.id }).subscribe({
+        next: f => { this.ficha.set(f); doUpload(); },
+        error: () => doUpload()
+      });
+    } else {
+      doUpload();
+    }
   }
 
   eliminarFoto(fotoId: number) {
